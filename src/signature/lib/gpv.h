@@ -47,8 +47,6 @@
 #include "lattice/ildcrtparams.h"
 #include "lattice/ilelement.h"
 #include "encoding/stringencoding.h"
-#include "lattice/trapdoor.h"
-#include "lattice/trapdoorparameters.h"
 #include "signaturecore.h"
 
 namespace lbcrypto {
@@ -372,7 +370,7 @@ namespace lbcrypto {
 		*@param signKey private signing key
 		*return perturbation vector
 		*/
-		shared_ptr<Matrix<Element>> SampleOffline(shared_ptr<GPVSignatureParameters<Element>> m_params,const GPVSignKey<Element> &signKey);
+		PerturbationVector<Element> SampleOffline(shared_ptr<LPSignatureParameters<Element>> m_params,const LPSignKey<Element> &signKey);
 
 		/**
 		*Method for signing given text
@@ -383,8 +381,7 @@ namespace lbcrypto {
 		*@param plainText encoding of the text to be signed
 		*@param signatureText signature generated after the signing process - output of the function
 		*/
-		void SignOnline(shared_ptr<GPVSignatureParameters<Element>> m_params,const GPVSignKey<Element> &signKey,const GPVVerificationKey<Element> &verificationKey, const shared_ptr<Matrix<Element>> parturbationVector, const string &plainText,
-			GPVSignature<Element> * signatureText);
+		void SignOnline(shared_ptr<LPSignatureParameters<Element>> m_params,const LPSignKey<Element> &signKey,const LPVerificationKey<Element> &verificationKey, const PerturbationVector<Element> & parturbationVector, const LPSignPlaintext<Element> & pt, LPSignature<Element> * signatureText);
 
 		/**
 		*Method for verifying given text & signature

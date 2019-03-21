@@ -452,13 +452,14 @@ namespace lbcrypto {
 	template <class Element>
 	shared_ptr<Matrix<int64_t>> LatticeGaussSampUtility<Element>::ZSampleF(const Field2n &f, const Field2n &c,
 		const typename Element::DggType &dgg, size_t n) {
-
+		
 		if (f.Size() == 1)
-		{
+		{	
 			shared_ptr<Matrix<int64_t>> p(new Matrix<int64_t>([]() { return 0; }, 1, 1));
 			(*p)(0, 0) = dgg.GenerateIntegerKarney(c[0].real(), sqrt(f[0].real()));
 			return p;
 		}
+		
 		else {
 
 			Field2n f0 = f.ExtractEven();
@@ -476,9 +477,7 @@ namespace lbcrypto {
 
 			cPermuted(0, 0) = c.ExtractEven();
 			cPermuted(1, 0) = c.ExtractOdd();
-
 			LatticeGaussSampUtility<Element>::ZSampleSigma2x2(f0, f1, f0, cPermuted, dgg, qZVector);
-
 			InversePermute(qZVector);
 
 			return qZVector;

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file pubkeylp.h -- Public key type for lattice crypto operations.
  * @author  TPOC: palisade@njit.edu
  *
@@ -1115,18 +1115,6 @@ namespace lbcrypto {
 			virtual ~LPPREAlgorithm() {}
 
 			/**
-			 * Virtual function to generate 1..log(q) encryptions for each bit of the original private key.
-			 * Variant that uses the new secret key directly.
-			 *
-			 * @param &newKey new private key for the new ciphertext.
-			 * @param &origPrivateKey original private key used for decryption.
-			 * @param *evalKey the evaluation key.
-			 * @return the re-encryption key.
-			 */
-			virtual LPEvalKey<Element> ReKeyGen(const LPPrivateKey<Element> newKey,
-				const LPPrivateKey<Element> origPrivateKey) const = 0;
-
-			/**
 			* Virtual function to generate 1..log(q) encryptions for each bit of the original private key
 			* Variant that uses the public key for the new secret key.
 			*
@@ -1143,10 +1131,12 @@ namespace lbcrypto {
 			 *
 			 * @param &evalKey proxy re-encryption key.
 			 * @param &ciphertext the input ciphertext.
+			 * @param publicKey the public key of the recipient of the re-encrypted ciphertext.
 			 * @param *newCiphertext the new ciphertext.
 			 */
 			virtual Ciphertext<Element> ReEncrypt(const LPEvalKey<Element> evalKey,
-				ConstCiphertext<Element> ciphertext) const = 0;
+				ConstCiphertext<Element> ciphertext,
+				const LPPublicKey<Element> publicKey = nullptr) const = 0;
 
 	};
 
@@ -2196,21 +2186,11 @@ namespace lbcrypto {
 			}
 		}
 
-		LPEvalKey<Element> ReKeyGen(const LPPrivateKey<Element> newKey,
-				const LPPrivateKey<Element> origPrivateKey) const {
-			if (this->m_algorithmPRE) {
-				auto rk = this->m_algorithmPRE->ReKeyGen(newKey,origPrivateKey);
-				rk->SetKeyTag( newKey->GetKeyTag() );
-				return rk;
-			} else {
-				throw std::logic_error("ReKeyGen operation has not been enabled");
-			}
-		}
-
 		Ciphertext<Element> ReEncrypt(const LPEvalKey<Element> evalKey,
-				ConstCiphertext<Element> ciphertext) const {
+				ConstCiphertext<Element> ciphertext,
+				const LPPublicKey<Element> publicKey) const {
 			if(this->m_algorithmPRE) {
-				auto ct = this->m_algorithmPRE->ReEncrypt(evalKey,ciphertext);
+				auto ct = this->m_algorithmPRE->ReEncrypt(evalKey, ciphertext, publicKey);
 				ct->SetKeyTag( evalKey->GetKeyTag() );
 				return ct;
 			} else {

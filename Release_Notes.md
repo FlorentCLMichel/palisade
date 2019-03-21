@@ -1,3 +1,10 @@
+3/20/2019: PALISADE v1.5.0 is released
+
+Fixes the vulnerability found in https://eprint.iacr.org/2017/785 (PKC'19) for the PRE schemes based on BGV/BFV 
+Adds PRE modes for BGV/BFV that are secure under honest re-reencryption attacks (recommended security for practical use)
+Adds support for splitting lattice trapdoor sampling into offline and online phases (used by digital signatures, IBE, and ABE constructions)
+Fixes bugs related to the multi-threaded mode of operation
+
 02/11/2018: PALISADE v1.4.1 is released
 
 Fixes a bug affecting the IBE and CP-ABE implementations (some unit tests for IBE/CP-ABE were entering in an infinite loop in about 10% of the runs).

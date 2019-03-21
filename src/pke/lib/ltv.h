@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file ltv.h -- Operations for the LTV cryptoscheme.
  * @author  TPOC: palisade@njit.edu
  *
@@ -318,20 +318,6 @@ public:
 
 	/**
 	* Function to generate a re-encryption key as 1..log(q) encryptions for each bit of the original private key
-	* This variant that uses the new secret key directly along with the original secret key.
-	*
-	* @param newKey new private key for the new ciphertext.
-	* @param origPrivateKey original private key used for decryption.
-	* @return evalKey the evaluation key for switching the ciphertext to be decryptable by new private key.
-	*/
-	LPEvalKey<Element> ReKeyGen(const LPPrivateKey<Element> newKey,
-		const LPPrivateKey<Element> origPrivateKey) const {
-		std::string errMsg = "LPAlgorithmPRELTV::ReKeyGen using the new secret key is not implemented for the LTV Scheme.";
-		throw std::runtime_error(errMsg);
-	}
-
-	/**
-	* Function to generate a re-encryption key as 1..log(q) encryptions for each bit of the original private key
 	* This variant that uses the new public key with the original secret key.
 	*
 	* @param newKey new private key for the new ciphertext.
@@ -347,10 +333,12 @@ public:
 	*
 	* @param evalKey the evaluation key.
 	* @param ciphertext the input ciphertext.
+	* @param publicKey the public key of the recipient of the re-encrypted ciphertext.
 	* @return A shared pointer to the resulting ciphertext.
 	*/
 	Ciphertext<Element> ReEncrypt(const LPEvalKey<Element> evalKey,
-		ConstCiphertext<Element> ciphertext) const;
+		ConstCiphertext<Element> ciphertext,
+		const LPPublicKey<Element> publicKey = nullptr) const;
 	
 };
 

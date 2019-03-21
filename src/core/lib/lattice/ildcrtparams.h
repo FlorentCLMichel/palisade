@@ -48,17 +48,19 @@ template<typename IntType>
 class ILDCRTParams : public ElemParams<IntType>
 {
 public:
-	typedef IntType Integer;
+  static const usint DEFAULT_NBITS = 20;
+  
+        typedef IntType Integer;
 	using ILNativeParams = ILParamsImpl<NativeInteger>;
 
 	/**
 	 * @brief Constructor with basic parameter set.
-	 *
+	 * q is selected as FirstPrime(bits, order)  
 	 * @param order the order of the ciphertext.
-	 * @param depth is the modulus for the entire tower.
-	 * @param bits is the number of bits of each moduli.
+	 * @param depth is the size of the tower.
+	 * @param bits is the number of bits of each tower's moduli.
 	 */
-	ILDCRTParams(usint order=0, usint depth=1, usint bits=20);
+	ILDCRTParams(usint order=0, usint depth=1, usint bits= DEFAULT_NBITS);
 
 	/**
 	 * @brief Constructor with basic parameters
@@ -69,7 +71,47 @@ public:
 	 */
 	ILDCRTParams(const usint cyclotomic_order, const IntType &modulus, const IntType& rootOfUnity)
 		: ElemParams<IntType>(cyclotomic_order, modulus, 0, 0, 0) {
-		// note this does not create a tower of native params
+
+		// NOTE parms generation uses this constructor to make an empty parms that it will later
+		// populate during the gen process. For that special case... we don't populate, and
+		// we just return
+
+		if( cyclotomic_order == 0 )
+			return;
+
+ 	          bool dbg_flag(false);
+		  DEBUG("in ILDCRTParams(const usint cyclotomic_order, const IntType &modulus, const IntType& rootOfUnity");
+		  DEBUGEXP(cyclotomic_order);
+		  DEBUGEXP(modulus);
+		  DEBUGEXP(rootOfUnity);
+		  usint numOfTower = 1;
+		  std::vector<NativeInteger> moduli;
+		  std::vector<NativeInteger> rootsOfUnity;
+
+		  NativeInteger q = FirstPrime<NativeInteger>(DEFAULT_NBITS, cyclotomic_order);
+		  IntType compositeModulus(1);
+
+		  for(;;) {
+		    moduli.push_back(q);
+		    rootsOfUnity.push_back(RootOfUnity(cyclotomic_order, q));
+		    compositeModulus = compositeModulus * IntType(q.ConvertToInt());
+		    if( compositeModulus >= modulus )
+		      break;
+
+		    q = NextPrime(q, cyclotomic_order);
+		    numOfTower++;
+		  }
+		  originalModulus = modulus;
+		  DEBUGEXP(compositeModulus);
+		  DEBUGEXP(moduli);
+		  DEBUGEXP(rootsOfUnity);
+		  DEBUGEXP(m_parms.size());
+		  for (size_t i = 0; i < moduli.size(); i++) {
+		    m_parms.push_back(std::shared_ptr<ILNativeParams>(new ILNativeParams(cyclotomic_order, moduli[i], rootsOfUnity[i])));
+		  }
+
+		  RecalculateModulus();
+		  DEBUGEXP(m_parms.size());
 	}
 
 	/**
@@ -83,8 +125,9 @@ public:
 	 */
 	ILDCRTParams(const usint cyclotomic_order, 
 		const std::vector<NativeInteger> &moduli, const std::vector<NativeInteger>& rootsOfUnity,
-		const std::vector<NativeInteger> &moduliBig = {}, const std::vector<NativeInteger>& rootsOfUnityBig = {})
+		     const std::vector<NativeInteger> &moduliBig = {}, const std::vector<NativeInteger>& rootsOfUnityBig = {}, const IntType &inputOriginalModulus = IntType(0))
 		: ElemParams<IntType>(cyclotomic_order, 0, 0, 0, 0) {
+	        this->originalModulus = inputOriginalModulus;
 		if( moduli.size() != rootsOfUnity.size() )
 			throw std::logic_error("sizes of moduli and roots of unity do not match");
 
@@ -110,9 +153,11 @@ public:
 	 * @param cyclotomic_order the order of the ciphertext
 	 * @param &moduli is the tower of moduli
 	 */
-	ILDCRTParams(const usint cyclotomic_order, const std::vector<NativeInteger> &moduli)
+         ILDCRTParams(const usint cyclotomic_order, const std::vector<NativeInteger> &moduli, const IntType &inputOriginalModulus = IntType(0) )
 		: ElemParams<IntType>(cyclotomic_order, 0, 0, 0, 0) {
-		for( size_t i=0; i<moduli.size(); i++ ) {
+	        this->originalModulus = inputOriginalModulus;
+
+	        for( size_t i=0; i<moduli.size(); i++ ) {
 			m_parms.push_back( std::shared_ptr<ILNativeParams>( new ILNativeParams(cyclotomic_order, moduli[i], 0, 0, 0) ) );
 		}
 		RecalculateModulus();
@@ -124,8 +169,10 @@ public:
 	 * @param parms the componet parameters.
 	 * @return
 	 */
-	ILDCRTParams(const usint cyclotomic_order, std::vector<std::shared_ptr<ILNativeParams>>& parms)
+ ILDCRTParams(const usint cyclotomic_order, std::vector<std::shared_ptr<ILNativeParams>>& parms, const IntType &inputOriginalModulus = IntType(0))
 		: ElemParams<IntType>(cyclotomic_order, 0, 0, 0, 0), m_parms(parms) {
+	        this->originalModulus = inputOriginalModulus;
+
 		RecalculateModulus();
 	}
 
@@ -138,6 +185,8 @@ public:
 	 */
 	const ILDCRTParams& operator=(const ILDCRTParams &rhs) {
 		ElemParams<IntType>::operator=(rhs);
+		originalModulus = rhs.originalModulus;
+
 		m_parms = rhs.m_parms;
 
 		return *this;
@@ -153,7 +202,21 @@ public:
 	}
 
 	/**
-	 * @brief Getter method for the comp19onent parameters of a specific index.
+	 * @brief Simple getter method for the original modulus, not the ciphertex modulus.
+	 * @return The original  modulus, not the big ciphertext modulus.
+	 */
+	const IntType &GetOriginalModulus() const {
+		return originalModulus;
+	}
+	/**
+	 * @brief Simple setter method for the original modulus, not the ciphertex modulus.
+	 * @return void
+	 */
+	void SetOriginalModulus( const IntType& inputOriginalModulus ) {
+		originalModulus = inputOriginalModulus;
+	}
+	/**
+	 * @brief Getter method for the component parameters of a specific index.
 	 * @param i the index of the parameters to return.  Note this this call is unguarded if the index is out of bounds.
 	 * @return the parameters at index i.
 	 */
@@ -207,6 +270,9 @@ public:
 				return false;
 		}
 
+		if (originalModulus != dcrtParams->originalModulus)
+			return false;
+		
 		return true;
 	}
 
@@ -249,7 +315,15 @@ private:
 
 private:
 	// array of smaller ILParams
-	std::vector<std::shared_ptr<ILNativeParams>>	m_parms;
+	std::vector<std::shared_ptr<ILNativeParams>>	m_parms;	
+
+	//original modulus when being constructed from a Poly or when
+	//ctor is passed that parameter
+	// note orignalModulus will be <= composite modules
+	//   i.e. \Prod_i=0^k-1 m_params[i]->GetModulus()
+	// note not using ElemParams::ciphertextModulus due to object stripping
+	Integer originalModulus;
+
 
 };
 

@@ -1,4 +1,4 @@
-/*
+﻿/*
 * @file bfvrns.cpp - implementation of the BFVrns (HPS variant of BFV) scheme.
  * @author  TPOC: palisade@njit.edu
  *
@@ -198,6 +198,22 @@ template <class Element>
 LPPublicKeyEncryptionSchemeBFVrns<Element>::LPPublicKeyEncryptionSchemeBFVrns() : LPPublicKeyEncryptionScheme<Element>() {
 			this->m_algorithmParamsGen = new LPAlgorithmParamsGenBFVrns<Element>();
 		}
+
+
+template <class Element>
+LPEvalKey<Element> LPAlgorithmPREBFVrns<Element>::ReKeyGen(const LPPublicKey<Element> newPK,
+	const LPPrivateKey<Element> origPrivateKey) const
+{
+	return LPAlgorithmPREBFV<Element>::ReKeyGen(newPK, origPrivateKey);
+}
+
+template <class Element>
+Ciphertext<Element> LPAlgorithmPREBFVrns<Element>::ReEncrypt(const LPEvalKey<Element> EK,
+	ConstCiphertext<Element> ciphertext,
+	const LPPublicKey<Element> publicKey) const
+{
+	return LPAlgorithmPREBFV<Element>::ReEncrypt(EK, ciphertext, publicKey);
+}
 
 
 }  // namespace lbcrypto ends

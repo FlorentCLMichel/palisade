@@ -116,47 +116,31 @@ TEST(UTSignatureGPV,simple_sign_verify_native_above_sixty_bits) {
 		<<"Failed verification";
 
 }
-/*
-//TEST FOR BASIC SIGNING & VERIFICATION PROCESS - TWO STEP PROCESS (Commented Out Since SignatureContext  does not include online-offline split yet)
+
+//TEST FOR BASIC SIGNING & VERIFICATION PROCESS - TWO STEP PROCESS
 TEST(UTSignatureGPV, simple_sign_verify_two_phase) {
-	bool dbg_flag = false;
+	  bool dbg_flag = false;
 
-	DEBUG("Step 1");
-	Poly::DggType dgg(4);
-	usint sm = 16;
-	BigInteger smodulus("1152921504606847009");
-	BigInteger srootOfUnity("405107564542978792");
-
-	shared_ptr<ILParams> silParams(new ILParams(sm, smodulus, srootOfUnity));
-	DEBUG("Step 2");
-	ChineseRemainderTransformFTT<BigVector>::PreCompute(srootOfUnity, sm, smodulus);
-	DEBUG("Step 4");
-	LPSignatureParameters<Poly> signParams(silParams, dgg);
-	DEBUG("Step 5");
-	LPSignKeyGPVGM<Poly> s_k(signParams);
-	DEBUG("Step 6");
-	LPVerificationKeyGPVGM<Poly> v_k(signParams);
-	DEBUG("Step 7");
-	LPSignatureSchemeGPVGM<Poly> scheme;
-	DEBUG("Step 8");
-	scheme.KeyGen(&s_k, &v_k);
-	DEBUG("Step 9");
-	Signature<Matrix<Poly>> signature;
-	DEBUG("Step 10");
-	string text("Since hashing is integrated now");
-	DEBUG("Step 11");
-
-	shared_ptr<Matrix<Poly>> pVector = scheme.SampleOffline(s_k);
-
-	scheme.SignOnline(s_k, pVector, text, &signature);
-
-	EXPECT_EQ(true, scheme.Verify(v_k, signature, text))
-		<< "Failed verification";
-
-	DEBUG("Step 12");
-
+  DEBUG("Context Generation");
+	SignatureContext<NativePoly> context;
+  context.GenerateGPVContext(1024);
+  DEBUG("Key Generation");
+  GPVVerificationKey<NativePoly> vk;
+  GPVSignKey<NativePoly> sk;
+  context.KeyGen(&sk,&vk);
+  string pt = "This is a test";
+  GPVPlaintext<NativePoly> plaintext(pt);
+  DEBUG("Signing");
+  PerturbationVector<NativePoly> pv;
+  context.SignOfflinePhase(sk,pv);
+  GPVSignature<NativePoly> signature;
+  context.SignOnlinePhase(plaintext,sk,vk,pv,&signature);
+  DEBUG("Verification");
+  bool result1 = context.Verify(plaintext,signature,vk);
+    
+	EXPECT_EQ(true, result1)
+		<<"Failed verification";
 }
-*/
 
 //TEST FOR SIGNING AND VERIFYING SIGNATURES GENERATED FROM MULTIPLE TEXTS. ONLY SIGNATURES CORRESPONDING TO THEIR RESPECTIVE TEXT SHOULD VERIFY
 TEST(UTSignatureGPV, sign_verify_multiple_texts) {

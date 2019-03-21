@@ -76,6 +76,28 @@ void UnitTestIBE(SecurityLevel level){
 
 	EXPECT_EQ(pt->GetElement<Element>(),dt->GetElement<Element>());
 }
+template <class Element>
+void UnitTestIBETwoPhase(SecurityLevel level){
+	
+    ABEContext<Element> context;
+    context.GenerateIBEContext(level);
+    IBEMasterPublicKey<Element> mpk;
+	IBEMasterSecretKey<Element> msk;
+    context.Setup(&mpk,&msk);
+    IBEUserIdentifier<Element> id(context.GenerateRandomElement());
+    IBESecretKey<Element> sk;
+	PerturbationVector<Element> pv;
+	context.KeyGenOfflinePhase(msk,pv);
+	context.KeyGenOnlinePhase(msk,mpk,id,pv,&sk);
+    
+    std::vector<int64_t> vectorOfInts = { 1,0,0,1,1,0,1,0, 1, 0};
+    Plaintext pt = context.MakeCoefPackedPlaintext(vectorOfInts);
+    IBECiphertext<Element> ct;
+	context.Encrypt(mpk,id,pt,&ct);
+	Plaintext dt = context.Decrypt(sk,ct);
+
+	EXPECT_EQ(pt->GetElement<Element>(),dt->GetElement<Element>());
+}
 //Tests for 128 bit security
 TEST(UTIBE, ibe_128_poly) {
 	UnitTestIBE<Poly>(HEStd_128_classic);
@@ -97,4 +119,8 @@ TEST(UTIBE, ibe_256_poly) {
 
 TEST(UTIBE, ibe_256_native) {
 	UnitTestIBE<NativePoly>(HEStd_256_classic);
+}
+//Test for two-phase key generation
+TEST(UTIBE, ibe_two_phase) {
+	UnitTestIBETwoPhase<NativePoly>(HEStd_192_classic);
 }

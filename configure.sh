@@ -86,3 +86,9 @@ echo OpenMP OK
 	MINGWREGEX="-Lc:/Mingw64/mingw64/opt/lib -lregex -lshlwapi"
 
 	OMPINCLUDE="-I /opt/local/include/libomp -fopenmp"
+
+
+lzip -V >/dev/null 2>&1
+[ $? -ne 0 ] && echo lzip is not available installed -- needed for gmp install && exit 1
+
+echo lzip OK -- needed for gmp install

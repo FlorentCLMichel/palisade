@@ -188,25 +188,13 @@ int main(int argc, char *argv[])
 	// This generates the keys which are used to perform the key switching.
 	////////////////////////////////////////////////////////////
 
-	// Set a flag to determine which ReKeyGent interface is supported
-	// flagBGV == true means BGV or BFV
-	// flagBGV == false corresponds to LTV, StSt, and Null
-
-	bool flagBGV = true;
-
-	if ((input.find("BGV") == string::npos) && (input.find("BFV") == string::npos))
-		flagBGV = false;
-
 	std::cout <<"\n"<< "Generating proxy re-encryption key..." << std::endl;
 
 	LPEvalKey<Poly> reencryptionKey12;
 
 	start = currentDateTime();
 
-	if (flagBGV)
-		reencryptionKey12 = cryptoContext->ReKeyGen(keyPair2.secretKey, keyPair1.secretKey);
-	else
-		reencryptionKey12 = cryptoContext->ReKeyGen(keyPair2.publicKey, keyPair1.secretKey);
+	reencryptionKey12 = cryptoContext->ReKeyGen(keyPair2.publicKey, keyPair1.secretKey);
 
 	finish = currentDateTime();
 	diff = finish - start;

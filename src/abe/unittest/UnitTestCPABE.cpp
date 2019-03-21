@@ -63,7 +63,6 @@ void UnitTestCPABE(SecurityLevel level,usint ell){
     CPABEMasterPublicKey<Element> mpk;
 	CPABEMasterSecretKey<Element> msk;
     context.Setup(&mpk,&msk);
-
     std::vector<usint> s(ell);
 	std::vector<int> w(ell);
 
@@ -95,6 +94,48 @@ void UnitTestCPABE(SecurityLevel level,usint ell){
 	context.Encrypt(mpk,ap,pt,&ct);
 	Plaintext dt = context.Decrypt(ap,ua,sk,ct);
 
+    EXPECT_EQ(pt->GetElement<Element>(),dt->GetElement<Element>());
+
+}
+template <class Element>
+void UnitTestCPABETwoPhase(SecurityLevel level,usint ell){
+    ABEContext<Element> context;
+    context.GenerateCPABEContext(level,ell);
+    CPABEMasterPublicKey<Element> mpk;
+	CPABEMasterSecretKey<Element> msk;
+    context.Setup(&mpk,&msk);
+    std::vector<usint> s(ell);
+	std::vector<int> w(ell);
+
+    for(usint j=0; j<ell; j++)
+		s[j] = rand()%2;
+
+	for(usint j=0; j<ell; j++)
+		w[j] = s[j];
+
+	for(usint j=0; j<ell; j++)
+		if(w[j]==1) {
+			w[j] = 0;
+			break;
+		}
+	for(usint j=0; j<ell; j++)
+		if(s[j]==0) {
+			w[j] = -1;
+			break;
+		}
+    
+    CPABEUserAccess<Element> ua(s);
+    CPABEAccessPolicy<Element> ap(w);
+
+    CPABESecretKey<Element> sk;
+	PerturbationVector<Element> pv;
+	context.KeyGenOfflinePhase(msk,pv);
+	context.KeyGenOnlinePhase(msk,mpk,ua,pv,&sk);
+    std::vector<int64_t> vectorOfInts = { 1,0,0,1,1,0,1,0, 1, 0};
+    Plaintext pt = context.MakeCoefPackedPlaintext(vectorOfInts);
+    CPABECiphertext<Element> ct;
+	context.Encrypt(mpk,ap,pt,&ct);
+	Plaintext dt = context.Decrypt(ap,ua,sk,ct);
 
     EXPECT_EQ(pt->GetElement<Element>(),dt->GetElement<Element>());
 
@@ -152,4 +193,7 @@ TEST(UTCPABE, cp_abe_256_native_20) {
 }
 TEST(UTCPABE, cp_abe_256_native_32) {
 	UnitTestCPABE<NativePoly>(HEStd_256_classic,32);
+}
+TEST(UTCPABE, cp_abe_two_phase) {
+	UnitTestCPABETwoPhase<NativePoly>(HEStd_192_classic,6);
 }

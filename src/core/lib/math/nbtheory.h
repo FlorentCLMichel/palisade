@@ -247,7 +247,7 @@ namespace lbcrypto {
 	* @param nBits the number of bits needed to be in q.
 	* @param m the the ring parameter.
 	*
-	* @return the next prime modulus.
+	* @return the first prime modulus.
 	*/
 	template<typename IntType>
 	IntType FirstPrime(uint64_t nBits, uint64_t m);

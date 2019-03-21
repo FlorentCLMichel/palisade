@@ -164,7 +164,7 @@ int main(int argc, char **argv) {
 	}
 	else {
 		cout << "PALISADE Version " << GetPALISADEVersion() << endl;
-		cout << GetMathBackendParameters() << endl;
+		cout << "Default Backend " <<GetMathBackendParameters() << endl;
 	}
 
 	if( setall )
@@ -175,6 +175,12 @@ int main(int argc, char **argv) {
 		TestB4 = true;
 	else if( MATHBACKEND == 6 )
 		TestB6 = true;
+
+	std::cout<<"Testing Backends: "
+		 << (TestB2?"2 ":"")
+		 << (TestB4?"4 ":"")	
+		 << (TestB6?"6 ":"")
+		 << (TestNative?"Native ":"")<<std::endl;
 
 	return RUN_ALL_TESTS();
 }

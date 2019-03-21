@@ -676,7 +676,7 @@ NativeInteger CRTInterpolate(const std::vector<Plaintext> &crtVector) {
 		else
 			value = NativeInteger(crtVector[i]->GetPackedValue()[0]);
 
-		result += ((value*qInverse[i]).Mod(q[i])*Q / q[i]).Mod(Q);
+		result += ((value*qInverse[i]).Mod(q[i])*(Q / q[i])).Mod(Q);
 	}
 
 	return result.Mod(Q);

@@ -70,14 +70,25 @@ namespace lbcrypto{
     }
     //Method for key generation
     template <class Element>
-        void SignatureContext<Element>::KeyGen(LPSignKey<Element>* sk, LPVerificationKey<Element>* vk){
+    void SignatureContext<Element>::KeyGen(LPSignKey<Element>* sk, LPVerificationKey<Element>* vk){
         m_scheme->KeyGen(m_params,sk,vk);
     }
+    //Method for signing a given plaintext 
     template <class Element>
-       void SignatureContext<Element>::Sign(const LPSignPlaintext<Element> & pt,const LPSignKey<Element> & sk, const LPVerificationKey<Element> & vk,LPSignature<Element>* sign){
+    void SignatureContext<Element>::Sign(const LPSignPlaintext<Element> & pt,const LPSignKey<Element> & sk, const LPVerificationKey<Element> & vk,LPSignature<Element>* sign){
         m_scheme->Sign(m_params,sk,vk,pt,sign);
-
     }
+    //Method for offline phase of signing a given plaintext 
+    template <class Element>
+    void SignatureContext<Element>::SignOfflinePhase(const LPSignKey<Element> &sk,PerturbationVector<Element>& pv){
+        pv = m_scheme->SampleOffline(m_params,sk);
+    }
+    //Method for online phase of signing a given plaintext 
+    template <class  Element>
+    void SignatureContext<Element>::SignOnlinePhase(const LPSignPlaintext<Element> & pt,const LPSignKey<Element> &sk,const LPVerificationKey<Element> &vk, const PerturbationVector<Element> pv,LPSignature<Element> * signatureText){
+        m_scheme->SignOnline(m_params,sk,vk,pv,pt,signatureText);
+    }
+    //Method for verifying the plaintext and signature
     template <class Element>
     bool  SignatureContext<Element>::Verify(const LPSignPlaintext<Element> & pt, const LPSignature<Element> & signature, const LPVerificationKey<Element> & vk){
         return m_scheme->Verify(m_params,vk,signature,pt);

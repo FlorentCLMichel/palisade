@@ -111,34 +111,6 @@ static void GeneratePolys(map<usint,shared_ptr<P>>& parmArray, map<usint,vector<
 	}
 }
 
-// the ifdefs below are a hack to make sure this compiles in all backends
-// when backend is == 2, BigInteger is the same as M2Integer... and so these methods
-// will have duplicate instantiations... which is bad
-// FIXME later
-
-#if MATHBACKEND != 2
-template<>
-inline shared_ptr<ILDCRTParams<M2Integer>>
-ElemParamFactory::GenElemParams<ILDCRTParams<M2Integer>>(usint m, usint bits, usint towersize) {
-	return GenerateDCRTParams<M2Integer>(m, towersize, bits);
-}
-#endif
-
-#if MATHBACKEND != 4
-template<>
-inline shared_ptr<ILDCRTParams<M4Integer>>
-ElemParamFactory::GenElemParams<ILDCRTParams<M4Integer>>(usint m, usint bits, usint towersize) {
-	return GenerateDCRTParams<M4Integer>(m, towersize, bits);
-}
-#endif
-
-#if MATHBACKEND != 6
-template<>
-inline shared_ptr<ILDCRTParams<M6Integer>>
-ElemParamFactory::GenElemParams<ILDCRTParams<M6Integer>>(usint m, usint bits, usint towersize) {
-	return GenerateDCRTParams<M6Integer>(m, towersize, bits);
-}
-#endif
 }
 
 map<usint,shared_ptr<ILNativeParams>> Nativeparms;

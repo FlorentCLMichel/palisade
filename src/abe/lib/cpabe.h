@@ -355,8 +355,8 @@ namespace lbcrypto{
             *@param msk Master secret key
             *@return Perturbation vector sampled
             */ 
-            PerturbationVector<Element> KeyGenOffline(shared_ptr<CPABEParams<Element>> m_params,
-			                                          const CPABEMasterSecretKey<Element> & msk);
+            PerturbationVector<Element> KeyGenOffline(shared_ptr<ABECoreParams<Element>> m_params,
+			                                          const ABECoreMasterSecretKey<Element> & msk);
             /*
             *@brief Method for online phase for key generation phase of an CPABE cycle without sampling
             *@param m_params Parameters used in operations
@@ -366,12 +366,12 @@ namespace lbcrypto{
             *@param pvector Perturbation vector sampled before hand
             *@param usk Secret key for decryption - Output
             */ 
-            void KeyGenOnline(shared_ptr<CPABEParams<Element>> m_params,
-                              const CPABEMasterSecretKey<Element> & msk,
-                              const CPABEMasterPublicKey<Element> & mpk, 
-                              const CPABEUserAccess<Element> & id,
+            void KeyGenOnline(shared_ptr<ABECoreParams<Element>> m_params,
+                              const ABECoreMasterSecretKey<Element> & msk,
+                              const ABECoreMasterPublicKey<Element> & mpk, 
+                              const ABECoreAccessPolicy<Element> & id,
                               const PerturbationVector<Element> & pvector,
-                              CPABESecretKey<Element>* usk);
+                              ABECoreSecretKey<Element>* usk);
             
     		/*
     		*@brief Method for encryption phase of a CPABE cycle

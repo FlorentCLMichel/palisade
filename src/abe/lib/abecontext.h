@@ -87,6 +87,21 @@
              */
             void KeyGen(const ABECoreMasterSecretKey<Element> & msk,const ABECoreMasterPublicKey<Element>& mpk, const ABECoreAccessPolicy<Element> & ap,ABECoreSecretKey<Element>* sk);
             /**
+             *@brief Method for offline phase of individual/policy specific key generation for decryption 
+             *@param msk Master secret key 
+             *@param pv Perturbation vector sampled - Output 
+             */
+            void KeyGenOfflinePhase(const ABECoreMasterSecretKey<Element> & msk,PerturbationVector<Element>& pv);
+            /**
+             *@brief Method for online phase individual/policy specific key generation for decryption 
+             *@param msk Master secret key 
+             *@param mpk Master public key 
+             *@param ap Access policy/user identifier
+             *@param pv Perturbation vector sampled in the offline phase of key generation
+             *@param sk Secret key defined for the given policy/identifier - Output 
+             */
+            void KeyGenOnlinePhase(const ABECoreMasterSecretKey<Element> & msk,const ABECoreMasterPublicKey<Element>& mpk, const ABECoreAccessPolicy<Element> & ap,const PerturbationVector<Element> & pv,ABECoreSecretKey<Element>* sk);
+            /**
              *@brief Method for encryption
              *@param mpk Master public key
              *@param ap Access structure

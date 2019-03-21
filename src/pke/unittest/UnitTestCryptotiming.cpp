@@ -453,11 +453,6 @@ TEST_F(UTCryptotiming, PRE){
     ASSERT_TRUE(times.back().operation == OpReKeyGenPubPri) << "ReKeyGenPubPri op applied an incorrect optype to its data";
     if(times.size() > len) { len = times.size(); }
 
-    cc->ReKeyGen(kp2.secretKey, kp.secretKey);
-    ASSERT_TRUE(times.size() > len) << "ReKeyGenPriPri op failed to push to timing vector";
-    ASSERT_TRUE(times.back().operation == OpReKeyGenPriPri) << "ReKeyGenPriPri op applied an incorrect optype to its data";
-    if(times.size() > len) { len = times.size(); }
-
     Ciphertext<Poly> ciphertext = cc->Encrypt(kp.publicKey, plaintext);
     len = times.size();
 

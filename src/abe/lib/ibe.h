@@ -280,8 +280,8 @@ namespace lbcrypto{
             *@return Perturbation vector sampled
             */
             PerturbationVector<Element> KeyGenOffline(
-				        shared_ptr<IBEParams<Element>> m_params,
-				        const IBEMasterSecretKey<Element> & msk);
+				            shared_ptr<ABECoreParams<Element>> m_params,
+				            const ABECoreMasterSecretKey<Element> & msk);
             /*
             *@brief Method for online phase for key generation phase of an IBE cycle without sampling
             *@param m_params Parameters used in operations
@@ -292,12 +292,12 @@ namespace lbcrypto{
             *@param sk Secret key for decryption - Output
             */
             void KeyGenOnline(
-				shared_ptr<IBEParams<Element>> m_params,
-                const IBEMasterSecretKey<Element> & msk,
-                const IBEMasterPublicKey<Element> & mpk, 
-                const IBEUserIdentifier<Element> & id,
-                const PerturbationVector<Element> & pvector,
-                IBESecretKey<Element>* sk);
+				            shared_ptr<ABECoreParams<Element>> m_params,
+                            const ABECoreMasterSecretKey<Element> & msk,
+                            const ABECoreMasterPublicKey<Element> & mpk, 
+                            const ABECoreAccessPolicy<Element> & ap,
+                            const PerturbationVector<Element> & pvector,
+                            ABECoreSecretKey<Element>* sk);
     		/*
     		*@brief Method for encryption phase of an IBE cycle
             *@param m_params Parameters used in operations

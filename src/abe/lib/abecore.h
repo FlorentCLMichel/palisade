@@ -322,7 +322,34 @@ namespace lbcrypto{
                                 const ABECoreMasterSecretKey<Element> & msk,
                                 const ABECoreMasterPublicKey<Element> & mpk,
                                 ABECoreSecretKey<Element>* sk){};
-    		/*
+    		
+            /*
+            *@brief Method for offline sampling for key generation phase of an ABE cycle
+            *@param m_params Parameters used in operations
+            *@param msk Master secret key
+            *@return Perturbation vector sampled
+            */
+            virtual PerturbationVector<Element> KeyGenOffline(
+				            shared_ptr<ABECoreParams<Element>> m_params,
+				            const ABECoreMasterSecretKey<Element> & msk){ return PerturbationVector<Element>();};
+            
+            /*
+            *@brief Method for online phase for key generation phase of an IBE cycle without sampling
+            *@param m_params Parameters used in operations
+            *@param msk Master secret key
+            *@param mpk Master public key
+            *@param ap Access policy defining who will be able to decrypt 
+            *@param pvector Perturbation vector sampled before hand
+            *@param sk Secret key for decryption - Output
+            */
+            virtual void KeyGenOnline(
+				            shared_ptr<ABECoreParams<Element>> m_params,
+                            const ABECoreMasterSecretKey<Element> & msk,
+                            const ABECoreMasterPublicKey<Element> & mpk, 
+                            const ABECoreAccessPolicy<Element> & ap,
+                            const PerturbationVector<Element> & pvector,
+                            ABECoreSecretKey<Element>* sk){};
+            /*
     		*@brief Method for encryption phase of an ABE cycle
     		*@param mpk Master public key
     		*@param ap Access policy defining who will be able to decrypt

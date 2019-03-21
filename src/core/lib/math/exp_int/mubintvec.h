@@ -237,6 +237,7 @@ public:
   friend std::ostream& operator<<(std::ostream& os,
 				  const mubintvec &ptr_obj)
   {
+#if 0 //old way
     os<<std::endl;
     for(usint i=0;i<ptr_obj.m_data.size();i++){
       os<<ptr_obj.m_data[i] <<std::endl;
@@ -244,7 +245,16 @@ public:
 
     os<<"modulus: "<<ptr_obj.m_modulus;
     os <<std::endl;
-
+#else
+    
+    auto len = ptr_obj.m_data.size();
+    os<<"[";
+    for(usint i=0;i<len;i++){
+      os<< ptr_obj.m_data[i];
+      os << ((i == (len-1))?"]":" ");
+    }
+    os<<" modulus: "<<ptr_obj.m_modulus;
+#endif
     return os;
   }
 

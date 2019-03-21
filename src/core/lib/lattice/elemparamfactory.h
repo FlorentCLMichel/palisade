@@ -84,6 +84,8 @@ public:
 	 */
 	template<typename P>
 	static shared_ptr<P> GenElemParams(ElementOrder o) {
+  	        bool dbg_flag(false);
+		DEBUG("in GenElemParams(ElementOrder o)");
 		return shared_ptr<P>( new P(DefaultSet[o].m, typename P::Integer(DefaultSet[o].q), typename P::Integer(DefaultSet[o].ru)) );
 	}
 
@@ -95,6 +97,9 @@ public:
 	 */
 	template<typename P>
 	static shared_ptr<P> GenElemParams(usint m) {
+
+		bool dbg_flag(false);
+		DEBUG("in GenElemParams(usint m)");
 		size_t sIdx = GetNearestIndex(m);
 
 		return shared_ptr<P>( new P(DefaultSet[sIdx].m, typename P::Integer(DefaultSet[sIdx].q), typename P::Integer(DefaultSet[sIdx].ru)) );
@@ -109,7 +114,10 @@ public:
 	 * @return new params
 	 */
 	template<typename P>
-	static shared_ptr<P> GenElemParams(usint m, usint bits, usint towersize = 0) {
+	static shared_ptr<P> GenElemParams(usint m, usint bits, usint towersize = 1) {
+	  
+		bool dbg_flag(false);
+		DEBUG("in GenElemParams(usint m, usint bits, usint towers)");
 		typename P::Integer q = FirstPrime<typename P::Integer>(bits,m);
 		typename P::Integer ru = RootOfUnity<typename P::Integer>(m, q);
 		return shared_ptr<P>( new P(m, q, ru) );
@@ -125,14 +133,47 @@ public:
 	 */
 	template<typename P>
 	static shared_ptr<P> GenElemParams(usint m, const typename P::Integer& ctModulus, const typename P::Integer& rootUnity) {
+	  
+		bool dbg_flag(false);
+		DEBUG("in GenElemParams(usint m, const typename P::Integer etc)");
 		return shared_ptr<P>( new P(m, ctModulus, rootUnity) );
 	}
 };
 
 template<>
-inline shared_ptr<ILDCRTParams<BigInteger>>
-ElemParamFactory::GenElemParams<ILDCRTParams<BigInteger>>(usint m, usint bits, usint towersize) {
-	return GenerateDCRTParams<BigInteger>(m, towersize, bits);
+inline shared_ptr<ILDCRTParams<M2Integer>>
+ElemParamFactory::GenElemParams<ILDCRTParams<M2Integer>>(usint m, usint bits, usint towersize) {
+  
+		bool dbg_flag(false);
+		DEBUG("in GenElemParams<ILDCRTParams<M2Integer>>(usint m, usint bits, usint towersize)");
+		DEBUGEXP(m);
+		DEBUGEXP(bits);
+		DEBUGEXP(towersize);
+	return GenerateDCRTParams<M2Integer>(m, towersize, bits);
+}
+
+template<>
+inline shared_ptr<ILDCRTParams<M4Integer>>
+ElemParamFactory::GenElemParams<ILDCRTParams<M4Integer>>(usint m, usint bits, usint towersize) {
+  
+		bool dbg_flag(false);
+		DEBUG("in GenElemParams<ILDCRTParams<M4Integer>>(usint m, usint bits, usint towersize)");
+		DEBUGEXP(m);
+		DEBUGEXP(bits);
+		DEBUGEXP(towersize);
+	return GenerateDCRTParams<M4Integer>(m, towersize, bits);
+}
+ 
+template<>
+inline shared_ptr<ILDCRTParams<M6Integer>>
+ElemParamFactory::GenElemParams<ILDCRTParams<M6Integer>>(usint m, usint bits, usint towersize) {
+  
+		bool dbg_flag(false);
+		DEBUG("in GenElemParams<ILDCRTParams<M6Integer>>(usint m, usint bits, usint towersize)");
+		DEBUGEXP(m);
+		DEBUGEXP(bits);
+		DEBUGEXP(towersize);
+	return GenerateDCRTParams<M6Integer>(m, towersize, bits);
 }
 
 } /* namespace lbcrypto */

@@ -179,6 +179,7 @@ public:
 			os<< ptr_obj.m_data[i];
 			os << ((i == (len-1))?"]":" ");
 		}
+		os<<" modulus: "<<ptr_obj.m_modulus;
 		return os;
 	}
 

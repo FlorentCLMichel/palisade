@@ -93,7 +93,7 @@ namespace lbcrypto {
 		//Encode the text into a vector so it can be used in signing process. TODO: Adding some kind of digestion algorithm
 		vector<int64_t> digest;
 		HashUtil::Hash(plainText.GetPlaintext(), SHA_256, digest);
-		if( plainText.GetPlaintext().size() <= n ) {
+		if(plainText.GetPlaintext().size() <= n ) {
 			for(size_t i = 0;i < n - 32;i = i + 4)
 				digest.push_back(seed[i]);
 		}
@@ -115,8 +115,10 @@ namespace lbcrypto {
 
 	//Method for signing given object
 	template <class Element>
-	shared_ptr<Matrix<Element>> GPVSignatureScheme<Element>::SampleOffline(shared_ptr<GPVSignatureParameters<Element>> m_params,const GPVSignKey<Element> &signKey) {
-
+	PerturbationVector<Element> GPVSignatureScheme<Element>::SampleOffline(shared_ptr<LPSignatureParameters<Element>> s_params,const LPSignKey<Element> &ssignKey) {
+		
+		shared_ptr<GPVSignatureParameters<Element>> m_params = std::dynamic_pointer_cast<GPVSignatureParameters<Element>>(s_params);
+		const GPVSignKey<Element> & signKey = dynamic_cast<const GPVSignKey<Element> &>(ssignKey);
 		//Getting parameters for calculations
 		size_t n = m_params->GetILParams()->GetRingDimension();
 		size_t k = m_params->GetK();
@@ -127,14 +129,17 @@ namespace lbcrypto {
 		typename Element::DggType & dgg = m_params->GetDiscreteGaussianGenerator();
 		typename Element::DggType & dggLargeSigma = m_params->GetDiscreteGaussianGeneratorLargeSigma();
 
-		return RLWETrapdoorUtility<Element>::GaussSampOffline(n, k, T, dgg, dggLargeSigma, base);
+		return PerturbationVector<Element>(RLWETrapdoorUtility<Element>::GaussSampOffline(n, k, T, dgg, dggLargeSigma, base));
 	}
 
 	//Method for signing given object
 	template <class Element>
-	void GPVSignatureScheme<Element>::SignOnline(shared_ptr<GPVSignatureParameters<Element>> m_params,const GPVSignKey<Element> &signKey, 
-		const GPVVerificationKey<Element> &verificationKey,const shared_ptr<Matrix<Element>> perturbationVector,	const string &plainText,
-		GPVSignature<Element> *signatureText) {
+	void GPVSignatureScheme<Element>::SignOnline(shared_ptr<LPSignatureParameters<Element>> sparams,const LPSignKey<Element> &sk,  const LPVerificationKey<Element> &vk,const PerturbationVector<Element> & perturbationVector,	const LPSignPlaintext<Element> &pt, LPSignature<Element> *ssignatureText) {	
+		shared_ptr<GPVSignatureParameters<Element>> m_params = std::dynamic_pointer_cast<GPVSignatureParameters<Element>>(sparams);
+		const GPVSignKey<Element> & signKey = dynamic_cast<const GPVSignKey<Element> &>(sk);
+		const GPVVerificationKey<Element> & verificationKey = dynamic_cast<const GPVVerificationKey<Element> &>(vk);
+		const GPVPlaintext<Element> & plainText = dynamic_cast<const GPVPlaintext<Element> &>(pt);
+		GPVSignature<Element>* signatureText = dynamic_cast<GPVSignature<Element>*>(ssignatureText);
 
 		//Getting parameters for calculations
 		size_t n = m_params->GetILParams()->GetRingDimension();
@@ -146,9 +151,9 @@ namespace lbcrypto {
 		//Encode the text into a vector so it can be used in signing process. TODO: Adding some kind of digestion algorithm
 		vector<int64_t> digest;
 		Plaintext hashedText;
-		HashUtil::Hash(plainText, SHA_256, digest);
+		HashUtil::Hash(plainText.GetPlaintext(), SHA_256, digest);
 
-		if( plainText.size() <= n ) {
+		if( plainText.GetPlaintext().size()<= n ) {
 			for (size_t i = 0;i < n - 32;i = i + 4)
 				digest.push_back(seed[i]);
 		}
@@ -165,7 +170,7 @@ namespace lbcrypto {
 		const RLWETrapdoorPair<Element> & T = signKey.GetSignKey();
 		typename Element::DggType & dgg = m_params->GetDiscreteGaussianGenerator();
 
-		Matrix<Element> zHat = RLWETrapdoorUtility<Element>::GaussSampOnline(n, k, A, T, u, dgg, perturbationVector, base);
+		Matrix<Element> zHat = RLWETrapdoorUtility<Element>::GaussSampOnline(n, k, A, T, u, dgg, perturbationVector.GetVector(), base);
 		signatureText->SetSignature(std::make_shared<Matrix<Element>>(zHat));
 	}
 
