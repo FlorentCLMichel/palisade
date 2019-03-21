@@ -45,7 +45,7 @@ enum OpType {
 	OpMultiPartyKeyGenKey, OpMultiPartyKeyGenKeyvec,
 	OpMultiPartyDecryptLead, OpMultiPartyDecryptMain, OpMultiPartyDecryptFusion,
 	OpSparseKeyGen,
-	OpReKeyGenPubPri, OpReKeyGenPriPri,
+	OpReKeyGenPubPri,
 	OpEvalMultKeyGen,
 	OpKeySwitchGen,
 	OpEncryptPub, OpEncryptPriv, OpEncryptPlain,

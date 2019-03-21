@@ -127,9 +127,7 @@ namespace lbcrypto{
 			y = pubElemD - y;
 
 			Matrix<Element> skA(Element::Allocator(m_params->GetTrapdoorParams()->GetElemParams(), EVALUATION), m_m, 1);
-
 			skA = RLWETrapdoorUtility<Element>::GaussSamp(m_N, m_k, mpk.GetA(), msk.GetTA(), y, m_params->GetTrapdoorParams()->GetDGG(), m_params->GetTrapdoorParams()->GetDGGLargeSigma(), m_base);
-
 			Matrix<Element> sk(Element::Allocator(ep, COEFFICIENT), m_m, m_ell+1);
 			for(usint i=0; i<m_m; i++)
 				(sk)(i, 0) = skA(i, 0);
@@ -143,14 +141,23 @@ namespace lbcrypto{
 		}
 	//Method for offline sampling for key generation phase of an CPABE cycle
 	template <class Element>
-	PerturbationVector<Element> KeyGenOffline(shared_ptr<CPABEParams<Element>> m_params,const CPABEMasterSecretKey<Element> & msk){
-		shared_ptr<Matrix<Element>> pertubationVector =  RLWETrapdoorUtility<Element>::GaussSampOffline(m_params->GetTrapdoorParams()->GetN(), m_params()->GetTrapdoorParams()->GetK(), msk.GetTA(), m_params->GetTrapdoorParams()->GetDGG(), m_params->GetTrapdoorParams()->GetDGGLargeSigma(), m_params->GetTrapdoorParams()->GetBase());
+	PerturbationVector<Element> CPABEScheme<Element>::KeyGenOffline(shared_ptr<ABECoreParams<Element>> cm_params,const ABECoreMasterSecretKey<Element> & cmsk){
+		shared_ptr<CPABEParams<Element>> m_params = dynamic_pointer_cast<CPABEParams<Element>>(cm_params);
+		const CPABEMasterSecretKey<Element> & msk = dynamic_cast<const CPABEMasterSecretKey<Element> &>(cmsk);
+		
+		shared_ptr<Matrix<Element>> pertubationVector =  RLWETrapdoorUtility<Element>::GaussSampOffline(m_params->GetTrapdoorParams()->GetN(), m_params->GetTrapdoorParams()->GetK(), msk.GetTA(), m_params->GetTrapdoorParams()->GetDGG(), m_params->GetTrapdoorParams()->GetDGGLargeSigma(), m_params->GetTrapdoorParams()->GetBase());
 		PerturbationVector<Element> pvector(pertubationVector);
 		return pvector;
 	}
 	//Method for online phase for key generation phase of an CPABE cycle without sampling
 	template <class Element>
-	void KeyGenOnline(shared_ptr<CPABEParams<Element>> m_params,const CPABEMasterSecretKey<Element> & msk,const CPABEMasterPublicKey<Element> & mpk, const CPABEUserAccess<Element> & id,const PerturbationVector<Element> & pvector,CPABESecretKey<Element>* usk){
+	void CPABEScheme<Element>::KeyGenOnline(shared_ptr<ABECoreParams<Element>> cm_params,const ABECoreMasterSecretKey<Element> & cmsk,const ABECoreMasterPublicKey<Element> & cmpk, const ABECoreAccessPolicy<Element> & cid,const PerturbationVector<Element> & pvector,ABECoreSecretKey<Element>* cusk){
+		shared_ptr<CPABEParams<Element>> m_params = dynamic_pointer_cast<CPABEParams<Element>>(cm_params);
+		const CPABEMasterSecretKey<Element> & msk = dynamic_cast<const CPABEMasterSecretKey<Element> &>(cmsk);
+		const CPABEMasterPublicKey<Element> & mpk = dynamic_cast<const CPABEMasterPublicKey<Element> &>(cmpk);
+		const CPABEUserAccess<Element> & id = dynamic_cast<const CPABEUserAccess<Element> &>(cid);
+		CPABESecretKey<Element>* usk = dynamic_cast<CPABESecretKey<Element>*>(cusk);
+		
 		usint m_ell = m_params->GetEll();
     	usint m_k = m_params->GetTrapdoorParams()->GetK();
     	usint m_m = m_k+2;
@@ -174,7 +181,7 @@ namespace lbcrypto{
 
 			const Matrix<Element> & pubElemBPos = mpk.GetBPos();
 			const Matrix<Element> & pubElemBNeg = mpk.GetBNeg();
-			usint *s = id.GetS();
+			const std::vector<usint> s = id.GetS();
 			const Element & pubElemD = mpk.GetPubElemD();
 		//#pragma omp parallel for firstprivate(z) num_threads(4)
 			for(usint i=0; i<m_ell; i++) {

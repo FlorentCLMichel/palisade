@@ -57,7 +57,6 @@ static struct FeatureMap FeatureMap[] = {
 		{ OpMultiPartyDecryptFusion, "MultiPartyDecryptFusion", MULTIPARTY },
 		{ OpSparseKeyGen, "SparseKeyGen", ENCRYPTION },
 		{ OpReKeyGenPubPri, "ReKeyGen(pubkey,privkey)", PRE },
-		{ OpReKeyGenPriPri, "ReKeyGen(privkey,privkey)", PRE },
 		{ OpEvalMultKeyGen, "EvalMultKeyGen", SHE },
 		{ OpEncryptPub, "EncryptPub", ENCRYPTION },
 		{ OpEncryptPriv, "EncryptPriv", ENCRYPTION },
@@ -319,10 +318,10 @@ generateTimings(TimingStatisticsMap& stats,
 		cerr << "PRE" << endl;
 
 	Ciphertext<Element> recrypt;
-	LPEvalKey<Element> rekey1, rekey2;
+	LPEvalKey<Element> rekey1;
 
 	if( tmask & PRE ) {
-		bool runPubPri = true, runPriPri = true;
+		bool runPubPri = true;
 		LPKeyPair<Element> kp1 = cc->KeyGen();
 		LPKeyPair<Element> kp2 = cc->KeyGen();
 
@@ -338,14 +337,6 @@ generateTimings(TimingStatisticsMap& stats,
 			runPubPri = false;
 		}
 
-		try {
-			rekey2 = cc->ReKeyGen(kp2.secretKey, kp1.secretKey);
-			recrypt = cc->ReEncrypt(rekey2, crypt);
-		} catch(exception& e) {
-			cout << e.what() << endl;
-			runPriPri = false;
-		}
-
 		if( runPubPri ) {
 			TIC(t);
 			for( int reps=0; reps < maxIterations; reps++ ) {
@@ -357,29 +348,6 @@ generateTimings(TimingStatisticsMap& stats,
 			TIC(t);
 			for( int reps=0; reps < maxIterations; reps++ ) {
 				recrypt = cc->ReEncrypt(rekey1, crypt);
-			}
-			span = TOC_MS(t);
-			stats[TimingStatisticsKey(OpReEncrypt)] = TimingStatistics(OpType::OpReEncrypt, maxIterations, span);
-
-			TIC(t);
-			for( int reps=0; reps < maxIterations; reps++ ) {
-				cc->Decrypt(kp2.secretKey, recrypt, &decrypted);
-			}
-			span = TOC_MS(t);
-			stats[TimingStatisticsKey(OpDecrypt)] = TimingStatistics(OpType::OpDecrypt, maxIterations, span);
-		}
-
-		if( runPriPri ) {
-			TIC(t);
-			for( int reps=0; reps < maxIterations; reps++ ) {
-				rekey2 = cc->ReKeyGen(kp2.secretKey, kp1.secretKey);
-			}
-			span = TOC_MS(t);
-			stats[TimingStatisticsKey(OpReKeyGenPriPri)] = TimingStatistics(OpType::OpReKeyGenPriPri, maxIterations, span);
-
-			TIC(t);
-			for( int reps=0; reps < maxIterations; reps++ ) {
-				recrypt = cc->ReEncrypt(rekey2, crypt);
 			}
 			span = TOC_MS(t);
 			stats[TimingStatisticsKey(OpReEncrypt)] = TimingStatistics(OpType::OpReEncrypt, maxIterations, span);
@@ -534,7 +502,6 @@ generateTimings(TimingStatisticsMap& stats,
 		PSSIZE("Private key size: ", kp.secretKey );
 		PSSIZE("Ciphertext size : ", crypt );
 		if( rekey1 ) PSSIZE("PRE Key 1 size: ", rekey1 );
-		if( rekey2 ) PSSIZE("PRE Key 2 size: ", rekey2 );
 	}
 }
 

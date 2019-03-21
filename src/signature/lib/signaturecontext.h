@@ -68,6 +68,22 @@ namespace lbcrypto{
              */
             void Sign(const LPSignPlaintext<Element> & pt,const LPSignKey<Element> & sk, const LPVerificationKey<Element> & vk,LPSignature<Element>* sign);
             /**
+             *@brief Method for offline phase of signing a given plaintext 
+             *@param pt Plaintext to be signed 
+             *@param sk Sign key 
+             *@param pv Perturbation vector sampled - Output
+             */
+            void SignOfflinePhase(const LPSignKey<Element> &signKey,PerturbationVector<Element>& pv);
+            /**
+             *@brief Method for online phase of signing a given plaintext 
+             *@param pt Plaintext to be signed 
+             *@param sk Sign key 
+             *@param vk Verification key
+             *@param pv Perturbation vector sampled in the offline phase of signing operation
+             *@param sign Signature corresponding to the plaintext - Output 
+             */
+            void SignOnlinePhase(const LPSignPlaintext<Element> & pt,const LPSignKey<Element> &sk,const LPVerificationKey<Element> &vk, const PerturbationVector<Element> pv,LPSignature<Element> * signatureText);
+            /**
              *@brief Method for verifying the plaintext and signature
              *@param pt Plaintext 
              *@param signature Signature to be verified

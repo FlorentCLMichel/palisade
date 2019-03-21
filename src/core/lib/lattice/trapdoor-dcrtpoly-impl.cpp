@@ -183,9 +183,7 @@ namespace lbcrypto {
 			NativeInteger qu = params->GetParams()[u]->GetModulus();
 
 			Matrix<int64_t> digits([]() { return 0; }, kRes, n);
-
 			LatticeGaussSampUtility<NativePoly>::GaussSampGqArbBase(perturbedSyndrome.GetElementAtIndex(u), c, kRes, qu, base, dgg, &digits);
-
 			for(size_t p=0; p<kRes; p++) {
 				for(size_t j=0; j<n; j++) {
 					zHatBBI(p + u*kRes,j) = digits(p,j);

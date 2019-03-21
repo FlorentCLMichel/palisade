@@ -95,7 +95,7 @@ buildContextFromSerialized(const map<string,string>& s, shared_ptr<typename Elem
 				!getValueForName(s, "securityLevel", secLevel) )
 			return 0;
 
-		return CryptoContextFactory<Element>::genCryptoContextBFV(stoul(plaintextModulus), stof(secLevel), 16, 4,
+		return CryptoContextFactory<Element>::genCryptoContextBFV(stoul(plaintextModulus), stof(secLevel), 2, 4,
 				0, 0, 1);
 
 	}

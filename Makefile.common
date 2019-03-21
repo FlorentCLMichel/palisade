@@ -75,7 +75,7 @@ endif
 ROOTDIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 PACKAGE := palisade
-VERSION := 1.4.1
+VERSION := 1.5.0
 
 #build directory
 BUILDDIR := build
@@ -184,7 +184,7 @@ uninstall: uninstallcore uninstallpke uninstallabe uninstallsignature
 
 UNITTESTMAINOBJ := $(BINDIR)/unittest/Main_TestAll.o
 
-$(UNITTESTMAINOBJ): test/include/gtest/Main_TestAll.cpp src/core/lib/math/backend.h 
+$(UNITTESTMAINOBJ): test/include/gtest/Main_TestAll.cpp src/core/lib/math/backend.h src/version.h
 	@mkdir -p $(BINDIR)/unittest
 	$(CC) -c $(CPPFLAGS) $(INC) -o $@ $<
 

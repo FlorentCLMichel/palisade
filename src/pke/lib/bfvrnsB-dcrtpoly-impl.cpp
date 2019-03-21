@@ -436,7 +436,7 @@ bool LPAlgorithmParamsGenBFVrnsB<DCRTPoly>::ParamsGen(shared_ptr<LPCryptoParamet
 		}
 
 	}
-	// this case supports re-encryption and automorphism w/o any other operations
+	// this case supports automorphism w/o any other operations
 	else if ((evalMultCount == 0) && (keySwitchCount > 0) && (evalAddCount == 0)) {
 
 		//base for relinearization
@@ -455,7 +455,7 @@ bool LPAlgorithmParamsGenBFVrnsB<DCRTPoly>::ParamsGen(shared_ptr<LPCryptoParamet
 		qPrev = q;
 
 		//this "while" condition is needed in case the iterative solution for q
-		//changes the requirement for n, which is rare but still theortically possible
+		//changes the requirement for n, which is rare but still theoretically possible
 		while (nRLWE(q) > n) {
 
 			while (nRLWE(q) > n) {
@@ -592,7 +592,7 @@ Ciphertext<DCRTPoly> LPAlgorithmBFVrnsB<DCRTPoly>::Encrypt(const LPPublicKey<DCR
 
 	const shared_ptr<typename DCRTPoly::Params> elementParams = cryptoParams->GetElementParams();
 
-	ptxt.SwitchFormat();
+	ptxt.SetFormat(Format::EVALUATION);
 
 	const std::vector<NativeInteger> &deltaTable = cryptoParams->GetCRTDeltaTable();
 
@@ -1082,7 +1082,7 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBFVrnsB<DCRTPoly>::KeySwitch(const LPEvalKey<
 
 	DCRTPoly ct1;
 
-	if (c.size() == 2) //case of PRE or automorphism
+	if (c.size() == 2) //case of automorphism
 	{
 		digitsC2 = c[1].CRTDecompose(relinWindow);
 		ct1 = digitsC2[0] * a[0];
@@ -1151,6 +1151,209 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBFVrnsB<DCRTPoly>::EvalMultAndRelinearize(Con
 
 	return newCiphertext;
 
+}
+
+
+template <>
+LPEvalKey<DCRTPoly> LPAlgorithmPREBFVrnsB<DCRTPoly>::ReKeyGen(const LPPublicKey<DCRTPoly> newPK,
+		const LPPrivateKey<DCRTPoly> origPrivateKey) const {
+
+	// Get crypto context of new public key.
+	auto cc = newPK->GetCryptoContext();
+
+	// Create an evaluation key that will contain all the re-encryption key elements.
+	LPEvalKeyRelin<DCRTPoly> ek(new LPEvalKeyRelinImpl<DCRTPoly>(cc));
+
+	const shared_ptr<LPCryptoParametersBFVrnsB<DCRTPoly>> cryptoParamsLWE =
+			std::dynamic_pointer_cast<LPCryptoParametersBFVrnsB<DCRTPoly>>(newPK->GetCryptoParameters());
+	const shared_ptr<DCRTPoly::Params> elementParams = cryptoParamsLWE->GetElementParams();
+
+	const DCRTPoly::DggType &dgg = cryptoParamsLWE->GetDiscreteGaussianGenerator();
+	DCRTPoly::DugType dug;
+	DCRTPoly::TugType tug;
+
+	const DCRTPoly &oldKey = origPrivateKey->GetPrivateElement();
+
+	std::vector<DCRTPoly> evalKeyElements;
+	std::vector<DCRTPoly> evalKeyElementsGenerated;
+
+	uint32_t relinWindow = cryptoParamsLWE->GetRelinWindow();
+
+	const DCRTPoly &p0 = newPK->GetPublicElements().at(0);
+	const DCRTPoly &p1 = newPK->GetPublicElements().at(1);
+
+	for (usint i = 0; i < oldKey.GetNumOfElements(); i++)
+	{
+
+		if (relinWindow>0)
+		{
+			vector<DCRTPoly::PolyType> decomposedKeyElements = oldKey.GetElementAtIndex(i).PowersOfBase(relinWindow);
+
+			for (size_t k = 0; k < decomposedKeyElements.size(); k++)
+			{
+
+				// Creates an element with all zeroes
+				DCRTPoly filtered(elementParams,EVALUATION,true);
+
+				filtered.SetElementAtIndex(i,decomposedKeyElements[k]);
+
+				DCRTPoly u;
+
+				if (cryptoParamsLWE->GetMode() == RLWE)
+					u = DCRTPoly(dgg, elementParams, Format::EVALUATION);
+				else
+					u = DCRTPoly(tug, elementParams, Format::EVALUATION);
+
+				DCRTPoly e1(dgg, elementParams, Format::EVALUATION);
+				DCRTPoly e2(dgg, elementParams, Format::EVALUATION);
+
+				DCRTPoly c0(elementParams);
+				DCRTPoly c1(elementParams);
+
+				c0 = p0*u + e1 + filtered;
+
+				c1 = p1*u + e2;
+
+				DCRTPoly a(dug, elementParams, Format::EVALUATION);
+				evalKeyElementsGenerated.push_back(c1);
+
+				DCRTPoly e(dgg, elementParams, Format::EVALUATION);
+				evalKeyElements.push_back(c0);
+			}
+		}
+		else
+		{
+
+			// Creates an element with all zeroes
+			DCRTPoly filtered(elementParams,EVALUATION,true);
+
+			filtered.SetElementAtIndex(i,oldKey.GetElementAtIndex(i));
+
+			DCRTPoly u;
+
+			if (cryptoParamsLWE->GetMode() == RLWE)
+				u = DCRTPoly(dgg, elementParams, Format::EVALUATION);
+			else
+				u = DCRTPoly(tug, elementParams, Format::EVALUATION);
+
+			DCRTPoly e1(dgg, elementParams, Format::EVALUATION);
+			DCRTPoly e2(dgg, elementParams, Format::EVALUATION);
+
+			DCRTPoly c0(elementParams);
+			DCRTPoly c1(elementParams);
+
+			c0 = p0*u + e1 + filtered;
+
+			c1 = p1*u + e2;
+
+			DCRTPoly a(dug, elementParams, Format::EVALUATION);
+			evalKeyElementsGenerated.push_back(c1);
+
+			DCRTPoly e(dgg, elementParams, Format::EVALUATION);
+			evalKeyElements.push_back(c0);
+		}
+
+	}
+
+	ek->SetAVector(std::move(evalKeyElements));
+	ek->SetBVector(std::move(evalKeyElementsGenerated));
+
+	return ek;
+
+}
+
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmPREBFVrnsB<DCRTPoly>::ReEncrypt(const LPEvalKey<DCRTPoly> ek,
+	ConstCiphertext<DCRTPoly> cipherText,
+	const LPPublicKey<DCRTPoly> publicKey) const
+{
+	Ciphertext<DCRTPoly> newCiphertext = cipherText->CloneEmpty();
+
+	const shared_ptr<LPCryptoParametersBFVrnsB<DCRTPoly>> cryptoParamsLWE = std::dynamic_pointer_cast<LPCryptoParametersBFVrnsB<DCRTPoly>>(ek->GetCryptoParameters());
+
+	LPEvalKeyRelin<DCRTPoly> evalKey = std::static_pointer_cast<LPEvalKeyRelinImpl<DCRTPoly>>(ek);
+
+	const std::vector<DCRTPoly> &c = cipherText->GetElements();
+
+	const std::vector<DCRTPoly> &b = evalKey->GetAVector();
+	const std::vector<DCRTPoly> &a = evalKey->GetBVector();
+
+	uint32_t relinWindow = cryptoParamsLWE->GetRelinWindow();
+	std::vector<DCRTPoly> digitsC2;
+
+	DCRTPoly ct0(c[0]);
+	DCRTPoly ct1;
+
+	digitsC2 = c[1].CRTDecompose(relinWindow);
+	ct1 = digitsC2[0] * a[0];
+	ct0 += digitsC2[0] * b[0];
+
+	for (usint i = 1; i < digitsC2.size(); ++i)	{
+		ct0 += digitsC2[i] * b[i];
+		ct1 += digitsC2[i] * a[i];
+	}
+
+	newCiphertext->SetElements({ ct0, ct1 });
+
+	if (publicKey == nullptr) { // Recipient PK is not provided - CPA-secure PRE
+		return newCiphertext;
+	} else { // Recipient PK provided - HRA-secure PRE
+		// To obtain HRA security, we a fresh encryption of zero to the result
+		// with noise scaled by K (=log2(q)/relinWin).
+		CryptoContext<DCRTPoly> cc = publicKey->GetCryptoContext();
+
+		// Creating the correct plaintext of zeroes, based on the
+		// encoding type of the ciphertext.
+		PlaintextEncodings encType = newCiphertext->GetEncodingType();
+
+		// Encrypting with noise scaled by K
+		const shared_ptr<LPCryptoParametersBFVrnsB<DCRTPoly>> cryptoPars =
+				std::dynamic_pointer_cast<LPCryptoParametersBFVrnsB<DCRTPoly>>(publicKey->GetCryptoParameters());
+		const shared_ptr<DCRTPoly::Params> elementParams = cryptoPars->GetElementParams();
+
+		usint relinWin = cryptoPars->GetRelinWindow();
+		usint nBits = elementParams->GetModulus().GetLengthForBase(2);
+		// K = log2(q)/r, i.e., number of digits in PRE decomposition
+		usint K = 1;
+		if (relinWin > 0) {
+			K = nBits / relinWin;
+			if (nBits % relinWin > 0)
+				K++;
+		}
+
+		Ciphertext<DCRTPoly> zeroCiphertext(new CiphertextImpl<DCRTPoly>(publicKey));
+		zeroCiphertext->SetEncodingType(encType);
+
+		const DCRTPoly::DggType &dgg = cryptoPars->GetDiscreteGaussianGenerator();
+		DCRTPoly::TugType tug;
+		// Scaling the distribution standard deviation by K for HRA-security
+		auto stdDev = cryptoPars->GetDistributionParameter();
+		DCRTPoly::DggType dgg_err(K*stdDev);
+
+		const DCRTPoly &p0 = publicKey->GetPublicElements().at(0);
+		const DCRTPoly &p1 = publicKey->GetPublicElements().at(1);
+
+		DCRTPoly u;
+		if (cryptoPars->GetMode() == RLWE)
+			u = DCRTPoly(dgg, elementParams, Format::EVALUATION);
+		else
+			u = DCRTPoly(tug, elementParams, Format::EVALUATION);
+
+		DCRTPoly e1(dgg_err, elementParams, Format::EVALUATION);
+		DCRTPoly e2(dgg_err, elementParams, Format::EVALUATION);
+
+		DCRTPoly c0(elementParams);
+		DCRTPoly c1(elementParams);
+
+		c0 = p0*u + e1;
+		c1 = p1*u + e2;
+
+		zeroCiphertext->SetElements({ c0, c1 });
+
+		newCiphertext->SetKeyTag(zeroCiphertext->GetKeyTag());
+
+		return cc->EvalAdd(newCiphertext, zeroCiphertext);
+	}
 }
 
 template <>

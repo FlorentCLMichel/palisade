@@ -1,4 +1,4 @@
-/*
+﻿/*
 * @file bfvrnsB.cpp - implementation of the BEHZ variant of BFVrns.
  * @author  TPOC: palisade@njit.edu
  *
@@ -200,6 +200,20 @@ LPPublicKeyEncryptionSchemeBFVrnsB<Element>::LPPublicKeyEncryptionSchemeBFVrnsB(
 			this->m_algorithmParamsGen = new LPAlgorithmParamsGenBFVrnsB<Element>();
 		}
 
+template <class Element>
+LPEvalKey<Element> LPAlgorithmPREBFVrnsB<Element>::ReKeyGen(const LPPublicKey<Element> newPK,
+	const LPPrivateKey<Element> origPrivateKey) const
+{
+	return LPAlgorithmPREBFV<Element>::ReKeyGen(newPK, origPrivateKey);
+}
+
+template <class Element>
+Ciphertext<Element> LPAlgorithmPREBFVrnsB<Element>::ReEncrypt(const LPEvalKey<Element> EK,
+	ConstCiphertext<Element> ciphertext,
+	const LPPublicKey<Element> publicKey) const
+{
+	return LPAlgorithmPREBFV<Element>::ReEncrypt(EK, ciphertext, publicKey);
+}
 
 }  // namespace lbcrypto ends
 

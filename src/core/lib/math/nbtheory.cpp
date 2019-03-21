@@ -284,9 +284,79 @@ namespace lbcrypto {
 		DEBUG("result = " << result.ToString());
 		if (result == IntType(1)) {
 			DEBUG("LOOP?");
-			return RootOfUnity(m, modulo);
+			result = RootOfUnity(m, modulo);
 		}
-		return result;
+
+		/*
+
+		 * At this point, result contains a primitive root of unity. However,
+
+		 * we want to return the minimum root of unity, to avoid different
+
+		 * crypto contexts having different roots of unity for the same
+
+		 * cyclotomic order and moduli. Therefore, we are going to cycle over
+
+		 * all primitive roots of unity and select the smallest one (minRU).
+
+		 *
+
+		 * To cycle over all primitive roots of unity, we raise the root of
+
+		 * unity in result to all the powers that are co-prime to the
+
+		 * cyclotomic order. In power-of-two cyclotomics, this will be the
+
+		 * set of all odd powers, but here we use a more general routine
+
+		 * to support arbitrary cyclotomics.
+
+		 *
+
+		 */
+
+
+
+		IntType mu = ComputeMu<IntType>(modulo);
+
+		IntType x(1);
+
+		x.ModBarrettMulInPlace(result, modulo, mu);
+
+		IntType minRU(x);
+
+
+
+		IntType curPowIdx(1);
+
+		std::vector<IntType> coprimes = GetTotientList<IntType>(m);
+
+		for (usint i=0; i<coprimes.size(); i++) {
+
+			auto nextPowIdx = coprimes[i];
+
+			IntType diffPow(nextPowIdx - curPowIdx);
+
+			for (IntType j(0); j<diffPow; j+=IntType(1)) {
+
+				x.ModBarrettMulInPlace(result, modulo, mu);
+
+			}
+
+			if (x < minRU && x != IntType(1)) {
+
+				minRU = x;
+
+			}
+
+			curPowIdx = nextPowIdx;
+
+		}
+
+
+
+		return minRU;
+
 	}
 
 	template<typename IntType>

@@ -102,7 +102,7 @@ void SHERun() {
 
 	//Set Crypto Parameters
 	CryptoContext<DCRTPoly> cryptoContext = CryptoContextFactory<DCRTPoly>::genCryptoContextBFVrns(
-			ptm, rootHermiteFactor, sigma, 0, 20, 0, OPTIMIZED,3,0,60);
+			ptm, rootHermiteFactor, sigma, 0, 5, 0, OPTIMIZED,3,0,60);
 
 	// enable features that you wish to use
 	cryptoContext->Enable(ENCRYPTION);

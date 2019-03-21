@@ -26,6 +26,10 @@
 
 #ifndef SIGNATURE_SIGNATURECORE_H
 #define SIGNATURE_SIGNATURECORE_H
+
+#include "lattice/trapdoor.h"
+#include "lattice/trapdoorparameters.h"
+namespace lbcrypto{
 /**
  * @brief Virtual templated class for signature
  * @tparam Element ring element
@@ -158,6 +162,25 @@ class LPSignatureScheme{
      */
     virtual void Sign(shared_ptr<LPSignatureParameters<Element>> m_params,const LPSignKey<Element> & sk,const LPVerificationKey<Element> &vk, const LPSignPlaintext<Element> & pt, LPSignature<Element>* sign);
     /**
+	*Method for offline perturbation sampling
+	*@param m_params parameters used for signing
+	*@param signKey private signing key
+	*return perturbation vector
+	*/
+	virtual PerturbationVector<Element> SampleOffline(shared_ptr<LPSignatureParameters<Element>> m_params,const LPSignKey<Element> &signKey);
+
+	/**
+	*Method for signing given text
+	*@param m_params parameters used for signing
+	*@param signKey private signing key
+	*@param verificationKey public verification key
+	*@param Pre-computed perturbation vector
+	*@param plainText encoding of the text to be signed
+	*@param signatureText signature generated after the signing process - output of the function
+	*/
+	virtual void SignOnline(shared_ptr<LPSignatureParameters<Element>> m_params,const LPSignKey<Element> &signKey,const LPVerificationKey<Element> &verificationKey, const PerturbationVector<Element> & parturbationVector, const LPSignPlaintext<Element> & pt,
+	LPSignature<Element> * signatureText);
+    /**
      * @brief Method for verification
      * @param m_params Parameters used for the scheme
      * @param vk Public key used for verification
@@ -167,8 +190,9 @@ class LPSignatureScheme{
      */
     virtual bool Verify(shared_ptr<LPSignatureParameters<Element>> m_params,const LPVerificationKey<Element> & vk,const LPSignature<Element> & sign, const LPSignPlaintext<Element> & pt);
     /*
-        *@brief Dummy method to force abstract base class
-        */
-        virtual void forceImplement()=0;
+    * @brief Dummy method to force abstract base class
+    */
+    virtual void forceImplement()=0;
 };
+}
 #endif

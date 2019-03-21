@@ -76,6 +76,16 @@ namespace lbcrypto{
     void ABEContext<Element>::KeyGen(const ABECoreMasterSecretKey<Element> & msk,const ABECoreMasterPublicKey<Element>& mpk, const ABECoreAccessPolicy<Element> & ap,ABECoreSecretKey<Element>* sk){
         m_scheme->KeyGen(m_params,msk,mpk,ap,sk);
     }
+    //Method for offline phase of individual/policy specific key generation for decryption 
+    template <class Element>
+    void ABEContext<Element>::KeyGenOfflinePhase(const ABECoreMasterSecretKey<Element> & msk,PerturbationVector<Element>& pv){
+        pv = m_scheme->KeyGenOffline(m_params,msk);
+    }
+    //Method for online phase individual/policy specific key generation for decryption  
+    template <class Element>
+    void ABEContext<Element>::KeyGenOnlinePhase(const ABECoreMasterSecretKey<Element> & msk,const ABECoreMasterPublicKey<Element>& mpk, const ABECoreAccessPolicy<Element> & ap,const PerturbationVector<Element> & pv,ABECoreSecretKey<Element>* sk){
+        m_scheme->KeyGenOnline(m_params,msk,mpk,ap,pv,sk);
+    }
     //Method for encryption
     template <class Element>
     void ABEContext<Element>::Encrypt(const ABECoreMasterPublicKey<Element> & mpk,const ABECoreAccessPolicy<Element> & ap,const Plaintext & ptext,ABECoreCiphertext<Element>* ct){

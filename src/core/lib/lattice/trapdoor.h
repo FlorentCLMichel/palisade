@@ -227,19 +227,19 @@ public:
 
 				// for distribution parameters up to 3e5 (experimentally found threshold) use the Peikert's inversion method
 				// otherwise, use Karney's method
+				
 				if (sigmaLarge > KARNEY_THRESHOLD) {
-
 					//Karney rejection sampling method
 					for (size_t i = 0; i < n * k; i++) {
 						p2ZVector(i, 0) = dgg.GenerateIntegerKarney(0, sigmaLarge);
 					}
 				}
+				
 				else
 				{
 
 					//Peikert's inversion sampling method
 					std::shared_ptr<int32_t> dggVector = dggLargeSigma.GenerateIntVector(n*k);
-
 					for (size_t i = 0; i < n * k; i++) {
 						p2ZVector(i, 0) = (dggVector.get())[i];
 					}
@@ -281,7 +281,6 @@ public:
 				shared_ptr<Matrix<int64_t>> p1ZVector(new Matrix<int64_t>([]() { return 0; }, n * 2, 1));
 				DEBUG("z1i: "<<TOC(t1));
 				TIC(t1);
-
 				LatticeGaussSampUtility<Element>::ZSampleSigma2x2(a, b, d, c, dgg, p1ZVector);
 				DEBUG("z1j1: "<<TOC(t1)); //14
 				TIC(t1);

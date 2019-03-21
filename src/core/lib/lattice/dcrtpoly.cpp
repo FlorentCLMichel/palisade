@@ -71,6 +71,7 @@ DCRTPolyImpl<VecType>::operator=(const PolyLargeType &element)
     if ( element.GetModulus() > m_params->GetModulus() ) {
         throw std::logic_error("Modulus of element passed to constructor is bigger that DCRT big modulus");
     }
+    m_params->SetOriginalModulus(element.GetModulus());
 
     size_t vecCount = m_params->GetParams().size();
     m_vectors.clear();
@@ -151,6 +152,7 @@ DCRTPolyImpl<VecType>::DCRTPolyImpl(const PolyLargeType &element, const shared_p
 
     m_format = format;
     m_params = params;
+    m_params->SetOriginalModulus(element.GetModulus());
 
     *this = element;
 }
@@ -465,12 +467,21 @@ std::vector<DCRTPolyImpl<VecType>> DCRTPolyImpl<VecType>::CRTDecompose(uint32_t 
 
             for ( usint k=0; k<m_vectors.size(); k++ ){
                 PolyType temp(input.m_vectors[i]);
-                if (i!=k)
+                if (i!=k) {
                     temp.SwitchModulus(input.m_vectors[k].GetModulus(),input.m_vectors[k].GetRootOfUnity());
-                currentDCRTPoly.m_vectors[k] = temp;
+                    // Switch to evaluation representation
+                    temp.SwitchFormat();
+                	currentDCRTPoly.m_vectors[k] = temp;
+                }
+                // saves an extra NTT
+                else
+                {
+                	currentDCRTPoly.m_vectors[k] = this->m_vectors[k];
+                	currentDCRTPoly.m_vectors[k].SetFormat(EVALUATION);
+                }
             }
 
-            currentDCRTPoly.SwitchFormat();
+            currentDCRTPoly.m_format = EVALUATION;
 
             result[i] = std::move(currentDCRTPoly);
         }
@@ -697,31 +708,71 @@ const DCRTPolyImpl<VecType> & DCRTPolyImpl<VecType>::operator=(DCRTPolyImpl&& rh
 template<typename VecType>
 DCRTPolyImpl<VecType>& DCRTPolyImpl<VecType>::operator=(std::initializer_list<uint64_t> rhs)
 {
-    usint len = rhs.size();
-    static PolyType::Integer ZERO(0);
-    if(!IsEmpty()) {
-        usint vectorLength = this->m_vectors[0].GetLength();
-        for(usint i = 0; i < m_vectors.size(); ++i) { // this loops over each tower
-            for(usint j = 0; j < vectorLength; ++j) { // loops within a tower
-                if(j<len) {
-                  this->m_vectors[i].at(j)= *(rhs.begin()+j);
-                } else {
-                  this->m_vectors[i].at(j)= ZERO;
-                }
-            }
-        }
-    } else {
-        for(size_t i=0; i<m_vectors.size(); i++) {
-            NativeVector temp(m_params->GetRingDimension());
-            temp.SetModulus(m_vectors.at(i).GetModulus());
-            temp = rhs;
-            m_vectors.at(i).SetValues(std::move(temp),m_format);
-        }
+        bool dbg_flag = false;
+	usint len = rhs.size();
+	static PolyType::Integer ZERO(0);
+	if(!IsEmpty()) {
+		usint vectorLength = this->m_vectors[0].GetLength();
+		DEBUGEXP(vectorLength);
+		for(usint i = 0; i < m_vectors.size(); ++i) { // this loops over each tower
+			for(usint j = 0; j < vectorLength; ++j) { // loops within a tower
+				if(j<len) {
+				  this->m_vectors[i].at(j)= PolyType::Integer(*(rhs.begin()+j));
+				  DEBUGEXP(this->m_vectors[i].at(j));
+				} else {
+				  this->m_vectors[i].at(j)= ZERO;
+				  DEBUGEXP(ZERO);
+				}
+			}
+		}
+	} else {
+	  DEBUGEXP(m_vectors.size());
+		for(size_t i=0; i<m_vectors.size(); i++) {
+			NativeVector temp(m_params->GetRingDimension());
+			temp.SetModulus(m_vectors.at(i).GetModulus());
+			temp = rhs;
+			m_vectors.at(i).SetValues(std::move(temp),m_format);
+		}
 
-    }
-    return *this;
+	}
+	return *this;
 }
 
+#if 1
+template<typename VecType>
+DCRTPolyImpl<VecType>& DCRTPolyImpl<VecType>::operator=(std::initializer_list<std::string> rhs)
+{
+        bool dbg_flag = false;
+	usint len = rhs.size();
+	static PolyType::Integer ZERO(0);
+	if(!IsEmpty()) {
+		usint vectorLength = this->m_vectors[0].GetLength();
+		DEBUGEXP(vectorLength);
+		for(usint i = 0; i < m_vectors.size(); ++i) { // this loops over each tower
+			for(usint j = 0; j < vectorLength; ++j) { // loops within a tower
+			  DEBUGEXP(j);
+				if(j<len) {
+				  this->m_vectors[i].at(j)= PolyType::Integer(*(rhs.begin()+j));
+				  DEBUGEXP(this->m_vectors[i].at(j));
+				} else {
+				  this->m_vectors[i].at(j)= ZERO;
+				  DEBUGEXP(ZERO);
+				}
+			}
+		}
+	} else {
+	  DEBUGEXP(m_vectors.size());
+		for(size_t i=0; i<m_vectors.size(); i++) {
+			NativeVector temp(m_params->GetRingDimension());
+			temp.SetModulus(m_vectors.at(i).GetModulus());
+			temp = rhs;
+			m_vectors.at(i).SetValues(std::move(temp),m_format);
+		}
+
+	}
+	return *this;
+}
+#endif
 // Used only inside a Matrix object; so an allocator already initializes the values
 template<typename VecType>
 DCRTPolyImpl<VecType>& DCRTPolyImpl<VecType>::operator=(uint64_t val)
@@ -1023,8 +1074,49 @@ void DCRTPolyImpl<VecType>::ModReduce(const Integer &plaintextModulus)
     SwitchFormat();
 }
 
+/* methods to access individual members of the DCRTPolyImpl. Result is
+ * Interpolated value at that point.  Note this is a very costlycompute
+ *intensive operation meant basically for debugging code.
+ */
+
+template<typename VecType>
+typename DCRTPolyImpl<VecType>::Integer& DCRTPolyImpl<VecType>::at(usint i)
+{
+  if (m_vectors.size() == 0)
+    throw std::logic_error("No values in DCRTPolyImpl");
+  if (i >= GetLength())
+    throw std::logic_error("out of range in  DCRTPolyImpl.at()");
+  PolyLargeType tmp( CRTInterpolateIndex(i));
+  return tmp[i];
+}
+
+template<typename VecType>
+const typename DCRTPolyImpl<VecType>::Integer& DCRTPolyImpl<VecType>::at(usint i) const
+{
+  if (m_vectors.size() == 0)
+    throw std::logic_error("No values in DCRTPolyImpl");
+  if (i >= GetLength())
+    throw std::logic_error("out of range in  DCRTPolyImpl.at()");
+  PolyLargeType tmp(CRTInterpolateIndex(i));
+  return tmp[i];
+}
+
+template<typename VecType>
+typename DCRTPolyImpl<VecType>::Integer& DCRTPolyImpl<VecType>::operator[](usint i)
+{
+  PolyLargeType tmp( CRTInterpolateIndex(i));
+  return tmp[i];
+}
+
+template<typename VecType>
+const typename DCRTPolyImpl<VecType>::Integer& DCRTPolyImpl<VecType>::operator[](usint i) const
+{
+  PolyLargeType tmp( CRTInterpolateIndex(i));
+  return tmp[i];
+}
+
 /*
- * This method applies the Chinese Remainder Interpolation on an ILVectoArray2n and produces an Poly
+ * This method applies the Chinese Remainder Interpolation on an DCRTPolyImpl and produces an Poly
 * How the Algorithm works:
 * Consider the DCRTPolyImpl as a 2-dimensional matrix M, with dimension ringDimension * Number of Towers.
 * For brevity , lets say this is r * t
@@ -1116,6 +1208,105 @@ typename DCRTPolyImpl<VecType>::PolyLargeType DCRTPolyImpl<VecType>::CRTInterpol
 
     return std::move( polynomialReconstructed );
 }
+
+/*
+ * This method applies the Chinese Remainder Interpolation on a 
+ * single element across all towers of a DCRTPolyImpl and produces an Poly
+ * with zeros except at that single element
+* How the Algorithm works:
+* Consider the DCRTPolyImpl as a 2-dimensional matrix M, with dimension ringDimension * Number of Towers.
+* For brevity , lets say this is r * t
+* Let qt denote the bigModulus (all the towers' moduli multiplied together) and qi denote the modulus of a particular tower.
+* Let V be a BigVector of size tower (tower size). Each coefficient of V is calculated as follows:
+* for every r
+*   calculate: V[j]= {Sigma(i = 0 --> t-1) ValueOf M(r,i) * qt/qi *[ (qt/qi)^(-1) mod qi ]}mod qt
+*
+* Once we have the V values, we construct an Poly from V, use qt as it's modulus, and calculate a root of unity
+* for parameter selection of the Poly.
+*/
+template<typename VecType>
+typename DCRTPolyImpl<VecType>::PolyLargeType DCRTPolyImpl<VecType>::CRTInterpolateIndex(usint i) const
+{
+	bool dbg_flag = false;
+
+	usint ringDimension = GetRingDimension();
+	usint nTowers = m_vectors.size();
+
+	DEBUG("in Interpolate ring " << ringDimension << " towers " << nTowers);
+
+	for( usint vi = 0; vi < nTowers; vi++ )
+		DEBUG("tower " << vi << " is " << m_vectors[vi]);
+
+	Integer bigModulus(GetModulus()); // qT
+
+	DEBUG("bigModulus " << bigModulus);
+
+	// this is the resulting vector of coefficients
+	VecType coefficients(ringDimension, bigModulus);
+
+	// this will finally be  V[j]= {Sigma(i = 0 --> t-1) ValueOf M(r,i) * qt/qj *[ (qt/qj)^(-1) mod qj ]}modqt
+
+	// first, precompute qt/qj factors
+	vector<Integer> multiplier(nTowers);
+	for( usint vi = 0 ; vi < nTowers; vi++ ) {
+		Integer qj(m_vectors[vi].GetModulus().ConvertToInt());
+		Integer divBy = bigModulus / qj;
+		Integer modInv = divBy.ModInverse(qj).Mod(qj);
+		multiplier[vi] = divBy * modInv;
+
+		DEBUG("multiplier " << vi << " " << qj << " " << multiplier[vi]);
+	}
+
+	// if the vectors are not in COEFFICIENT form, they need to be, so we will need to make a copy
+	// of them and switchformat on them... otherwise we can just use what we have
+	const std::vector<PolyType> *vecs = &m_vectors;
+	std::vector<PolyType> coeffVecs;
+	if( m_format == EVALUATION ) {
+		for( usint i=0; i<m_vectors.size(); i++ ) {
+			PolyType vecCopy(m_vectors[i]);
+			vecCopy.SetFormat(COEFFICIENT);
+			coeffVecs.push_back( std::move(vecCopy) );
+		}
+		vecs = &coeffVecs;
+	}
+
+	for( usint vi = 0; vi < nTowers; vi++ )
+		DEBUG("tower " << vi << " is " << (*vecs)[vi]);
+
+	//Precompute the Barrett mu parameter
+	Integer mu = ComputeMu<Integer>(bigModulus);
+
+	// now, compute the value for the vector at element i
+
+	for( usint ri = 0; ri < ringDimension; ri++ ) {
+		coefficients[ri] = 0;
+		if (ri == i) {
+		  for( usint vi = 0; vi < nTowers; vi++ ) {
+		    coefficients[ri] += (Integer((*vecs)[vi].GetValues()[ri].ConvertToInt()) * multiplier[vi]);
+		  }
+		  DEBUG( (*vecs)[0].GetValues()[ri] << " * " << multiplier[0] << " == " << coefficients[ri] );
+		  coefficients[ri].ModBarrettInPlace(bigModulus,mu);
+		}
+	}
+	
+	DEBUG("passed loops");
+	DEBUG(coefficients);
+	
+	// Create an Poly for this BigVector
+	
+	DEBUG("elementing after vectoring");
+	DEBUG("m_cyclotomicOrder " << GetCyclotomicOrder());
+	DEBUG("modulus "<< bigModulus);
+	
+	// Setting the root of unity to ONE as the calculation is expensive and not required.
+	typename DCRTPolyImpl<VecType>::PolyLargeType polynomialReconstructed( shared_ptr<ILParamsImpl<Integer>>( new ILParamsImpl<Integer>(GetCyclotomicOrder(), bigModulus, 1) ) );
+	polynomialReconstructed.SetValues(coefficients,COEFFICIENT);
+
+	DEBUG("answer: " << polynomialReconstructed);
+
+	return std::move( polynomialReconstructed );
+}
+
 
 // todo can we be smarter with this method?
 template<typename VecType>

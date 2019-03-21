@@ -286,6 +286,15 @@ public:
 	}
 
 	/**
+	 * @brief returns the element's original modulus, derived from Poly
+	 
+	 * @return returns the modulus of the element.
+	 */
+	const Integer &GetOriginalModulus() const {
+		return m_params->GetOriginalModulus();
+	}
+
+	/**
 	 * @brief returns the element's root of unity.
 	 * @return the element's root of unity.
 	 */
@@ -306,12 +315,29 @@ public:
 
 		return m_vectors[0].GetValues().GetLength();
 	}
+	/**
+	 * @brief Get interpolated value of elements at all tower index i.
+	 * Note this operation is computationally intense. 
+	 * @return interpolated value at index i.
+	 */
+	Integer& at(usint i) ;
+	const Integer& at(usint i) const;
 
 	/**
-	* @brief Get method of individual compoment elements.
-	*
-	* @param i index of component element to be returned.
-	* @returns a reference to the component element at index i.
+	 * @brief Get interpolated value of element at index i.
+	 * Note this operation is computationally intense. 
+	 * @return interpolated value at index i.
+	 */
+	Integer& operator[](usint i);
+	const Integer& operator[](usint i) const;
+
+
+	
+	/**
+	* @brief Get method of individual tower of elements.
+	* Note this behavior is different than poly
+	* @param i index of tower to be returned.
+	* @returns a reference to the returned tower
 	*/
 	const PolyType &GetElementAtIndex(usint i) const;
 
@@ -413,6 +439,15 @@ public:
 	* @return the resulting PolyImpl.
 	*/
 	DCRTPolyType& operator=(std::vector<int32_t> rhs);
+
+	/**
+	 * @brief Initalizer list
+	 *
+	 * @param &rhs the list to set the PolyImpl to.
+	 * @return the resulting PolyImpl.
+	 */
+
+	DCRTPolyType& operator=(std::initializer_list<std::string> rhs);
 
 	/**
 	 * @brief Unary minus on a element.
@@ -714,6 +749,16 @@ public:
 
 	PolyType DecryptionCRTInterpolate(PlaintextModulus ptm) const;
 
+
+	/**
+	* @brief Interpolates the DCRTPoly to an Poly based on the Chinese Remainder Transform Interpolation, only at element index i, all other elements are zero.
+	* and then returns a Poly with that single element
+	*
+	* @return the interpolated ring element as a Poly object.
+	*/
+	PolyLargeType CRTInterpolateIndex(usint i) const;
+	
+
 	/**
 	* @brief Computes Round(p/q*x) mod p as [\sum_i x_i*alpha_i + Round(\sum_i x_i*beta_i)] mod p for fast rounding in RNS;
 	* used in the decryption of BFVrns
@@ -953,6 +998,7 @@ public:
 	 * @return a resulting concatenated output stream
 	 */
 	friend inline std::ostream& operator<<(std::ostream& os, const DCRTPolyType& vec) {
+	  //os << (vec.m_format == EVALUATION ? "EVAL: " : "COEF: "); 
 		for( usint i=0; i<vec.GetAllElements().size(); i++ ) {
 			if( i != 0 ) os << std::endl;
 			os << i << ": ";
@@ -1040,6 +1086,7 @@ public:
 	}
 
 private:
+	
 	shared_ptr<Params> m_params;
 
 	// array of vectors used for double-CRT presentation
@@ -1047,7 +1094,7 @@ private:
 
 	// Either Format::EVALUATION (0) or Format::COEFFICIENT (1)
 	Format m_format;
-};
+ };
 } // namespace lbcrypto ends
 
 namespace lbcrypto

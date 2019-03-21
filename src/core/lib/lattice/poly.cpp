@@ -531,7 +531,10 @@ template<typename VecType>
 PolyImpl<VecType> PolyImpl<VecType>::Plus(const Integer &element) const
 {
 	PolyImpl<VecType> tmp = CloneParametersOnly();
-	tmp.SetValues( GetValues().ModAddAtIndex(0, element), this->m_format );
+	if (this->m_format == COEFFICIENT)
+		tmp.SetValues( GetValues().ModAddAtIndex(0, element), this->m_format );
+	else
+		tmp.SetValues( GetValues().ModAdd(element), this->m_format );
 	return std::move( tmp );
 }
 
@@ -615,7 +618,7 @@ PolyImpl<VecType> PolyImpl<VecType>::Times(const PolyImpl &element) const
 template<typename VecType>
 const PolyImpl<VecType>& PolyImpl<VecType>::operator+=(const PolyImpl &element)
 {
-	bool dbg_flag = true;
+	bool dbg_flag = false;
 	if (!(*this->m_params == *element.m_params)){
 		DEBUGEXP(*this->m_params);
 		DEBUGEXP(*element.m_params);

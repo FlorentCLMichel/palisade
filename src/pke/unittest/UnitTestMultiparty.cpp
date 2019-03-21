@@ -47,7 +47,7 @@ public:
 };
 
 template <class Element>
-void UnitTestMultiparty(CryptoContext<Element> cc, bool publicVersion = true) {
+void UnitTestMultiparty(CryptoContext<Element> cc) {
 	
 	// Initialize Public Key Containers
 	LPKeyPair<Element> kp1;
@@ -91,9 +91,9 @@ void UnitTestMultiparty(CryptoContext<Element> cc, bool publicVersion = true) {
 	// This generates the keys which are used to perform the key switching.
 	////////////////////////////////////////////////////////////
 
-	evalKey1 = cc->ReKeyGen(kpMultiparty.secretKey, kp1.secretKey);
-	evalKey2 = cc->ReKeyGen(kpMultiparty.secretKey, kp2.secretKey);
-	evalKey3 = cc->ReKeyGen(kpMultiparty.secretKey, kp3.secretKey);
+	evalKey1 = cc->ReKeyGen(kpMultiparty.publicKey, kp1.secretKey);
+	evalKey2 = cc->ReKeyGen(kpMultiparty.publicKey, kp2.secretKey);
+	evalKey3 = cc->ReKeyGen(kpMultiparty.publicKey, kp3.secretKey);
 
 	////////////////////////////////////////////////////////////
 	// Encode source data

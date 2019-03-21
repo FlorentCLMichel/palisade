@@ -181,32 +181,15 @@ int main(int argc, char *argv[]) {
 
 	std::cout <<"\n"<< "Generating proxy re-encryption key..." << std::endl;
 
-	bool flagBGV = true;
-
-	if ((input.find("BGV") == string::npos) && (input.find("BFV") == string::npos))
-		flagBGV = false;
-
 	start = currentDateTime();
 
-	if (flagBGV) { 
-		evalKey1 = cc->ReKeyGen(kpMultiparty.secretKey, kp1.secretKey);
-		evalKey2 = cc->ReKeyGen(kpMultiparty.secretKey, kp2.secretKey);
-		evalKey3 = cc->ReKeyGen(kpMultiparty.secretKey, kp3.secretKey);
-	}
-	else
-	{
-		evalKey1 = cc->ReKeyGen(kpMultiparty.publicKey, kp1.secretKey);
-		evalKey2 = cc->ReKeyGen(kpMultiparty.publicKey, kp2.secretKey);
-		evalKey3 = cc->ReKeyGen(kpMultiparty.publicKey, kp3.secretKey);
-	}
+	evalKey1 = cc->ReKeyGen(kpMultiparty.publicKey, kp1.secretKey);
+	evalKey2 = cc->ReKeyGen(kpMultiparty.publicKey, kp2.secretKey);
+	evalKey3 = cc->ReKeyGen(kpMultiparty.publicKey, kp3.secretKey);
 
 	finish = currentDateTime();
 	diff = finish - start;
 	cout << "Key generation time: " << "\t" << diff << " ms" << endl;
-
-	//std::cout << "Press any key to continue." << std::endl;
-	//std::cin.get();	
-
 
 	////////////////////////////////////////////////////////////
 	// Encode source data

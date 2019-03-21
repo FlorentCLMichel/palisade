@@ -345,7 +345,8 @@ void ChineseRemainderTransformFTT<VecType>::PreCompute(const IntType& rootOfUnit
 
 	rootOfUnityTableCheck = &m_rootOfUnityTableByModulus[modulus];
 	//Precomputes twiddle factor omega and FTT parameter phi for Forward Transform
-	if (rootOfUnityTableCheck->GetLength() == 0) {
+	if (rootOfUnityTableCheck->GetLength() == 0 ||
+		 m_rootOfUnityTableByModulus[modulus][0] != rootOfUnity ) {
 #pragma omp critical
 {
 		VecType Table(CycloOrder / 2, modulus);
@@ -433,7 +434,8 @@ void ChineseRemainderTransformFTT<VecType>::PreCompute(std::vector<IntType> &roo
 		//Precompute the Barrett mu parameter
 		IntType mu = ComputeMu<IntType>(currentMod);
 
-		if (m_rootOfUnityTableByModulus[moduliiChain[i]].GetLength() != 0)
+		if (m_rootOfUnityTableByModulus[moduliiChain[i]].GetLength() != 0 &&
+			m_rootOfUnityTableByModulus[moduliiChain[i]][0] == currentRoot)
 			continue;
 
 		IntType x(1);

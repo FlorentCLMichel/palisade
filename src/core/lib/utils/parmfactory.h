@@ -52,7 +52,11 @@ using namespace lbcrypto;
  */
 template<typename I>
 inline shared_ptr<ILDCRTParams<I>> GenerateDCRTParams(usint m, usint numOfTower, usint pbits) {
-
+        bool dbg_flag(false);
+	DEBUG("in GenerateDCRTParams");
+	DEBUGEXP(m);
+	DEBUGEXP(numOfTower);
+	DEBUGEXP(pbits);
 	if( numOfTower == 0 )
 		throw std::logic_error("Can't make parms with numOfTower == 0 ");
 
@@ -63,10 +67,13 @@ inline shared_ptr<ILDCRTParams<I>> GenerateDCRTParams(usint m, usint numOfTower,
 	I modulus(1);
 
 	usint j = 0;
+	DEBUGEXP(q);
+
 	for(;;) {
 		moduli[j] = q;
 		rootsOfUnity[j] = RootOfUnity(m, q);
 		modulus = modulus * I(q.ConvertToInt());
+		DEBUG("j "<<j<<" modulus "<<q<<" rou "<<rootsOfUnity[j]);
 		if( ++j == numOfTower )
 			break;
 

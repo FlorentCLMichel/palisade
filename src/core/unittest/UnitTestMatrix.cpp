@@ -92,7 +92,7 @@ void basic_il2n_math(const string& msg) {
     I.SetFormat(EVALUATION);
     EXPECT_EQ(n, I*n) << msg;
 
-    n -= n;
+    n = n - n;
     EXPECT_EQ(n, z) << msg;
 }
 
@@ -106,7 +106,7 @@ void basic_int_math(const string& msg) {
     Matrix<T> n = Matrix<T>(T::Allocator, 2, 2).Ones();
     Matrix<T> I = Matrix<T>(T::Allocator, 2, 2).Identity();
     EXPECT_EQ(n, I*n) << msg;
-    n -= n;
+    n = n - n;
     EXPECT_EQ(n, z) << msg;
 }
 
@@ -137,7 +137,7 @@ void basic_intvec_math(const string& msg) {
     DEBUG("I mod "<<I(0,0).GetModulus().ToString());
     EXPECT_EQ(n, I*n) << msg;
     DEBUG("6");
-    n -= n;
+    n = n - n;
     DEBUG("7");
     EXPECT_EQ(n, z) << msg;
     DEBUG("8");

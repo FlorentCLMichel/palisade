@@ -222,19 +222,11 @@ int main(int argc, char *argv[])
 	// This generates the keys which are used to perform the key switching.
 	////////////////////////////////////////////////////////////
 
-	bool flagSecretSecret = true;
-
-	if (schemeName.find("BFV") == string::npos)
-		flagSecretSecret = false;
-
 	if( beVerbose ) cout << "Generating proxy re-encryption key" << endl;
 
 	LPEvalKey<Poly> evalKey;
 	try {
-		if (flagSecretSecret)
-			evalKey = cc->ReKeyGen(newKp.secretKey, kp.secretKey);
-		else
-			evalKey = cc->ReKeyGen(newKp.publicKey, kp.secretKey);
+		evalKey = cc->ReKeyGen(newKp.publicKey, kp.secretKey);
 	} catch( std::exception& e ) {
 		cout << e.what() << ", cannot proceed with PRE" << endl;
 		return 0;

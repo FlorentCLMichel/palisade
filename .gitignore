@@ -50,3 +50,10 @@ src/circuit/lib/scan.cpp
 src/circuit/lib/parse.cpp
 src/circuit/lib/parse.hpp
 src/circuit/lib/*.hh
+
+# vagrant output
+.vagrant/
+*.log 
+
+# gtest output files
+test_detail.xml

@@ -31,4 +31,87 @@ namespace lbcrypto {
 template class LPCryptoParametersBGV<DCRTPoly>;
 template class LPPublicKeyEncryptionSchemeBGV<DCRTPoly>;
 template class LPAlgorithmBGV<DCRTPoly>;
+
+template <>
+LPEvalKey<DCRTPoly> LPAlgorithmPREBGV<DCRTPoly>::ReKeyGen(const LPPublicKey<DCRTPoly> newPK,
+	const LPPrivateKey<DCRTPoly> origPrivateKey) const
+{
+	// Get crypto context of new public key.
+	auto cc = newPK->GetCryptoContext();
+
+	// Create an evaluation key that will contain all the re-encryption key elements.
+	LPEvalKeyRelin<DCRTPoly> ek(new LPEvalKeyRelinImpl<DCRTPoly>(cc));
+
+	// Get crypto and elements parameters
+	const shared_ptr<LPCryptoParametersRLWE<DCRTPoly>> cryptoParamsLWE =
+		std::dynamic_pointer_cast<LPCryptoParametersRLWE<DCRTPoly>>(newPK->GetCryptoParameters());
+	const shared_ptr<typename DCRTPoly::Params> elementParams = cryptoParamsLWE->GetElementParams();
+
+	// Get parameters needed for PRE key gen
+	// r = relinWindow
+	usint relinWin = cryptoParamsLWE->GetRelinWindow();
+	// nBits = log2(q), where q: ciphertext modulus
+	usint nBits = elementParams->GetModulus().GetLengthForBase(2);
+
+	// K = log2(q)/r, i.e., number of digits in PRE decomposition
+	usint K = 1;
+	if (relinWin > 0) {
+		K = nBits / relinWin;
+		if (nBits % relinWin > 0)
+			K++;
+	}
+
+	DCRTPoly s = origPrivateKey->GetPrivateElement();
+
+	std::vector<DCRTPoly> evalKeyElementsA(K);
+	std::vector<DCRTPoly> evalKeyElementsB(K);
+
+	// The re-encryption key is K ciphertexts, one for each -s(2^r)^i
+	for (usint i=0; i<K; i++) {
+		int numTowers = s.GetAllElements().size();
+		BigInteger bb = BigInteger(1) << i*relinWin;
+		vector<NativeInteger> b(numTowers);
+
+		for (int j=0; j<numTowers; j++) {
+			auto mod = s.ElementAtIndex(j).GetModulus();
+			auto bbmod = bb.Mod(mod);
+			b[j] = bbmod.ConvertToInt();
+		}
+
+		const auto p = cryptoParamsLWE->GetPlaintextModulus();
+		const DCRTPoly::DggType &dgg = cryptoParamsLWE->GetDiscreteGaussianGenerator();
+
+		DCRTPoly::TugType tug;
+
+		s.SetFormat(Format::EVALUATION);
+
+		std::vector<DCRTPoly> cVector;
+
+		const DCRTPoly &pk1 = newPK->GetPublicElements().at(0);
+		const DCRTPoly &pk0 = newPK->GetPublicElements().at(1);
+
+		DCRTPoly v;
+
+		if (cryptoParamsLWE->GetMode() == RLWE)
+			v = DCRTPoly(dgg, elementParams, Format::EVALUATION);
+		else
+			v = DCRTPoly(tug, elementParams, Format::EVALUATION);
+
+		DCRTPoly e0(dgg, elementParams, Format::EVALUATION);
+		DCRTPoly e1(dgg, elementParams, Format::EVALUATION);
+
+		DCRTPoly c0(pk0*v + p*e0 - s.Times(b));
+
+		DCRTPoly c1(pk1*v + p*e1);
+
+		evalKeyElementsA[i] = c1;
+		evalKeyElementsB[i] = c0;
+	}
+
+	ek->SetAVector(std::move(evalKeyElementsA));
+	ek->SetBVector(std::move(evalKeyElementsB));
+
+	return std::move(ek);
+}
+
 }

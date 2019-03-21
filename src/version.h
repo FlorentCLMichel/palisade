@@ -28,7 +28,7 @@
 #define SRC_VERSION_H_
 
 #include <string>
-#define PALISADE_VERSION "v1.4.1"
+#define PALISADE_VERSION "v1.5.0"
 
 /**
  * Returns PALISADE Version string

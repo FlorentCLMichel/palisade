@@ -50,22 +50,34 @@ namespace lbcrypto{
 	}
 	//Method for offline sampling for key generation phase of an IBE cycle
 	template<class Element>
-	PerturbationVector<Element> KeyGenOffline(shared_ptr<IBEParams<Element>> m_params,const IBEMasterSecretKey<Element> & msk){
-		shared_ptr<Matrix<Element>> pertubationVector =  RLWETrapdoorUtility<Element>::GaussSampOffline(m_params->GetTrapdoorParams()->GetN(), m_params()->GetTrapdoorParams()->GetK(), msk.GetTA(), m_params->GetTrapdoorParams()->GetDGG(), m_params->GetTrapdoorParams()->GetDGGLargeSigma(), m_params->GetTrapdoorParams()->GetBase());
+	PerturbationVector<Element> IBEScheme<Element>::KeyGenOffline(
+				            shared_ptr<ABECoreParams<Element>> cm_params,
+				            const ABECoreMasterSecretKey<Element> & cmsk){
+		
+		shared_ptr<IBEParams<Element>> m_params = dynamic_pointer_cast<IBEParams<Element>>(cm_params);
+		const IBEMasterSecretKey<Element>& msk = dynamic_cast<const IBEMasterSecretKey<Element>&>(cmsk);
+		shared_ptr<Matrix<Element>> pertubationVector =  RLWETrapdoorUtility<Element>::GaussSampOffline(m_params->GetTrapdoorParams()->GetN(), m_params->GetTrapdoorParams()->GetK(), msk.GetTA(), m_params->GetTrapdoorParams()->GetDGG(), m_params->GetTrapdoorParams()->GetDGGLargeSigma(), m_params->GetTrapdoorParams()->GetBase());
 		PerturbationVector<Element> pvector(pertubationVector);
 		return pvector;
 	}
 	//Method for online phase for key generation phase of an IBE cycle without sampling
 	template<class Element>
-	void KeyGenOnline(
-				shared_ptr<IBEParams<Element>> m_params,
-                const IBEMasterSecretKey<Element> & msk,
-                const IBEMasterPublicKey<Element> & mpk, 
-                const IBEUserIdentifier<Element> & id,
-                const PerturbationVector<Element> & pvector,
-                IBESecretKey<Element>* sk){
-			
-		sk->SetSK(RLWETrapdoorUtility<Element>::GaussSampOnline(m_params->GetTrapdoorParams()->GetN(), m_params->GetTrapdoorParams()->GetK(), mpk.GetA(), msk.GetTA(), id.GetID(), m_params->GetTrapdoorParams()->GetDGG(), pvector.GetVector(), m_params->GetTrapdoorParams()->GetBase()));
+	void IBEScheme<Element>::KeyGenOnline(
+				            shared_ptr<ABECoreParams<Element>> cm_params,
+                            const ABECoreMasterSecretKey<Element> & cmsk,
+                            const ABECoreMasterPublicKey<Element> & cmpk, 
+                            const ABECoreAccessPolicy<Element> & cid,
+                            const PerturbationVector<Element> & pvector,
+                            ABECoreSecretKey<Element>* csk){
+		
+		shared_ptr<IBEParams<Element>> m_params = dynamic_pointer_cast<IBEParams<Element>>(cm_params);
+		const IBEMasterPublicKey<Element> & mpk = dynamic_cast<const IBEMasterPublicKey<Element>&>(cmpk);
+		const IBEMasterSecretKey<Element>& msk = dynamic_cast<const IBEMasterSecretKey<Element>&>(cmsk);
+		const IBEUserIdentifier<Element> & id = dynamic_cast<const IBEUserIdentifier<Element> &>(cid);
+		IBESecretKey<Element>* sk = dynamic_cast<IBESecretKey<Element>*>(csk);
+		
+		Matrix<Element> key = RLWETrapdoorUtility<Element>::GaussSampOnline(m_params->GetTrapdoorParams()->GetN(), m_params->GetTrapdoorParams()->GetK(), mpk.GetA(), msk.GetTA(), id.GetID(), m_params->GetTrapdoorParams()->GetDGG(), pvector.GetVector(), m_params->GetTrapdoorParams()->GetBase());
+		sk->SetSK(std::make_shared<Matrix<Element>>(key));
 	}
 	//Method for encryption phase of an IBE cycle
 	template<class Element>
