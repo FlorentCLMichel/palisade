@@ -1,8 +1,8 @@
 /**
  * @file ciphertext.h -- Operations for the reoresentation of ciphertext in PALISADE.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -217,20 +217,6 @@ class CiphertextImpl;
 			m_depth = depth;
 		}
 
-		/**
-		* Serialize the object into a Serialized
-		* @param serObj is used to store the serialized result. It MUST be a rapidjson Object (SetObject());
-		* @return true if successfully serialized
-		*/
-		bool Serialize(Serialized* serObj) const;
-
-		/**
-		* Populate the object from the deserialization of the Serialized
-		* @param serObj contains the serialized object
-		* @return true on success
-		*/
-		bool Deserialize(const Serialized& serObj);
-
 		bool operator==(const CiphertextImpl<Element>& rhs) const {
 			if( !CryptoObject<Element>::operator==(rhs) )
 				return false;
@@ -269,6 +255,30 @@ class CiphertextImpl;
 		friend ostream& operator<<(ostream& out, Ciphertext<Element> c) {
 			return out << *c;
 		}
+
+		template <class Archive>
+		void save( Archive & ar, std::uint32_t const version ) const
+		{
+		    ar( ::cereal::base_class<CryptoObject<Element>>( this ) );
+			ar( ::cereal::make_nvp("v", m_elements) );
+			ar( ::cereal::make_nvp("d", m_depth) );
+			ar( ::cereal::make_nvp("e", encodingType) );
+		}
+
+		template <class Archive>
+		void load( Archive & ar, std::uint32_t const version )
+		{
+			if( version > SerializedVersion() ) {
+				PALISADE_THROW(deserialize_error, "serialized object version " + to_string(version) + " is from a later version of the library");
+			}
+		    ar( ::cereal::base_class<CryptoObject<Element>>( this ) );
+			ar( ::cereal::make_nvp("v", m_elements) );
+			ar( ::cereal::make_nvp("d", m_depth) );
+			ar( ::cereal::make_nvp("e", encodingType) );
+		}
+
+		std::string SerializedObjectName() const { return "Ciphertext"; }
+		static uint32_t	SerializedVersion() { return 1; }
 
 	private:
 
@@ -378,4 +388,5 @@ class CiphertextImpl;
 	}
 
 } // namespace lbcrypto ends
+
 #endif

@@ -1,8 +1,8 @@
 /**
- * @file serializable.h Serialization utilities.
- * @author  TPOC: palisade@njit.edu
+ * @file serializable.h Legacy Serialization utilities.
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -25,94 +25,94 @@
  */ 
 #ifndef LBCRYPTO_SERIALIZABLE_H
 #define LBCRYPTO_SERIALIZABLE_H
+
 #include <vector>
 #include <unordered_map>
+#include <fstream>
 #include <sstream>
 #include <string>
 #include <iomanip>
-#ifndef RAPIDJSON_HAS_STDSTRING
-#define RAPIDJSON_HAS_STDSTRING 1
+#include <iostream>
+
+#ifndef CEREAL_RAPIDJSON_HAS_STDSTRING
+#define CEREAL_RAPIDJSON_HAS_STDSTRING 1
 #endif
-#ifndef RAPIDJSON_HAS_CXX11_RVALUE_REFS
-#define RAPIDJSON_HAS_CXX11_RVALUE_REFS 1
+#ifndef CEREAL_RAPIDJSON_HAS_CXX11_RVALUE_REFS
+#define CEREAL_RAPIDJSON_HAS_CXX11_RVALUE_REFS 1
 #endif
+#define CEREAL_RAPIDJSON_HAS_CXX11_NOEXCEPT 0
+
 
 #ifdef __GNUC__
 #if __GNUC__ >= 8
 #pragma GCC diagnostic ignored "-Wclass-memaccess"
 #endif
 #endif
-#include "rapidjson/document.h"
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-private-field"
+#endif
+
+#include "cereal/cereal.hpp"
+#include "cereal/types/polymorphic.hpp"
+
 #ifdef __GNUC__
 #if __GNUC__ >= 8
 #pragma GCC diagnostic pop
 #endif
 #endif
-#include "rapidjson/pointer.h"
-#include "rapidjson/reader.h"
-#include "rapidjson/error/en.h"
 
-/**
-* @namespace lbcrypto
-* The namespace of lbcrypto
-*/
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+
 namespace lbcrypto {
 
-	// C+11 "using" is not supported in VS 2012 - so it was replaced with C+03 "typedef"
-	typedef rapidjson::Value SerialItem;
-	typedef rapidjson::Document Serialized;
+using Serialized = void *;
 
-	//using SerialItem = rapidjson::Value;
-	//using Serialized = rapidjson::Document;
+/**
+ * \class Serializable
+ *
+ * \brief Base class for PALISADE serialization
+ *
+ * This class is inherited by every class that needs to be serialized.
+ * The class contains some deprecated methods from the older mechanisms
+ * for serialization
+ */
+class Serializable
+{
+public:
+	virtual ~Serializable() {}
 
-	class Serializable
-	{
-		/**
-		* Version number of the serialization; defaults to 1
-		* @return version of the serialization
-		*/
-		virtual int getVersion() { return 1; }
+	/**
+	 * Serialize the object into a Serialized
+	 * @param serObj is used to store the serialized result. It MUST be a rapidjson Object (SetObject());
+	 * @return true if successfully serialized
+	 */
+	bool Serialize(Serialized* serObj) const __attribute__ ((deprecated("serialization changed, see wiki for details")));
 
-	public:
-		virtual ~Serializable() {}
+	virtual std::string SerializedObjectName() const = 0;
 
-		/**
-		* Serialize the object into a Serialized
-		* @param serObj is used to store the serialized result. It MUST be a rapidjson Object (SetObject());
-		* @return true if successfully serialized
-		*/
-		virtual bool Serialize(Serialized* serObj) const = 0;
-
-		/**
-		 * SerializeWithoutContext serializes the object but does NOT include the context -
-		 * used in places where the object is included in a context
-		 *
-		 * @param serObj is used to store the serialized result. It MUST be a rapidjson Object (SetObject());
-		 * @return true if successfully serialized
-		 */
-		virtual bool SerializeWithoutContext(Serialized* serObj) const {
-			return Serialize(serObj);
-		}
-
-		/**
-		* Populate the object from the deserialization of the Serialized
-		* @param serObj contains the serialized object
-		* @return true on success
-		*/
-		virtual bool Deserialize(const Serialized& serObj) = 0;
-	};
+	/**
+	 * Populate the object from the deserialization of the Serialized
+	 * @param serObj contains the serialized object
+	 * @return true on success
+	 */
+	bool Deserialize(const Serialized& serObj) __attribute__ ((deprecated("serialization changed, see wiki for details")));
+};
 
 //helper template to stream vector contents provided T has an stream operator<< 
 template < typename T >
 std::ostream& operator << (std::ostream& os, const std::vector<T>& v)
 {
-    os << "[";
-    for (auto i = v.begin(); i!= v.end(); ++i){
-      os << " " << *i;
-    }
-    os << " ]";
-    return os;
- };
+	os << "[";
+	for (auto i = v.begin(); i!= v.end(); ++i){
+		os << " " << *i;
+	}
+	os << " ]";
+	return os;
+};
 
 }
 

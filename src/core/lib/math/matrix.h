@@ -1,8 +1,8 @@
 /**
  * @file matrix.h This code provide a templated matrix implementation
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -81,12 +81,15 @@ public:
 	Matrix(alloc_func allocZero, size_t rows, size_t cols, alloc_func allocGen);
 
 	/**
-	 * Constructor of an empty matrix; SetSize must be called on this matrix to use it
-	 * Basically this exists to support deserializing
+	 * Constructor of an empty matrix.
+	 * SetSize must be called on this matrix to use it
+	 * SetAlloc needs to be called if 0 passed to constructor
+	 * This mostly exists to support deserializing
 	 *
 	 * @param &allocZero lambda function for zero initialization.
 	 */
-	Matrix(alloc_func allocZero) : data(), rows(0), cols(0), allocZero(allocZero) {}
+	Matrix(alloc_func allocZero = 0) : data(), rows(0), cols(0), allocZero(allocZero) {}
+
 	/**
 	 * Set the size of a matrix, elements are zeroed out
 	 *
@@ -107,6 +110,16 @@ public:
 				row->push_back(allocZero());
 			}
 		}
+	}
+
+	/**
+	 * SetAllocator - set the function to allocate a zero;
+	 * basically only required for deserializer
+	 *
+	 * @param allocZero
+	 */
+	void SetAllocator(alloc_func allocZero) {
+		this->allocZero = allocZero;
 	}
 
 	/**
@@ -631,29 +644,29 @@ public:
 	 */
 	Matrix<Element> MultByRandomVector(std::vector<int> ranvec) const;
 
-	/**
-	 * Serialize the object into a Serialized
-	 * @param serObj is used to store the serialized result. It MUST be a rapidjson Object (SetObject());
-	 * @return true if successfully serialized
-	 */
-	bool Serialize(Serialized* serObj) const;
-
-	/**
-	 * Populate the object from the deserialization of the Serialized
-	 * @param serObj contains the serialized object
-	 * @return true on success
-	 */
-	bool Deserialize(const Serialized& serObj);
-
-#define MATRIX_NOT_SERIALIZABLE(T) \
-	template<> \
-	bool Matrix<T>::Serialize(Serialized* serObj) const { \
-		PALISADE_THROW(serialize_error,"Not implemented"); \
-	} \
-	template<> \
-	bool Matrix<T>::Deserialize(const Serialized& serObj) { \
-		PALISADE_THROW(deserialize_error,"Not implemented"); \
+	template <class Archive>
+	void save( Archive & ar, std::uint32_t const version ) const
+	{
+		ar( ::cereal::make_nvp("d", data) );
+		ar( ::cereal::make_nvp("r", rows) );
+		ar( ::cereal::make_nvp("c", cols) );
 	}
+
+	template <class Archive>
+	void load( Archive & ar, std::uint32_t const version )
+	{
+		if( version > SerializedVersion() ) {
+			PALISADE_THROW(deserialize_error, "serialized object version " + std::to_string(version) + " is from a later version of the library");
+		}
+		ar( ::cereal::make_nvp("d", data) );
+		ar( ::cereal::make_nvp("r", rows) );
+		ar( ::cereal::make_nvp("c", cols) );
+
+		// users will need to SetAllocator for any newly deserialized matrix
+	}
+
+	std::string SerializedObjectName() const { return "Matrix"; }
+	static uint32_t	SerializedVersion() { return 1; }
 
 private:
 	data_t data;

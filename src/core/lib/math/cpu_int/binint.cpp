@@ -1,8 +1,8 @@
 ﻿/*
  * @file binint.cpp This file contains the integer manipulation functionality.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -111,6 +111,13 @@ BigInteger<uint_type,BITLENGTH>::BigInteger(const std::string& str){
 	//setting the array values from the string
 	AssignVal(str);
 }
+
+/**
+ * Construct a BigInteger from a NativeInteger
+ * @param native
+ */
+template<typename uint_type,usint BITLENGTH>
+BigInteger<uint_type,BITLENGTH>::BigInteger(const NativeInteger& native) : BigInteger( native.ConvertToInt() ) {}
 
 template<typename uint_type,usint BITLENGTH>
 BigInteger<uint_type,BITLENGTH>::BigInteger(const BigInteger& bigInteger){
@@ -446,125 +453,6 @@ const BigInteger<uint_type,BITLENGTH>&  BigInteger<uint_type,BITLENGTH>::RShiftE
 
 }
 
-/*
- * This function is only used for serialization
- *
- * The scheme here is to take the integer 6 bits at a time and encode it into a Base64 encoding
- * For efficiency's sake, we convert to a signed number and put in a - for negative numbers
- * We preface with a base64 encoding of the length, followed by a sign (to delineate length from number)
- */
-template<typename uint_type,usint BITLENGTH>
-const std::string BigInteger<uint_type,BITLENGTH>::SerializeToString(const BigInteger& modulus) const {
-
-	// numbers go from high to low -1, -2, ... +modulus/2, modulus/2 - 1, ... ,1, 0
-	bool isneg = false;
-	BigInteger signedVal;
-	if( modulus == 0 || *this < modulus>>1 ) // divide by 2
-		signedVal = *this;
-	else {
-		signedVal = modulus - *this;
-		isneg = true;
-	}
-
-	std::string ser = "";
-	uint32_t len = signedVal.GetMSB();
-
-	// encode len
-	bool foundNum = false;
-	// first two bits
-	int first = len>>30;
-	if( first != 0 ) {
-		foundNum = true;
-		ser += lbcrypto::value_to_base64( first );
-	}
-	for(int i=30; i>0; i-=6) {
-		unsigned char b = lbcrypto::get_6bits_atoffset(len,i);
-		if( b == 0 && !foundNum ) continue;
-		foundNum = true;
-		ser += lbcrypto::value_to_base64( b );
-	}
-	if( !foundNum )
-		ser += lbcrypto::value_to_base64(0);
-
-	ser += isneg ? "-" : "*"; // separate encoded len from encoded number
-	for( int i=len; i>0; i-=6 )
-		ser += lbcrypto::value_to_base64(signedVal.Get6BitsAtIndex(i));
-	return ser;
-}
-
-template<typename uint_type, usint BITLENGTH>
-const char *BigInteger<uint_type, BITLENGTH>::DeserializeFromString(const char *str, const BigInteger& modulus){
-
-	// first decode the length
-	uint32_t len = 0;
-
-	while(true) {
-		if( *str == '-' || *str == '*' ) break;
-		len = len<<6 | lbcrypto::base64_to_value(*str++);
-	}
-
-	bool isneg = false;
-	if( *str++ == '-' ) {
-		isneg = true;
-	}
-
-	BigInteger value(0);
-
-	for( ; len > 6 ; len -= 6 ) {
-		value = (value<<6) + BigInteger(lbcrypto::base64_to_value(*str++));
-	}
-
-	if( len )
-		value = (value<<len) + BigInteger(lbcrypto::base64_to_value(*str++));
-
-	if( isneg )
-		value = (modulus - value);
-
-	*this = value;
-
-	return str;
-}
-
-
-template<typename uint_type, usint BITLENGTH>
-bool BigInteger<uint_type, BITLENGTH>::Serialize(lbcrypto::Serialized* serObj) const{
-    
-  if( !serObj->IsObject() ){
-    serObj->SetObject();
-  }
-  
-  lbcrypto::SerialItem bbiMap(rapidjson::kObjectType);
-  
-  bbiMap.AddMember("IntegerType", IntegerTypeName(), serObj->GetAllocator());
-  bbiMap.AddMember("Value", this->ToString(), serObj->GetAllocator());
-  serObj->AddMember("BigIntegerImpl", bbiMap, serObj->GetAllocator());
-  return true;
-    
-}
-  
-template<typename uint_type, usint BITLENGTH>
-bool BigInteger<uint_type, BITLENGTH>::Deserialize(const lbcrypto::Serialized& serObj){
-  //find the outer name
-  lbcrypto::Serialized::ConstMemberIterator mIter = serObj.FindMember("BigIntegerImpl");
-  if( mIter == serObj.MemberEnd() )//not found, so fail
-    return false;
-  
-  lbcrypto::SerialItem::ConstMemberIterator vIt; //interator within name
-  
-  //is this the correct integer type?
-  if( (vIt = mIter->value.FindMember("IntegerType")) == mIter->value.MemberEnd() )
-    return false;
-  if( IntegerTypeName() != vIt->value.GetString() )
-    return false;
-  
-  //find the value
-  if( (vIt = mIter->value.FindMember("Value")) == mIter->value.MemberEnd() )
-    return false;
-  //assign the value found
-  AssignVal(vIt->value.GetString());
-  return true;
-}
-  
 template<typename uint_type,usint BITLENGTH>
 usint BigInteger<uint_type,BITLENGTH>::GetMSB()const{
 	return m_MSB;
@@ -1129,7 +1017,7 @@ const BigInteger<uint_type,BITLENGTH>& BigInteger<uint_type,BITLENGTH>::DividedB
 //Reference:http://pctechtips.org/convert-from-decimal-to-binary-with-recursion-in-java/
 template<typename uint_type,usint BITLENGTH>
 void BigInteger<uint_type,BITLENGTH>::AssignVal(const std::string& v){
-        bool dbg_flag = false;
+        DEBUG_FLAG(false);
 	uschar *DecValue;//array of decimal values
 	int arrSize=v.length();
 	
@@ -1140,9 +1028,11 @@ void BigInteger<uint_type,BITLENGTH>::AssignVal(const std::string& v){
 		DecValue[i] = (uschar) atoi(v.substr(i,1).c_str());
 
 	DEBUG("v=" << v);
+#if!defined(NDEBUG)
 	if( dbg_flag )
 		for( int i=0;i<arrSize;i++)
 			DEBUG("DecValue[" << i << "]=" << (int)DecValue[i]);
+#endif
 
 	int zptr = 0;
 	//index of highest non-zero number in decimal number
@@ -1988,7 +1878,7 @@ usint BigInteger<uint_type,BITLENGTH>::GetMSBUint_type(uint_type x){
 template<typename uint_type,usint BITLENGTH>
 usint BigInteger<uint_type,BITLENGTH>::GetDigitAtIndexForBase(usint index, usint base) const{
 
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("BigInteger::GetDigitAtIndexForBase:  index = " << index << ", base = " << base);
 	usint DigitLen = ceil(log2(base));
 
@@ -2237,7 +2127,7 @@ template<typename uint_type,usint BITLENGTH>
 
 template<typename uint_type,usint BITLENGTH>
 uschar BigInteger<uint_type,BITLENGTH>::GetBitAtIndex(usint index) const{
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 
 	DEBUG("BigInteger::GetBitAtIndex(" << index << ")");
 	if(index<=0){

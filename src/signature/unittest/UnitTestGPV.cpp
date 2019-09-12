@@ -1,8 +1,8 @@
 /*
  * @file This code exercises the GPV signature methods of the PALISADE lattice encryption library.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -44,7 +44,7 @@ protected:
 
 //TEST FOR BASIC SIGNING & VERIFICATION PROCESS IN POLY
 TEST(UTSignatureGPV,simple_sign_verify) {
-  bool dbg_flag = false;
+  DEBUG_FLAG(false);
 
   DEBUG("Context Generation");
 	SignatureContext<Poly> context;
@@ -68,7 +68,7 @@ TEST(UTSignatureGPV,simple_sign_verify) {
 //TEST FOR BASIC SIGNING & VERIFICATION PROCESS FOR NATIVEPOLY WITH MODULUS SIZE <60 BITS
 
 TEST(UTSignatureGPV,simple_sign_verify_native_below_sixty_bits) {
-  bool dbg_flag = false;
+  DEBUG_FLAG(false);
 
   DEBUG("Context Generation");
 	SignatureContext<NativePoly> context;
@@ -95,7 +95,7 @@ TEST(UTSignatureGPV,simple_sign_verify_native_below_sixty_bits) {
 
 TEST(UTSignatureGPV,simple_sign_verify_native_above_sixty_bits) {
   
-  bool dbg_flag = false;
+  DEBUG_FLAG(false);
 
   DEBUG("Context Generation");
 	SignatureContext<NativePoly> context;
@@ -119,7 +119,7 @@ TEST(UTSignatureGPV,simple_sign_verify_native_above_sixty_bits) {
 
 //TEST FOR BASIC SIGNING & VERIFICATION PROCESS - TWO STEP PROCESS
 TEST(UTSignatureGPV, simple_sign_verify_two_phase) {
-	  bool dbg_flag = false;
+	  DEBUG_FLAG(false);
 
   DEBUG("Context Generation");
 	SignatureContext<NativePoly> context;
@@ -144,7 +144,7 @@ TEST(UTSignatureGPV, simple_sign_verify_two_phase) {
 
 //TEST FOR SIGNING AND VERIFYING SIGNATURES GENERATED FROM MULTIPLE TEXTS. ONLY SIGNATURES CORRESPONDING TO THEIR RESPECTIVE TEXT SHOULD VERIFY
 TEST(UTSignatureGPV, sign_verify_multiple_texts) {
-  bool dbg_flag = false;
+  DEBUG_FLAG(false);
   
   DEBUG("Context Generation");
 	SignatureContext<Poly> context;
@@ -182,7 +182,7 @@ TEST(UTSignatureGPV, sign_verify_multiple_texts) {
 
 //TEST FOR SIGNING AND VERIFYING SIGNATURES GENERATED FROM MULTIPLE KEYS. ONLY SIGNATURES CORRESPONDING TO THEIR RESPECTIVE SPECIFIC KEY SHOULD VERIFY
 TEST(UTSignatureGPV, sign_verify_multiple_keys) {
-  bool dbg_flag = false;
+  DEBUG_FLAG(false);
   
   DEBUG("Context Generation");
 	SignatureContext<Poly> context;

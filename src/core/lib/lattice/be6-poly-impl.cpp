@@ -1,9 +1,9 @@
 /**
  * @file be6-poly-impl.cpp This file contains template instantiations for all classes using math be6
  *
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -24,6 +24,8 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+
+#ifdef WITH_NTL
 
 #include "math/backend.h"
 #include "lattice/backend.h"
@@ -46,7 +48,6 @@ ONES_FOR_TYPE(M6Poly)
 IDENTITY_FOR_TYPE(M6Poly)
 GADGET_FOR_TYPE(M6Poly)
 NORM_FOR_TYPE(M6Poly)
-MATRIX_NOT_SERIALIZABLE(M6Poly)
 SPLIT64_FOR_TYPE(M6Poly)
 SPLIT64ALT_FOR_TYPE(M6Poly)
 SPLIT32ALT_FOR_TYPE(M6Poly)
@@ -58,7 +59,6 @@ ONES_FOR_TYPE(M6DCRTPoly)
 IDENTITY_FOR_TYPE(M6DCRTPoly)
 GADGET_FOR_TYPE_DCRT(M6DCRTPoly)
 NORM_FOR_TYPE(M6DCRTPoly)
-MATRIX_NOT_SERIALIZABLE(M6DCRTPoly)
 SPLIT64_FOR_TYPE(M6DCRTPoly)
 SPLIT64ALT_FOR_TYPE(M6DCRTPoly)
 SPLIT32ALT_FOR_TYPE(M6DCRTPoly)
@@ -66,3 +66,8 @@ template Matrix<M6Vector> RotateVecResult(Matrix<M6DCRTPoly> const& inMat);
 template Matrix<M6Integer> Rotate(Matrix<M6DCRTPoly> const& inMat);
 
 }  // namespace lbcrypto
+
+CEREAL_CLASS_VERSION( lbcrypto::M6Poly, lbcrypto::M6Poly::SerializedVersion() );
+CEREAL_CLASS_VERSION( lbcrypto::M6DCRTPoly, lbcrypto::M6DCRTPoly::SerializedVersion() );
+
+#endif

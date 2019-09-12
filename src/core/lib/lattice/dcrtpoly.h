@@ -1,8 +1,8 @@
 /**
  * @file dcrtpoly.h Represents integer lattice elements with double-CRT
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -788,7 +788,7 @@ public:
 	*/
 	DCRTPolyType SwitchCRTBasis(const shared_ptr<Params> params, const std::vector<NativeInteger> &qInvModqi,
 			const std::vector<std::vector<NativeInteger>> &qDivqiModsi, const std::vector<NativeInteger> &qModsi,
-			const std::vector<DoubleNativeInteger> &siModulimu, const std::vector<NativeInteger> &qInvModqiPrecon) const;
+			const std::vector<DoubleNativeInt> &siModulimu, const std::vector<NativeInteger> &qInvModqiPrecon) const;
 
 	/**
 	* @brief Expands polynomial in CRT basis Q = q1*q2*...*qn to a larger CRT basis Q*S, where S = s1*s2*...*sn;
@@ -805,7 +805,7 @@ public:
 	void ExpandCRTBasis(const shared_ptr<Params> paramsQS, const shared_ptr<Params> params,
 			const std::vector<NativeInteger> &qInvModqi,
 			const std::vector<std::vector<NativeInteger>> &qDivqiModsi, const std::vector<NativeInteger> &qModsi,
-			const std::vector<DoubleNativeInteger> &siModulimu, const std::vector<NativeInteger> &qInvModqiPrecon);
+			const std::vector<DoubleNativeInt> &siModulimu, const std::vector<NativeInteger> &qInvModqiPrecon);
 
 	/**
 	 * @brief Computes Round(t/q*x) mod t for fast rounding in RNS
@@ -854,7 +854,7 @@ public:
 			const shared_ptr<Params> paramsBsk,
 			const std::vector<NativeInteger> &qModuli,
 			const std::vector<NativeInteger> &BskmtildeModuli,
-			const std::vector<DoubleNativeInteger> &BskmtildeModulimu,
+			const std::vector<DoubleNativeInt> &BskmtildeModulimu,
 			const std::vector<NativeInteger> &mtildeqDivqiModqi,
 			const std::vector<NativeInteger> &mtildeqDivqiModqiPrecon,
 			const std::vector<std::vector<NativeInteger>> &qDivqiModBj,
@@ -880,7 +880,7 @@ public:
 			const NativeInteger &t,
 			const std::vector<NativeInteger> &qModuli,
 			const std::vector<NativeInteger> &BskModuli,
-			const std::vector<DoubleNativeInteger> &BskModulimu,
+			const std::vector<DoubleNativeInt> &BskModulimu,
 			const std::vector<NativeInteger> &tqDivqiModqi,
 			const std::vector<NativeInteger> &tqDivqiModqiPrecon,
 			const std::vector<std::vector<NativeInteger>> &qDivqiModBj,
@@ -902,9 +902,9 @@ public:
 	 */
 	void FastBaseConvSK(
 			const std::vector<NativeInteger> &qModuli,
-			const std::vector<DoubleNativeInteger> &qModulimu,
+			const std::vector<DoubleNativeInt> &qModulimu,
 			const std::vector<NativeInteger> &BskModuli,
-			const std::vector<DoubleNativeInteger> &BskModulimu,
+			const std::vector<DoubleNativeInt> &BskModulimu,
 			const std::vector<NativeInteger> &BDivBiModBi,
 			const std::vector<NativeInteger> &BDivBiModBiPrecon,
 			const std::vector<NativeInteger> &BDivBiModmsk,
@@ -930,7 +930,7 @@ public:
 	DCRTPolyType ScaleAndRound(const shared_ptr<Params> params,
 			const std::vector<std::vector<NativeInteger>> &alpha,
 			const std::vector<long double> &beta,
-			const std::vector<DoubleNativeInteger> &siModulimu) const;
+			const std::vector<DoubleNativeInt> &siModulimu) const;
 
 	/**
 	* @brief Convert from Coefficient to CRT or vice versa; calls FFT and inverse FFT.
@@ -973,23 +973,6 @@ public:
 	* @return is the largest value in the ring element.
 	*/
 	double Norm() const;
-
-	//JSON FACILITY
-	/**
-	* @brief Stores this object's attribute name value pairs to a map for serializing this object to a JSON file.
-	* Invokes nested serialization of Vector.
-	*
-	* @param serializationMap stores this object's serialized attribute name value pairs.
-	* @return true on success
-	*/
-	bool Serialize(Serialized* serObj) const;
-
-	/**
-	* @brief Populate the object from the deserialization of the Setialized
-	* @param serObj contains the serialized object
-	* @return true on success
-	*/
-	bool Deserialize(const Serialized& serObj);
 
 	/**
 	 * @brief ostream operator
@@ -1084,6 +1067,28 @@ public:
 	friend inline DCRTPolyType operator*(const Integer &a, const DCRTPolyType &b) {
 		return b.Times(a);
 	}
+
+	template <class Archive>
+	void save( Archive & ar, std::uint32_t const version ) const
+	{
+		ar( ::cereal::make_nvp("v", m_vectors) );
+		ar( ::cereal::make_nvp("f", m_format) );
+		ar( ::cereal::make_nvp("p", m_params) );
+	}
+
+	template <class Archive>
+	void load( Archive & ar, std::uint32_t const version )
+	{
+		if( version > SerializedVersion() ) {
+			PALISADE_THROW(deserialize_error, "serialized object version " + std::to_string(version) + " is from a later version of the library");
+		}
+		ar( ::cereal::make_nvp("v", m_vectors) );
+		ar( ::cereal::make_nvp("f", m_format) );
+		ar( ::cereal::make_nvp("p", m_params) );
+	}
+
+	std::string SerializedObjectName() const { return "DCRTPoly"; }
+	static uint32_t	SerializedVersion() { return 1; }
 
 private:
 	

@@ -1,8 +1,8 @@
 /**
  * @file distributiongenerator.h This code provides basic structure for distribution generators. This should be inherited by all other distribution generators.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -27,13 +27,6 @@
 #ifndef LBCRYPTO_MATH_DISTRIBUTIONGENERATOR_H_
 #define LBCRYPTO_MATH_DISTRIBUTIONGENERATOR_H_
 
-//used to define a thread-safe generator
-#if defined (_MSC_VER)  // Visual studio
-    //#define thread_local __declspec( thread )
-#elif defined (__GCC__) // GCC
-    #define thread_local __thread
-#endif
-
 #include <chrono>
 #include <memory>
 #include <mutex>
@@ -56,8 +49,9 @@ namespace lbcrypto {
 class PseudoRandomNumberGenerator {
 public:
 	static std::mt19937 &GetPRNG () {
-		std::call_once(m_flag, [] () {
-			std::random_device rd;
+
+		// initialization of PRNGs
+		if (!m_flag) {
 #if defined(FIXED_SEED)
 			//TP: Need reproducibility to debug NTL.
 			std::cerr << "**FOR DEBUGGING ONLY!!!!  Using fixed initializer for PRNG. Use a single thread only!" << std::endl;
@@ -65,27 +59,32 @@ public:
 			gen = new std::mt19937(1);
 			gen->seed(1);
 			m_prng.reset(gen);
-
-#else			
-			//m_prng.reset(new std::mt19937(rd()));
-			m_prng.reset(new std::mt19937(std::chrono::high_resolution_clock::now().time_since_epoch().count()+std::hash<std::thread::id>{}(std::this_thread::get_id())));
-#endif		
-
-		});
+			m_flag = true;
+#else
+#pragma omp critical
+			{
+				m_flag = true;
+			}
+#pragma omp parallel
+			{
+				m_prng.reset(new std::mt19937(std::chrono::high_resolution_clock::now().time_since_epoch().count()+std::hash<std::thread::id>{}(std::this_thread::get_id())));
+			}
+#endif
+		}
 
 		return *m_prng;
+
 	}
 
 private:
-	static std::once_flag 					m_flag;
-#if !defined(FIXED_SEED)
-	// avoid contention on m_flag 
-	#pragma omp threadprivate(m_flag)
-#endif
+
+	// flag for initializing the PRNGs for each thread
+	static bool 							m_flag;
+
 	static std::shared_ptr<std::mt19937> 	m_prng;
 #if !defined(FIXED_SEED)
 	// avoid contention on m_prng 
-        #pragma omp threadprivate(m_prng)
+    #pragma omp threadprivate(m_prng)
 #endif
 };
 

@@ -1,9 +1,9 @@
 ﻿/**
  * @file gmpint.cpp  This file contains the C++ code for implementing the main class for
  * big integers: gmpint which replaces BBI and uses NTL
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
  */
 
 
+#ifdef WITH_NTL
 
 #define _SECURE_SCL 0 // to speed up VS
 
@@ -52,9 +53,11 @@ namespace NTL {
 
   myZZ::myZZ():ZZ() {SetMSB();}
 
+  myZZ::myZZ(const NativeInteger& n) : myZZ(n.ConvertToInt()) {}
+
   myZZ::myZZ(uint64_t d): ZZ(0) {
 
-    bool dbg_flag = false;
+    DEBUG_FLAG(false);
     static_assert(NTL_ZZ_NBITS != sizeof(uint64_t) , "can't compile gmpint on this architecture");
     
     DEBUGEXP(NTL_ZZ_NBITS);
@@ -140,7 +143,7 @@ namespace NTL {
 
   //Splits the binary string to equi sized chunks and then populates the internal array values.
   myZZ myZZ::FromBinaryString(const std::string& vin){
-    bool dbg_flag = false;		// if true then print dbg output
+    DEBUG_FLAG(false);		// if true then print dbg output
     DEBUG("FromBinaryString");
 
     std::string v = vin;
@@ -235,7 +238,7 @@ namespace NTL {
   
   
   usint myZZ::GetDigitAtIndexForBase(usint index, usint base) const{
-    bool dbg_flag = false;		// if true then print dbg output
+    DEBUG_FLAG(false);		// if true then print dbg output
     DEBUG("myZZ::GetDigitAtIndexForBase:  index = " << index
 	  << ", base = " << base);
 
@@ -253,7 +256,7 @@ namespace NTL {
   // note that msb is 1 like all other bit indicies in PALISADE. 
 
   uschar myZZ::GetBitAtIndex(usint index) const{
-    bool dbg_flag = false;		// if true then print dbg output
+    DEBUG_FLAG(false);		// if true then print dbg output
     DEBUG("myZZ::GetBitAtIndex(" << index << "), this=" << *this);
     return (uschar) GetBitRangeAtIndex( index, 1);
   }
@@ -262,7 +265,7 @@ namespace NTL {
   // note that msb is 1 like all other bit indicies in PALISADE. 
 
   uschar myZZ::Get6BitsAtIndex(usint index) const{
-    bool dbg_flag = false;		// if true then print dbg output
+    DEBUG_FLAG(false);		// if true then print dbg output
     DEBUG("myZZ::Get6BitsAtIndex(" << index << "), this=" << *this);
     return (uschar) GetBitRangeAtIndex( index, 6);
   }
@@ -283,26 +286,26 @@ namespace NTL {
 
   //palisade conversion methods
 
-  uint64_t myZZ::ConvertToInt() const{
-    bool dbg_flag = false;
+   uint64_t myZZ::ConvertToInt() const{
+     DEBUG_FLAG(false);
 
-    DEBUG("in myZZ::ConvertToInt() this.size() "<<this->size());
-    DEBUG("in myZZ::ConvertToInt() this "<<*this);
+     DEBUG("in myZZ::ConvertToInt() this.size() "<<this->size());
+     DEBUG("in myZZ::ConvertToInt() this "<<*this);
 
-    std::stringstream s; //slower
-    s <<*this;
-    //uint64_t result = s.str().stoull();
-    uint64_t result;
-    s>>result;
+     std::stringstream s; //slower
+     s <<*this;
+     //uint64_t result = s.str().stoull();
+     uint64_t result;
+     s>>result;
 
-    if ((this->GetMSB() >= (sizeof(uint64_t)*8)) ||
-	(this->GetMSB() > NTL_ZZ_NBITS)) {
-      std::cerr<<"Warning myZZ::ConvertToInt() Loss of precision. "<<std::endl;
-      std::cerr<<"input  "<< *this<<std::endl;			
-      std::cerr<<"result  "<< result<<std::endl;			
-    }
-    return result; 
-  }
+     if ((this->GetMSB() > (sizeof(uint64_t)*8)) ||
+ 	(this->GetMSB() > NTL_ZZ_NBITS)) {
+       std::cerr<<"Warning myZZ::ConvertToInt() Loss of precision. "<<std::endl;
+       std::cerr<<"input  "<< *this<<std::endl;
+       std::cerr<<"result  "<< result<<std::endl;
+     }
+     return result;
+   }
     
   double myZZ::ConvertToDouble() const{ return (conv<double>(*this));}
 
@@ -316,7 +319,7 @@ namespace NTL {
   }
 
   std::ostream& operator<<(std::ostream& os, const myZZ& ptr_obj){
-    bool dbg_flag = false;
+    DEBUG_FLAG(false);
     ZZ tmp = ptr_obj;
     DEBUG("in operator<< "<<tmp);
 
@@ -343,7 +346,7 @@ namespace NTL {
   }
   myZZ myZZ::DivideAndRound(const myZZ &q) const 
   {
-    bool dbg_flag = false;
+    DEBUG_FLAG(false);
     
     //check for garbage initialization and 0 condition
     //check for garbage initialization and 0 condition
@@ -392,136 +395,6 @@ namespace NTL {
     return ans;
   }
   
-  
-  // helper functions convert a ubint in and out of a string of
-  // characters the encoding is Base64-like: the first 11 6-bit
-  // groupings are Base64 encoded
-
-  // precomputed shift amounts for each 6 bit chunk
-  static const usint b64_shifts[] = { 0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60};
-  static const ZZ_limb_t B64MASK = 0x3F; //6 bit mask
-
-  // this for encoding...mapping 0.. 2^6-1 to an ascii char
-  static char to_base64_char[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-  // this for decoding...
-  static inline ZZ_limb_t base64_to_value(char b64) {
-    if( isupper(b64) )
-      return b64 - 'A';
-    else if( islower(b64) )
-      return b64 - 'a' + 26;
-    else if( isdigit(b64) )
-      return b64 - '0' + 52;
-    else if( b64 == '+' )
-      return 62;
-    else
-      return 63;
-  }
-
-  //Serialize myZZ by concatnating 6bits converted to an ascii character together, and terminating with '|'
-
-  const std::string myZZ::SerializeToString(const myZZ& modulus) const {
-    bool dbg_flag = false;
-
-    std::string ans = "";
-    //note limbs are stored little endian in myZZ
-    const ZZ_limb_t *zlp = ZZ_limbs_get(*this);
-    for (auto i = 0; i<this->size(); ++i){
-      DEBUG(" ser "<<i<<" "<<zlp[i]);
-      DEBUG(" ser "<<std::hex<<" "<<zlp[i]<<std::dec);      
-
-      //shift and convert 6 bits at a time
-      ans += to_base64_char[((zlp[i]) >> b64_shifts[0]) & B64MASK];
-      ans += to_base64_char[((zlp[i]) >> b64_shifts[1]) & B64MASK];
-      ans += to_base64_char[((zlp[i]) >> b64_shifts[2]) & B64MASK];
-      ans += to_base64_char[((zlp[i]) >> b64_shifts[3]) & B64MASK];
-      ans += to_base64_char[((zlp[i]) >> b64_shifts[4]) & B64MASK];
-      ans += to_base64_char[((zlp[i]) >> b64_shifts[5]) & B64MASK];
-      ans += to_base64_char[((zlp[i]) >> b64_shifts[6]) & B64MASK];
-      ans += to_base64_char[((zlp[i]) >> b64_shifts[7]) & B64MASK];
-      ans += to_base64_char[((zlp[i]) >> b64_shifts[8]) & B64MASK];
-      ans += to_base64_char[((zlp[i]) >> b64_shifts[9]) & B64MASK];
-      ans += to_base64_char[((zlp[i]) >> b64_shifts[10]) & B64MASK];
-
-    }
-    ans += "|"; //mark end of word. 
-    return ans;
-  }
-  //Deserialize myZZ by building limbs 6 bits at a time 
-  //returns input cp with stripped chars for decoded myZZ
-  const char * myZZ::DeserializeFromString(const char *cp, const myZZ& modulus){
-    bool dbg_flag = false;
-    clear(*this);
-
-    vector<ZZ_limb_t> cv;
-
-    while( *cp != '\0' && *cp != '|' ) {//till end of string or myZZ
-
-      ZZ_limb_t converted =  base64_to_value(*cp++) << b64_shifts[0];
-      converted |= base64_to_value(*cp++) << b64_shifts[1];
-      converted |= base64_to_value(*cp++) << b64_shifts[2];
-      converted |= base64_to_value(*cp++) << b64_shifts[3];
-      converted |= base64_to_value(*cp++) << b64_shifts[4];
-      converted |= base64_to_value(*cp++) << b64_shifts[5];
-      converted |= base64_to_value(*cp++) << b64_shifts[6];
-      converted |= base64_to_value(*cp++) << b64_shifts[7];
-      converted |= base64_to_value(*cp++) << b64_shifts[8];
-      converted |= base64_to_value(*cp++) << b64_shifts[9];
-      converted |= base64_to_value(*cp++) << b64_shifts[10];
-      
-      DEBUG(" deser "<<converted);      
-      DEBUG(" deser "<<std::hex<<" "<<converted<<std::dec);      
-      cv.push_back(converted);
-    }
-
-    ZZ_limbs_set(*this, cv.data(), cv.size()); //save value
-    SetMSB();
-    if (*cp == '|') {		// if end of myZZ strip of separator
-      cp++;
-    }
-    return cp;
-  }
-
-  bool myZZ::Serialize(lbcrypto::Serialized* serObj) const{
-    bool dbg_flag = false;
- 
-    if( !serObj->IsObject() ){
-      serObj->SetObject();
-    }
-    
-    lbcrypto::SerialItem bbiMap(rapidjson::kObjectType);
-
-    DEBUGEXP(IntegerTypeName());
-    DEBUGEXP(this->ToString());
-    bbiMap.AddMember("IntegerType", IntegerTypeName(), serObj->GetAllocator());
-    bbiMap.AddMember("Value", this->ToString(), serObj->GetAllocator());
-    serObj->AddMember("BigIntegerImpl", bbiMap, serObj->GetAllocator());
-    return true;
-  }
-
-  bool myZZ::Deserialize(const lbcrypto::Serialized& serObj){
-    bool dbg_flag = false;
-    //find the outer name
-    lbcrypto::Serialized::ConstMemberIterator mIter = serObj.FindMember("BigIntegerImpl");
-    if( mIter == serObj.MemberEnd() )//not found, so fail
-      return false;
-    
-    lbcrypto::SerialItem::ConstMemberIterator vIt; //interator within name
-    
-    //is this the correct integer type?
-    if( (vIt = mIter->value.FindMember("IntegerType")) == mIter->value.MemberEnd() )
-      return false;
-    if( IntegerTypeName() != vIt->value.GetString() )
-      return false;
-    
-    //find the value
-    if( (vIt = mIter->value.FindMember("Value")) == mIter->value.MemberEnd() )
-      return false;
-    //assign the value found
-
-    DEBUGEXP(vIt->value.GetString());
-    SetValue(vIt->value.GetString());
-    return true;
-  }
-  
 } // namespace NTL ends
+
+#endif

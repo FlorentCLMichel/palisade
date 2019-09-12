@@ -1,8 +1,8 @@
 /**
  * @file rlwe.h -- PALISADE ring-learn-with-errors functionality.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -266,7 +266,7 @@ public:
 	void SetMode(MODE mode) { m_mode = mode; }
 
 	/**
-	 * == operator to compare to this instance of LPCryptoParametersLTV object.
+	 * == operator to compare to this instance of LPCryptoParametersRLWE object.
 	 *
 	 * @param &rhs LPCryptoParameters to check equality against.
 	 */
@@ -299,6 +299,36 @@ public:
 				std::endl;
 	}
 
+	template <class Archive>
+	void save( Archive & ar, std::uint32_t const version ) const
+	{
+	    ar( ::cereal::base_class<LPCryptoParameters<Element>>( this ) );
+	    ar( ::cereal::make_nvp("dp", m_distributionParameter) );
+	    ar( ::cereal::make_nvp("am", m_assuranceMeasure) );
+	    ar( ::cereal::make_nvp("sl", m_securityLevel) );
+	    ar( ::cereal::make_nvp("rw", m_relinWindow) );
+	    ar( ::cereal::make_nvp("d", m_depth) );
+	    ar( ::cereal::make_nvp("md", m_maxDepth) );
+	    ar( ::cereal::make_nvp("mo", m_mode) );
+	    ar( ::cereal::make_nvp("slv", m_stdLevel) );
+	}
+
+	template <class Archive>
+	void load( Archive & ar, std::uint32_t const version )
+	{
+	    ar( ::cereal::base_class<LPCryptoParameters<Element>>( this ) );
+	    ar( ::cereal::make_nvp("dp", m_distributionParameter) );
+	    ar( ::cereal::make_nvp("am", m_assuranceMeasure) );
+	    ar( ::cereal::make_nvp("sl", m_securityLevel) );
+	    ar( ::cereal::make_nvp("rw", m_relinWindow) );
+	    ar( ::cereal::make_nvp("d", m_depth) );
+	    ar( ::cereal::make_nvp("md", m_maxDepth) );
+	    ar( ::cereal::make_nvp("mo", m_mode) );
+	    ar( ::cereal::make_nvp("slv", m_stdLevel) );
+	}
+
+	std::string SerializedObjectName() const { return "RLWESchemeParameters"; }
+
 protected:
 	//standard deviation in Discrete Gaussian Distribution
 	float m_distributionParameter;
@@ -319,122 +349,6 @@ protected:
 	SecurityLevel m_stdLevel;
 
 	typename Element::DggType m_dgg;
-
-	bool SerializeRLWE(Serialized* serObj, SerialItem& cryptoParamsMap) const {
-
-		Serialized pser(rapidjson::kObjectType, &serObj->GetAllocator());
-
-		if( !this->GetElementParams()->Serialize(&pser) )
-			return false;
-
-		Serialized encodingPser(rapidjson::kObjectType, &serObj->GetAllocator());
-
-		if (!this->GetEncodingParams()->Serialize(&encodingPser))
-			return false;
-
-		cryptoParamsMap.AddMember("ElemParams", pser.Move(), serObj->GetAllocator());
-		cryptoParamsMap.AddMember("EncodingParams", encodingPser.Move(), serObj->GetAllocator());
-		cryptoParamsMap.AddMember("DistributionParameter", std::to_string(this->GetDistributionParameter()), serObj->GetAllocator());
-		cryptoParamsMap.AddMember("AssuranceMeasure", std::to_string(this->GetAssuranceMeasure()), serObj->GetAllocator());
-		cryptoParamsMap.AddMember("SecurityLevel", std::to_string(this->GetSecurityLevel()), serObj->GetAllocator());
-		cryptoParamsMap.AddMember("RelinWindow", std::to_string(this->GetRelinWindow()), serObj->GetAllocator());
-		cryptoParamsMap.AddMember("Depth", std::to_string(this->GetDepth()), serObj->GetAllocator());
-		cryptoParamsMap.AddMember("MaxDepth", std::to_string(this->GetMaxDepth()), serObj->GetAllocator());
-		cryptoParamsMap.AddMember("Mode", std::to_string(m_mode), serObj->GetAllocator());
-		cryptoParamsMap.AddMember("PlaintextModulus", std::to_string(this->GetPlaintextModulus()), serObj->GetAllocator());
-		cryptoParamsMap.AddMember("StdLevel", std::to_string(m_stdLevel), serObj->GetAllocator());
-
-		return true;
-	}
-
-	bool DeserializeRLWE(Serialized::ConstMemberIterator mIter) {
-
-		SerialItem::ConstMemberIterator pIt;
-
-		if( (pIt = mIter->value.FindMember("ElemParams")) == mIter->value.MemberEnd() )
-			return false;
-		Serialized oneItem(rapidjson::kObjectType);
-		SerialItem key( pIt->value.MemberBegin()->name, oneItem.GetAllocator() );
-		SerialItem val( pIt->value.MemberBegin()->value, oneItem.GetAllocator() );
-		oneItem.AddMember(key, val, oneItem.GetAllocator());
-
-		typename Element::Params *json_ilParams = new typename Element::Params();
-
-		if( !json_ilParams->Deserialize(oneItem) ) {
-			delete json_ilParams;
-			return false;
-		}
-
-		shared_ptr<typename Element::Params> ep( json_ilParams );
-		this->SetElementParams( ep );
-
-		SerialItem::ConstMemberIterator epIt;
-
-		if ((epIt = mIter->value.FindMember("EncodingParams")) == mIter->value.MemberEnd())
-			return false;
-		Serialized oneItemE(rapidjson::kObjectType);
-		SerialItem keyE(epIt->value.MemberBegin()->name, oneItemE.GetAllocator());
-		SerialItem valE(epIt->value.MemberBegin()->value, oneItemE.GetAllocator());
-		oneItemE.AddMember(keyE, valE, oneItemE.GetAllocator());
-
-		EncodingParamsImpl *json_encodingParams = new EncodingParamsImpl();
-
-		if (!json_encodingParams->Deserialize(oneItemE)) {
-			delete json_encodingParams;
-			return false;
-		}
-
-		EncodingParams encodingParams(json_encodingParams);
-		this->SetEncodingParams(encodingParams);
-
-		if( (pIt = mIter->value.FindMember("PlaintextModulus")) == mIter->value.MemberEnd() )
-			return false;
-		PlaintextModulus bbiPlaintextModulus = atoi(pIt->value.GetString());
-
-		if( (pIt = mIter->value.FindMember("DistributionParameter")) == mIter->value.MemberEnd() )
-			return false;
-		float distributionParameter = atof(pIt->value.GetString());
-
-		if( (pIt = mIter->value.FindMember("AssuranceMeasure")) == mIter->value.MemberEnd() )
-			return false;
-		float assuranceMeasure = atof(pIt->value.GetString());
-
-		if( (pIt = mIter->value.FindMember("SecurityLevel")) == mIter->value.MemberEnd() )
-			return false;
-		float securityLevel = atof(pIt->value.GetString());
-
-		if( (pIt = mIter->value.FindMember("RelinWindow")) == mIter->value.MemberEnd() )
-			return false;
-		usint relinWindow = atoi(pIt->value.GetString());
-
-		if( (pIt = mIter->value.FindMember("Depth")) == mIter->value.MemberEnd() )
-			return false;
-		int depth = atoi(pIt->value.GetString());
-
-		if( (pIt = mIter->value.FindMember("MaxDepth")) == mIter->value.MemberEnd() )
-			return false;
-		int maxDepth = atoi(pIt->value.GetString());
-
-		if ((pIt = mIter->value.FindMember("Mode")) == mIter->value.MemberEnd())
-			return false;
-		MODE mode = (MODE)atoi(pIt->value.GetString());
-
-		if ((pIt = mIter->value.FindMember("StdLevel")) == mIter->value.MemberEnd())
-			return false;
-		SecurityLevel stdLevel = (SecurityLevel)atoi(pIt->value.GetString());
-
-		this->SetPlaintextModulus(bbiPlaintextModulus);
-		this->SetDistributionParameter(distributionParameter);
-		this->SetAssuranceMeasure(assuranceMeasure);
-		this->SetSecurityLevel(securityLevel);
-		this->SetRelinWindow(relinWindow);
-		this->SetDepth(depth);
-		this->SetMaxDepth(maxDepth);
-		this->SetMode(mode);
-		this->SetStdLevel(stdLevel);
-
-		return true;
-	}
 };
 }
 

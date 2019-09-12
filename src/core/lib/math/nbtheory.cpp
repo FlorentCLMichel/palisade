@@ -1,8 +1,8 @@
 ﻿/**
  * @file nbtheory.cpp This code provides number theory utilities.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -124,7 +124,7 @@ namespace lbcrypto {
 	template<typename IntType>
 	static bool WitnessFunction(const IntType& a, const IntType& d, usint s, const IntType& p)
 	{
-		bool dbg_flag = false;
+		DEBUG_FLAG(false);
 		DEBUG("calling modexp a " << a << " d " << d << " p " << p);
 		IntType mod = a.ModExp(d, p);
 		DEBUG("mod " << mod);
@@ -149,7 +149,7 @@ namespace lbcrypto {
     template<typename IntType>
     static IntType FindGenerator(const IntType& q)
     {
-            bool dbg_flag = false;
+            DEBUG_FLAG(false);
             std::set<IntType> primeFactors;
             DEBUG("FindGenerator(" << q << "),calling PrimeFactorize");
 
@@ -157,8 +157,9 @@ namespace lbcrypto {
             IntType qm2 = q - IntType(2);
             PrimeFactorize<IntType>(qm1, primeFactors);
             DEBUG("prime factors of " << qm1);
+            #if!defined(NDEBUG)
             for( auto& v : primeFactors ) DEBUG(v << " ");
-
+			#endif
             bool generatorFound = false;
             IntType gen;
             while (!generatorFound) {
@@ -188,7 +189,7 @@ namespace lbcrypto {
 	template<typename IntType>
 	IntType FindGeneratorCyclic(const IntType& q)
 	{
-		bool dbg_flag = false;
+		DEBUG_FLAG(false);
 		std::set<IntType> primeFactors;
 		DEBUG("calling PrimeFactorize");
 
@@ -231,7 +232,7 @@ namespace lbcrypto {
 	template<typename IntType>
 	bool IsGenerator(const IntType &g, const IntType& q)
 	{
-		bool dbg_flag = false;
+		DEBUG_FLAG(false);
 		std::set<IntType> primeFactors;
 		DEBUG("calling PrimeFactorize");
 
@@ -267,7 +268,7 @@ namespace lbcrypto {
 	template<typename IntType>
 	IntType RootOfUnity(usint m, const IntType& modulo)
 	{
-		bool dbg_flag = false;
+		DEBUG_FLAG(false);
 		DEBUG("in Root of unity m :" << m << " modulo " << modulo.ToString());
 		IntType M(m);
 		if ((modulo - IntType(1)).Mod(M) != IntType(0)) {
@@ -372,7 +373,7 @@ namespace lbcrypto {
 	template<typename IntType>
 	IntType GreatestCommonDivisor(const IntType& a, const IntType& b)
 	{
-		bool dbg_flag = false;
+		DEBUG_FLAG(false);
 		IntType m_a, m_b, m_t;
 		m_a = a;
 		m_b = b;
@@ -398,7 +399,7 @@ namespace lbcrypto {
 	template<typename IntType>
 	bool MillerRabinPrimalityTest(const IntType& p, const usint niter)
 	{
-		bool dbg_flag = false;
+		DEBUG_FLAG(false);
 		if (p < IntType(2) || ((p != IntType(2)) && (p.Mod(2) == IntType(0))))
 			return false;
 		if (p == IntType(2) || p == IntType(3) || p == IntType(5))
@@ -434,7 +435,7 @@ namespace lbcrypto {
 	template<typename IntType>
 	const IntType PollardRhoFactorization(const IntType &n)
 	{
-		bool dbg_flag = false;
+		DEBUG_FLAG(false);
 		IntType divisor(1);
 
 		IntType c(RNG(n));
@@ -469,7 +470,7 @@ namespace lbcrypto {
 	template<typename IntType>
 	void PrimeFactorize(IntType n, std::set<IntType> &primeFactors)
 	{
-		bool dbg_flag = false;
+		DEBUG_FLAG(false);
 		DEBUG("PrimeFactorize " << n);
 
 		// primeFactors.clear();
@@ -502,7 +503,7 @@ namespace lbcrypto {
 	template<typename IntType>
 	IntType FirstPrime(uint64_t nBits, uint64_t m) {
 		try {
-			bool dbg_flag = false;
+			DEBUG_FLAG(false);
 			IntType r = IntType(2).ModExp(nBits, m);
 			DEBUG("r "<<r);
 			IntType qNew = (IntType(1) << nBits);

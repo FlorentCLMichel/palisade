@@ -1,8 +1,8 @@
 /**
  * @file binvect.h This file contains the vector manipulation functionality for native integers.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -525,22 +525,62 @@ class NativeVector : public lbcrypto::BigVectorInterface<NativeVector<IntegerTyp
 	 */
 	NativeVector GetDigitAtIndexForBase(usint index, usint base) const;
 
+	template <class Archive>
+	typename std::enable_if<!cereal::traits::is_text_archive<Archive>::value,void>::type
+	save( Archive & ar, std::uint32_t const version ) const
+	{
+		size_t size = m_data.size();
+		ar( size );
+		if( size > 0 )
+			ar( ::cereal::binary_data(m_data.data(), size*sizeof(IntegerType)) );
+		ar( m_modulus );
+	}
 
-	/**
-	* Serialize the object into a Serialized
-	* @param serObj is used to store the serialized result. It MUST be a rapidjson Object (SetObject());
-	* @return true if successfully serialized
-	*/
-	bool Serialize(lbcrypto::Serialized* serObj) const;
+	template <class Archive>
+	typename std::enable_if<cereal::traits::is_text_archive<Archive>::value,void>::type
+	save( Archive & ar, std::uint32_t const version ) const
+	{
+		ar( ::cereal::make_nvp("v",m_data) );
+		ar( ::cereal::make_nvp("m",m_modulus.ConvertToInt()) );
+	}
 
-	/**
-	* Populate the object from the deserialization of the Serialized
-	* @param serObj contains the serialized object
-	* @return true on success
-	*/
-	bool Deserialize(const lbcrypto::Serialized& serObj);
+	template <class Archive>
+	typename std::enable_if<!cereal::traits::is_text_archive<Archive>::value,void>::type
+	load( Archive & ar, std::uint32_t const version )
+	{
+		if( version > SerializedVersion() ) {
+			PALISADE_THROW(lbcrypto::deserialize_error, "serialized object version " + std::to_string(version) + " is from a later version of the library");
+		}
+		size_t size;
+		ar( size );
+		m_data.resize(size);
+		if( size > 0 ) {
+			IntegerType *data = (IntegerType *)malloc( size*sizeof(IntegerType) );
+			ar( ::cereal::binary_data(data, size*sizeof(IntegerType)) );
+			for( size_t i = 0; i<size; i++ )
+				m_data[i] = data[i];
+			free( data );
+		}
+		ar( m_modulus );
+	}
 
-private:
+	template <class Archive>
+	typename std::enable_if<cereal::traits::is_text_archive<Archive>::value,void>::type
+	load( Archive & ar, std::uint32_t const version )
+	{
+		if( version > SerializedVersion() ) {
+			PALISADE_THROW(lbcrypto::deserialize_error, "serialized object version " + std::to_string(version) + " is from a later version of the library");
+		}
+		ar( ::cereal::make_nvp("v",m_data) );
+		uint64_t m;
+		ar( ::cereal::make_nvp("m",m) );
+		m_modulus = m;
+	}
+
+	std::string SerializedObjectName() const { return "NativeVector"; }
+	static uint32_t	SerializedVersion() { return 1; }
+
+ private:
 	//m_data is a pointer to the vector
 
 #if BLOCK_VECTOR_ALLOCATION != 1
@@ -560,5 +600,31 @@ private:
 };
 
 } // namespace lbcrypto ends
+
+namespace cereal {
+//! Serialization for vector of NativeInteger
+template <class Archive, class A> inline
+void CEREAL_SAVE_FUNCTION_NAME( Archive & ar, std::vector<native_int::NativeInteger, A> const & vector )
+{
+	ar( make_size_tag( static_cast<cereal::size_type>(vector.size()) ) ); // number of elements
+	for(const auto v : vector)
+		ar( v.ConvertToInt() );
+}
+
+//! Deserialization for vector of NativeInteger
+template <class Archive, class A> inline
+void CEREAL_LOAD_FUNCTION_NAME( Archive & ar, std::vector<native_int::NativeInteger, A> & vector )
+{
+	cereal::size_type size;
+	ar( make_size_tag( size ) );
+	vector.resize( static_cast<size_t>( size ) );
+	for(auto& v : vector)
+	{
+		uint64_t b;
+		ar( b );
+		v = b;
+	}
+}
+} // namespace cereal
 
 #endif

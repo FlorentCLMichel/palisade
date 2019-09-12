@@ -1,8 +1,8 @@
 /*
- * @file ildcrtparams.cpp - parameters for generalized parameters for integer lattices.
- * @author  TPOC: palisade@njit.edu
+ * @file ilparams.cpp - parameters for generalized integer lattices.
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -26,92 +26,9 @@
 
 #include "ilparams.h"
 
-/**
-* @namespace lbcrypto
-* The namespace of lbcrypto
-*/
-namespace lbcrypto
-{
-
-
-/**
-* Stores this object's attribute name value pairs to a map for serializing this object to a JSON file.
-*
-* @param serObj stores this object's serialized attribute name value pairs.
-* @return map updated with the attribute name value pairs required to serialize this object.
-*/
-template<typename IntType>
-bool ILParamsImpl<IntType>::Serialize(Serialized* serObj) const
-{
-  
-        if( !serObj->IsObject() ){
-	  serObj->SetObject();
-	}
-
-	SerialItem ser(rapidjson::kObjectType);
-	ser.AddMember("Order", std::to_string(this->cyclotomicOrder), serObj->GetAllocator());
-	ser.AddMember("RingDim", std::to_string(this->ringDimension), serObj->GetAllocator());
-	ser.AddMember("CtModulus", this->ciphertextModulus.ToString(), serObj->GetAllocator());
-	ser.AddMember("RootOfUnity", this->rootOfUnity.ToString(), serObj->GetAllocator());
-	ser.AddMember("BigCtModulus", this->bigCiphertextModulus.ToString(), serObj->GetAllocator());
-	ser.AddMember("BigRootOfUnity", this->bigRootOfUnity.ToString(), serObj->GetAllocator());
-
-	serObj->AddMember("ILParams", ser, serObj->GetAllocator());
-
-	return true;
-}
-
-//JSON FACILITY
-/**
-* Sets this object's attribute name value pairs to deserialize this object from a JSON file.
-*
-* @param serObj stores this object's serialized attribute name value pairs.
-*/
-template<typename IntType>
-bool ILParamsImpl<IntType>::Deserialize(const Serialized& serObj)
-{
-
-	Serialized::ConstMemberIterator mIter = serObj.FindMember("ILParams");
-	if( mIter == serObj.MemberEnd() ) {
-		return false;
-	}
-
-	SerialItem::ConstMemberIterator oIt;
-
-	if( (oIt = mIter->value.FindMember("Order")) == mIter->value.MemberEnd() )
-		return false;
-	usint order = atoi(oIt->value.GetString());
-
-	if( (oIt = mIter->value.FindMember("RingDim")) == mIter->value.MemberEnd() )
-		return false;
-	usint ringdim = atoi(oIt->value.GetString());
-
-	if( (oIt = mIter->value.FindMember("CtModulus")) == mIter->value.MemberEnd() )
-		return false;
-	IntType CtModulus(oIt->value.GetString());
-
-	if( (oIt = mIter->value.FindMember("RootOfUnity")) == mIter->value.MemberEnd() )
-		return false;
-	IntType RootOfUnity(oIt->value.GetString());
-
-	if( (oIt = mIter->value.FindMember("BigCtModulus")) == mIter->value.MemberEnd() )
-		return false;
-	IntType BigCtModulus(oIt->value.GetString());
-
-	if( (oIt = mIter->value.FindMember("BigRootOfUnity")) == mIter->value.MemberEnd() )
-		return false;
-	IntType BigRootOfUnity(oIt->value.GetString());
-
-	this->cyclotomicOrder = order;
-	this->ringDimension = ringdim;
-	this->isPowerOfTwo = this->ringDimension == this->cyclotomicOrder / 2;
-	this->ciphertextModulus = CtModulus;
-	this->rootOfUnity = RootOfUnity;
-	this->bigCiphertextModulus = BigCtModulus;
-	this->bigRootOfUnity = BigRootOfUnity;
-
-	return true;
-}
-
-
-} // namespace lbcrypto ends
+CEREAL_CLASS_VERSION( lbcrypto::ILParamsImpl<M2Integer>, lbcrypto::ILParamsImpl<M2Integer>::SerializedVersion() );
+CEREAL_CLASS_VERSION( lbcrypto::ILParamsImpl<M4Integer>, lbcrypto::ILParamsImpl<M4Integer>::SerializedVersion() );
+#ifdef WITH_NTL
+CEREAL_CLASS_VERSION( lbcrypto::ILParamsImpl<M6Integer>, lbcrypto::ILParamsImpl<M6Integer>::SerializedVersion() );
+#endif
+CEREAL_CLASS_VERSION( lbcrypto::ILParamsImpl<NativeInteger>, lbcrypto::ILParamsImpl<NativeInteger>::SerializedVersion() );

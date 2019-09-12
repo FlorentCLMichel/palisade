@@ -1,10 +1,10 @@
 /**
  * @file cryptotimin-impl.cpp -- Definitions for taking timings of crypto operations
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
  * @section LICENSE
  *
- * Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT))
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met, 
@@ -31,7 +31,7 @@
  */
 
 #include "cryptocontext.h"
-#include "inttypes.h"
+#include "utils/inttypes.h"
 #include <iostream>
 #include <string>
 #include <map>
@@ -126,42 +126,6 @@ static FeatureMapBuilder __mapper;
 std::ostream& operator<<(std::ostream& out, const OpType& op) {
 	out << OperatorName[op];
 	return out;
-}
-
-bool TimingStatistics::Serialize(Serialized *serObj) const {
-	serObj->SetObject();
-	SerialItem statMap(rapidjson::kObjectType);
-
-	statMap.AddMember("operation", OperatorName[operation], serObj->GetAllocator());
-	statMap.AddMember("samples", std::to_string(samples), serObj->GetAllocator());
-	statMap.AddMember("argcnt", std::to_string(argcnt), serObj->GetAllocator());
-	statMap.AddMember("average", std::to_string(average), serObj->GetAllocator());
-
-	serObj->AddMember("TimingStatistics", statMap.Move(), serObj->GetAllocator());
-
-	return true;
-}
-
-bool TimingStatistics::Deserialize(const Serialized& serObj) {
-	Serialized::ConstMemberIterator mIter = serObj.FindMember("TimingStatistics");
-	if( mIter == serObj.MemberEnd() ) return false;
-
-	SerialItem::ConstMemberIterator pIt;
-
-	if( (pIt = mIter->value.FindMember("operation")) == mIter->value.MemberEnd() )
-		return false;
-	operation = OperatorType[ pIt->value.GetString() ];
-	if( (pIt = mIter->value.FindMember("samples")) == mIter->value.MemberEnd() )
-		return false;
-	samples = std::stoi( pIt->value.GetString() );
-	if( (pIt = mIter->value.FindMember("argcnt")) == mIter->value.MemberEnd() )
-		return false;
-	argcnt = std::stod( pIt->value.GetString() );
-	if( (pIt = mIter->value.FindMember("average")) == mIter->value.MemberEnd() )
-		return false;
-	average = std::stod( pIt->value.GetString() );
-
-	return false;
 }
 
 template<typename Element>
@@ -480,29 +444,28 @@ generateTimings(TimingStatisticsMap& stats,
 	if( verbose )
 		cerr << "Results:" << endl;
 
-	Serialized ser;
-	string str;
-
-#define PSSIZE(msg,x) { \
-		Serialized ser; string str; \
-		if( (x)->Serialize(&ser) ) {\
-			SerializableHelper::SerializationToString(ser, str); \
-			cout << (msg) << str.length() << endl; \
-		} \
-}
-
-	if( PrintSizes ) {
-		cout << endl;
-		cout << "Plaintext: array of " << cc->GetRingDimension() << " "
-				<< (sizeof(int64_t) * 8) << " bit integers: "
-				<< cc->GetRingDimension()*sizeof(int64_t) << endl;
-
-		//cout << "Plaintext size: " << sizeof( *inputs[0] ) << endl;
-		PSSIZE("Public key size: ", kp.publicKey );
-		PSSIZE("Private key size: ", kp.secretKey );
-		PSSIZE("Ciphertext size : ", crypt );
-		if( rekey1 ) PSSIZE("PRE Key 1 size: ", rekey1 );
-	}
+/***********************************************************
+//	string str;
+//
+//#define PSSIZE(msg,x) { \
+//		string str; \
+//		str = Serial::SerializeToString(x); \
+//		cout << (msg) << str.length() << endl; \
+//}
+//
+//	if( PrintSizes ) {
+//		cout << endl;
+//		cout << "Plaintext: array of " << cc->GetRingDimension() << " "
+//				<< (sizeof(int64_t) * 8) << " bit integers: "
+//				<< cc->GetRingDimension()*sizeof(int64_t) << endl;
+//
+//		//cout << "Plaintext size: " << sizeof( *inputs[0] ) << endl;
+//		PSSIZE("Public key size: ", kp.publicKey );
+//		PSSIZE("Private key size: ", kp.secretKey );
+//		PSSIZE("Ciphertext size : ", crypt );
+//		if( rekey1 ) PSSIZE("PRE Key 1 size: ", rekey1 );
+//	}
+***********************************************************/
 }
 
 template

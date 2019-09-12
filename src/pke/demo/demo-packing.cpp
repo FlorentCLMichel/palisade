@@ -1,8 +1,8 @@
 /*
  * @file demo-bit-packing.cpp This code shows multiple demonstrations of how to use packing features in PALISADE.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -37,17 +37,15 @@
 using namespace std;
 using namespace lbcrypto;
 
-void ArbLTVInnerProductPackedArray();
 void ArbBGVInnerProductPackedArray();
 void ArbBFVInnerProductPackedArray();
 void ArbBFVEvalMultPackedArray();
 
 int main() {
 
-	std::cout << "\nThis code demonstrates the use of packing on the BFV, BGV and LTV schemes. " << std::endl;
+	std::cout << "\nThis code demonstrates the use of packing on the BFV and BGV schemes. " << std::endl;
 	std::cout << "We show inner product operations for all schemes and a bit-packed EvalMult for the BFV scheme. " << std::endl;
 	std::cout << "This code shows how parameters can be manually set in our library. " << std::endl;
-	std::cout << "We do not generally recommend the use of the LTV scheme due to security concerns. " << std::endl;
 
 	std::cout << "\n=========== In this code block we demonstrate inner product operations using the BFV scheme. ===============: " << std::endl;
 
@@ -56,11 +54,6 @@ int main() {
 	std::cout << "\n=========== In this code block we demonstrate EvalMult operations using the BFV scheme. ===============: " << std::endl;
 
 	ArbBFVEvalMultPackedArray();
-
-
-	std::cout << "\n=========== In this code block we demonstrate inner product operations using the LTV scheme. ===============: " << std::endl;
-
-	ArbLTVInnerProductPackedArray();
 
 	std::cout << "\n=========== In this code block we demonstrate inner product operations using the BGV scheme. ===============: " << std::endl;
 
@@ -76,7 +69,7 @@ int main() {
 void ArbBGVInnerProductPackedArray() {
 
 	usint m = 22;
-	PlaintextModulus p = 89;
+	PlaintextModulus p = 2333;
 	BigInteger modulusP(p);
 	/*BigInteger modulusQ("577325471560727734926295560417311036005875689");
 	BigInteger squareRootOfRoot("576597741275581172514290864170674379520285921");*/
@@ -120,77 +113,6 @@ void ArbBGVInnerProductPackedArray() {
 	std::cout << "Input array 2 \n\t" << intArray2 << std::endl;
 
 	cc->EvalSumKeyGen(kp.secretKey);
-	cc->EvalMultKeyGen(kp.secretKey);
-
-	auto ciphertext1 = cc->Encrypt(kp.publicKey, intArray1);
-	auto ciphertext2 = cc->Encrypt(kp.publicKey, intArray2);
-
-	auto result = cc->EvalInnerProduct(ciphertext1, ciphertext2, batchSize);
-
-	Plaintext intArrayNew;
-
-	cc->Decrypt(kp.secretKey, result, &intArrayNew);
-
-	std::cout << "Sum = " << intArrayNew->GetPackedValue()[0] << std::endl;
-
-	std::cout << "All components (other slots randomized) = " << intArrayNew << std::endl;
-
-}
-
-
-void ArbLTVInnerProductPackedArray() {
-
-	usint m = 22;
-	PlaintextModulus p = 89;
-	BigInteger modulusP(p);
-	/*BigInteger modulusQ("577325471560727734926295560417311036005875689");
-	BigInteger squareRootOfRoot("576597741275581172514290864170674379520285921");*/
-	//BigInteger modulusQ("955263939794561");
-	//BigInteger squareRootOfRoot("941018665059848");
-	BigInteger modulusQ("1267650600228229401496703214121");
-	BigInteger squareRootOfRoot("498618454049802547396506932253");
-
-	//BigInteger squareRootOfRoot = RootOfUnity(2*m,modulusQ);
-	//std::cout << squareRootOfRoot << std::endl;
-	//BigInteger bigmodulus("80899135611688102162227204937217");
-	//BigInteger bigroot("77936753846653065954043047918387");
-	BigInteger bigmodulus("1645504557321206042154969182557350504982735865633579863348616321");
-	BigInteger bigroot("201473555181182026164891698186176997440470643522932663932844212");
-	//std::cout << bigroot << std::endl;
-
-	auto cycloPoly = GetCyclotomicPolynomial<BigVector>(m, modulusQ);
-	ChineseRemainderTransformArb<BigVector>::SetCylotomicPolynomial(cycloPoly, modulusQ);
-
-	float stdDev = 4;
-
-	usint batchSize = 8;
-
-	shared_ptr<ILParams> params(new ILParams(m, modulusQ, squareRootOfRoot, bigmodulus, bigroot));
-
-	EncodingParams encodingParams(new EncodingParamsImpl(p, batchSize, PackedEncoding::GetAutomorphismGenerator(m)));
-
-	PackedEncoding::SetParams(m, encodingParams);
-
-	CryptoContext<Poly> cc = CryptoContextFactory<Poly>::genCryptoContextLTV(params, encodingParams, 16, stdDev);
-
-	cc->Enable(ENCRYPTION);
-	cc->Enable(SHE);
-
-	// Initialize the public key containers.
-	LPKeyPair<Poly> kp = cc->KeyGen();
-
-	std::vector<int64_t> vectorOfInts1 = { 1,2,3,4,5,6,7,8,0,0 };
-	Plaintext intArray1 = cc->MakePackedPlaintext(vectorOfInts1);
-
-	std::cout << "Input array 1 \n\t" << intArray1 << std::endl;
-
-
-	std::vector<int64_t> vectorOfInts2 = { 1,2,3,2,1,2,1,2,0,0 };
-	Plaintext intArray2 = cc->MakePackedPlaintext(vectorOfInts2);
-
-	std::cout << "Input array 2 \n\t" << intArray2 << std::endl;
-
-	cc->EvalSumKeyGen(kp.secretKey,kp.publicKey);
 	cc->EvalMultKeyGen(kp.secretKey);
 
 	auto ciphertext1 = cc->Encrypt(kp.publicKey, intArray1);

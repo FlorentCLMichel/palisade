@@ -1,9 +1,9 @@
 /**
  * @file backend.h This file contains the functionality to switch between lattice backends
  *
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -42,13 +42,17 @@ template<typename VecType> class PolyImpl;
 
 using M2Poly = PolyImpl<M2Vector>;
 using M4Poly = PolyImpl<M4Vector>;
+#ifdef WITH_NTL
 using M6Poly = PolyImpl<M6Vector>;
+#endif
 
 using NativePoly = PolyImpl<NativeVector>;
 
 using M2Params = ILParamsImpl<M2Integer>;
 using M4Params = ILParamsImpl<M4Integer>;
+#ifdef WITH_NTL
 using M6Params = ILParamsImpl<M6Integer>;
+#endif
 
 using ILNativeParams = ILParamsImpl<NativeInteger>;
 
@@ -67,11 +71,15 @@ template<typename VecType> class DCRTPolyImpl;
 
 using M2DCRTPoly = DCRTPolyImpl<M2Vector>;
 using M4DCRTPoly = DCRTPolyImpl<M4Vector>;
+#ifdef WITH_NTL
 using M6DCRTPoly = DCRTPolyImpl<M6Vector>;
+#endif
 
 using M2DCRTParams = ILDCRTParams<M2Integer>;
 using M4DCRTParams = ILDCRTParams<M4Integer>;
+#ifdef WITH_NTL
 using M6DCRTParams = ILDCRTParams<M6Integer>;
+#endif
 
 // the default for the backend...
 using DCRTPoly = DCRTPolyImpl<BigVector>;
@@ -80,7 +88,7 @@ using DCRTPoly = DCRTPolyImpl<BigVector>;
 
 #endif
 
-
+#ifdef WITH_NTL
 #define RUN_BIG_POLYS(FUNCTION, MESSAGE) { \
     if ( TestB2 ) { \
         using V = M2Poly; \
@@ -110,6 +118,29 @@ using DCRTPoly = DCRTPolyImpl<BigVector>;
         FUNCTION<V>("BE6DCRTPoly " MESSAGE); \
     } \
 }
+#else
+#define RUN_BIG_POLYS(FUNCTION, MESSAGE) { \
+    if ( TestB2 ) { \
+        using V = M2Poly; \
+        FUNCTION<V>("BE2Poly " MESSAGE); \
+    } \
+    if ( TestB4 ) { \
+        using V = M4Poly; \
+        FUNCTION<V>("BE4Poly " MESSAGE); \
+    } \
+}
+
+#define RUN_BIG_DCRTPOLYS(FUNCTION, MESSAGE) { \
+    if ( TestB2 ) { \
+        using V = M2DCRTPoly; \
+        FUNCTION<V>("BE2DCRTPoly " MESSAGE); \
+    } \
+    if ( TestB4 ) { \
+        using V = M4DCRTPoly; \
+        FUNCTION<V>("BE4DCRTPoly " MESSAGE); \
+    } \
+}
+#endif
 
 #define RUN_ALL_POLYS(FUNCTION, MESSAGE) { \
     RUN_BIG_POLYS(FUNCTION, MESSAGE) \

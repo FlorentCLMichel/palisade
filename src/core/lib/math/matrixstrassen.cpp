@@ -1,8 +1,8 @@
 /*
  * @file matrixstrassen.cpp matrix strassen operations.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -24,8 +24,6 @@
  *
  */
 
-#include "../utils/serializablehelper.h"
-//#include "rationalciphertext.h"
 #include "matrixstrassen.h"
 
 using std::invalid_argument;
@@ -621,74 +619,18 @@ MatrixStrassen<Poly> SplitInt32AltIntoPolyElements(MatrixStrassen<int32_t> const
     return result;
 }
 
-#ifdef OUT
-/**
-* Serialize the object into a Serialized
-* @param serObj is used to store the serialized result. It MUST be a rapidjson Object (SetObject());
-* @return true if successfully serialized
-*/
-template<class Element>
-bool MatrixStrassen<Element>::Serialize(Serialized* serObj) const {
-  bool dbg_flag = false;
-  if( !serObj->IsObject() ){
-    serObj->SetObject();
-  }
-
-  DEBUG("SERIALIZING MatrixStrassen " << rows << ":" << cols);
-  DEBUGEXP(data.size());
-  DEBUGEXP(data[0].size());
-	//SerializeVectorOfVector("MatrixStrassen", elementName<Element>(), this->data, serObj);
-
-  DEBUGEXP(typeid(Element).name());
-
-  bool rc = false;
-  for( int r=0; r<rows; r++ ) {
-    for( int c=0; c<cols; c++ ) {
-      rc = data[r][c]->Serialize(serObj);
-      if (!rc) {
-	PALISADE_THROW(lbcrypto::serialize_error ,"serialization failure in MatrixStrassen "
-		       +to_string(r)+", "+to_string(c));
-    }
-  }
-  
-  return true;
-}
-
-/**
-* Populate the object from the deserialization of the Serialized
-* @param serObj contains the serialized object
-* @return true on success
-*/
-template<class Element>
-bool MatrixStrassen<Element>::Deserialize(const Serialized& serObj) {
-	Serialized::ConstMemberIterator mIter = serObj.FindMember("MatrixStrassen");
-	std::cout<<"Deserialize MatrixStrassen not written"<<cout::endl;
-	
-	if( mIter == serObj.MemberEnd() ){
-		return false;
-	}
-	//return DeserializeVectorOfVector<Element>("MatrixStrassen", elementName<Element>(), mIter, &this->data);
-	return true;
-}
-#endif
-
-
-
-
 
 template<class Element>
 MatrixStrassen<Element> MatrixStrassen<Element>::Mult(MatrixStrassen<Element> const& other,int nrec,int pad) const{
 
-
-
-
-//	double rowlog;
 	int allrows = rows;
-	int allcols = cols;
 
 	NUM_THREADS = omp_get_max_threads();
 
 	if (pad == -1) {
+
+		//int allcols = cols;
+
 		/*
 		 * Calculate the optimal number of padding rows and padding columns.  (Note that these
 		 * do not need to be the same, allowing rectangular matrices to be handled.)
@@ -704,7 +646,7 @@ MatrixStrassen<Element> MatrixStrassen<Element>::Mult(MatrixStrassen<Element> co
 		rowpad = ceil(rows/powtemp)*(int)powtemp - rows;
 		colpad = ceil(cols/powtemp)*(int)powtemp - cols;
 		allrows = rows + rowpad;
-		allcols = cols + colpad;
+		//allcols = cols + colpad;
 	} else {
 		/* Apply the indicated padding rows and columns.  (For now they are equal, assuming
 		 * square matrices.  Note that the dimension of the matrix after padding must support
@@ -714,15 +656,18 @@ MatrixStrassen<Element> MatrixStrassen<Element>::Mult(MatrixStrassen<Element> co
 		 * need to provide a padding value, as setting the padding value to -1 will cause this
 		 * code to caluclate the optimal padding for the number of levels of recursion.
 		 */
+
 		rowpad = pad;
 		colpad = pad;
 		allrows = rows + pad;
-		allcols = cols + pad;
 		//allrows/(2^nrec) and allcols/(2^nrec) must be integers
+#if!defined(NDEBUG)
+		int allcols = cols + pad;
 		double temp = allrows / pow(2,nrec);
 		assert((int)temp == ceil(temp));
 		temp = allcols / pow(2,nrec);
 		assert((int)temp == ceil(temp));
+#endif
 
 	}
 

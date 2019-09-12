@@ -1,9 +1,9 @@
 /**
  * @file quadfloat.cpp This file has the definitions for the quad-precision floating-point data type
  *
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -27,7 +27,9 @@
 
 #include "quadfloat.h"
 
-namespace lbcrypto {
+namespace ext_double {
+
+#ifdef WITH_NTL
 
 const QuadFloat HALF_QUADFLOAT = quadFloatFromInt64(1)/quadFloatFromInt64(2);
 
@@ -40,10 +42,10 @@ int64_t quadFloatRound(const QuadFloat& input)
    // since the rounding is implemented using floor, we add 0.5
    QuadFloat x = input + HALF_QUADFLOAT;
 
-   fhi = floor(x.hi);
+   fhi = std::floor(x.hi);
 
    if (fhi == x.hi)
-      flo = floor(x.lo);
+      flo = std::floor(x.lo);
    else
       flo = 0;
 
@@ -81,17 +83,6 @@ QuadFloat quadFloatFromInt64(const long long int n){
 
 }
 
-/*static void normalize(QuadFloat& z, const double& xhi, const double& xlo){
-
-   double u, v;
-
-   u = xhi + xlo;
-   v = xhi - u;
-   v = v + xlo;
-
-   z.hi = u;
-   z.lo = v;
-
-}*/
+#endif
 
 } // namespace lbcrypto ends

@@ -1,8 +1,8 @@
 /*
  * @file 
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -73,7 +73,7 @@ using namespace lbcrypto;
  *	TESTING BASIC METHODS OF mubintvec CLASS
  ************************************************/
 TEST(UTmubintvec,ctor_access_eq_neq){
-  bool dbg_flag = false;
+  DEBUG_FLAG(false);
   exp_int::xubint q("1234567"); // a bigger number
   
   exp_int::xmubintvec m(5); // calling constructor to create a vector of length 5
@@ -237,7 +237,7 @@ TEST(UTmubintvec,ctor_access_eq_neq){
 }
 
 TEST(UTmubintvec, constructorTest){
-  bool dbg_flag = false;
+  DEBUG_FLAG(false);
   exp_int::xmubintvec m(10);
   
   m.at(0)="48";
@@ -301,7 +301,7 @@ TEST(UTmubintvec,mod){
 }
 
 TEST(UTmubintvec,basic_vector_vector_mod_math_1_limb){
-  bool dbg_flag = false;
+  DEBUG_FLAG(false);
 
   // q1 modulus 1:
   exp_int::xubint q1("163841");

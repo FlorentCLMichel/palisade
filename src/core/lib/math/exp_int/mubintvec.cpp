@@ -1,34 +1,26 @@
 /**
  * @file
- * @author  TPOC: Dr. Kurt Rohloff <rohloff@njit.edu>,
- *	Programmers: Dr. Yuriy Polyakov, <polyakov@njit.edu>, Gyana Sahu <grs22@njit.edu>
- * @version 00_03
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @section LICENSE
- * 
- * Copyright (c) 2015, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met: 1. Redistributions of source code must retain the above
- * copyright notice, this list of conditions and the following
- * disclaimer.  2. Redistributions in binary form must reproduce the
- * above copyright notice, this list of conditions and the following
- * disclaimer in the documentation and/or other materials provided
- * with the distribution.  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
- * HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
- * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
- * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
- * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or other
+ * materials provided with the distribution.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+ * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * @section DESCRIPTION
  *
@@ -51,7 +43,7 @@ namespace exp_int {
   // basic constructor
   template<class ubint_el_t>
   mubintvec<ubint_el_t>::mubintvec(){
-    bool dbg_flag = false;
+    DEBUG_FLAG(false);
     this->m_modulus = 0;
     m_modulus_state = GARBAGE;
     DEBUG("mubintvec ctor()");
@@ -60,7 +52,7 @@ namespace exp_int {
   // Basic constructor for specifying the length of the vector.
   template<class ubint_el_t>
   mubintvec<ubint_el_t>::mubintvec(const usint length){
-    bool dbg_flag = false;
+    DEBUG_FLAG(false);
     this->m_data.resize(length);
 
     //this->m_data = new ubint_el_t*[m_length];
@@ -75,7 +67,7 @@ namespace exp_int {
   // Basic constructor for specifying the length of the vector and modulus.
   template<class ubint_el_t>
   mubintvec<ubint_el_t>::mubintvec(const usint length, const usint &modulus){
-    bool dbg_flag = false;
+    DEBUG_FLAG(false);
     this->m_data.resize(length);
     for (usint i = 0; i < length; i++){
       this->m_data[i] = 0;
@@ -90,7 +82,7 @@ namespace exp_int {
   // Basic constructor for specifying the length of the vector and modulus.
   template<class ubint_el_t>
   mubintvec<ubint_el_t>::mubintvec(const usint length, const ubint_el_t &modulus){
-    bool dbg_flag = false;
+    DEBUG_FLAG(false);
     this->m_data.resize(length);
     for (usint i = 0; i < length; i++){
       this->m_data[i] = 0;
@@ -107,7 +99,7 @@ namespace exp_int {
 
   template<class ubint_el_t>
   mubintvec<ubint_el_t>::mubintvec(const usint length, const ubint_el_t &modulus, std::initializer_list<uint64_t>rhs){
-    bool dbg_flag = false;
+    DEBUG_FLAG(false);
     this->m_data.resize(length);
     m_modulus = modulus;
     m_modulus_state = INITIALIZED;
@@ -127,7 +119,7 @@ namespace exp_int {
 
   template<class ubint_el_t>
   mubintvec<ubint_el_t>::mubintvec(const usint length, const ubint_el_t &modulus, std::initializer_list<std::string>rhs){
-    bool dbg_flag = false;
+    DEBUG_FLAG(false);
     this->m_data.resize(length);
     m_modulus = modulus;
     m_modulus_state = INITIALIZED;
@@ -146,7 +138,7 @@ namespace exp_int {
   // Baspic constructor for specifying the length of the vector and modulus.
   template<class ubint_el_t>
   mubintvec<ubint_el_t>::mubintvec(const usint length, const std::string &modulus){
-    bool dbg_flag = false;
+    DEBUG_FLAG(false);
     this->m_data.resize(length);
     for (usint i = 0; i < length; i++){
       this->m_data[i] = 0;
@@ -161,7 +153,7 @@ namespace exp_int {
   // constructor specifying the mubintvec as a vector of strings and modulus
   template<class ubint_el_t>
   mubintvec<ubint_el_t>::mubintvec(const std::vector<std::string> &s, const ubint_el_t &modulus) {
-    bool dbg_flag = false;
+    DEBUG_FLAG(false);
     this->m_data.resize(s.size());
     m_modulus = ubint_el_t(modulus);
     m_modulus_state = INITIALIZED;
@@ -174,7 +166,7 @@ namespace exp_int {
  //constructor specifying the mubintvec as a vector of strings with string modulus
   template<class ubint_el_t>
   mubintvec<ubint_el_t>::mubintvec(const std::vector<std::string> &s, const std::string &modulus) {
-    bool dbg_flag = false;
+    DEBUG_FLAG(false);
     this->m_data.resize(s.size());
     m_modulus = ubint_el_t(modulus);
     m_modulus_state = INITIALIZED;
@@ -189,7 +181,7 @@ namespace exp_int {
   //copy constructor
   template<class ubint_el_t>
   mubintvec<ubint_el_t>::mubintvec(const mubintvec &in_bintvec){
-    bool dbg_flag = false;
+    DEBUG_FLAG(false);
 
     size_t length = in_bintvec.m_data.size();
     this->m_data.resize(length);
@@ -204,7 +196,7 @@ namespace exp_int {
 
   template<class ubint_el_t>
   mubintvec<ubint_el_t>::mubintvec(mubintvec &&in_bintvec){
-    bool dbg_flag = false;
+    DEBUG_FLAG(false);
     this->m_data = std::move(in_bintvec.m_data);
     this->m_modulus = std::move(in_bintvec.m_modulus);
     this->m_modulus_state = std::move(in_bintvec.m_modulus_state);
@@ -218,7 +210,7 @@ namespace exp_int {
   //will overwrite target modulus
   template<class ubint_el_t>
   const mubintvec<ubint_el_t>& mubintvec<ubint_el_t>::operator=(const mubintvec &rhs){
-    bool dbg_flag = false;
+    DEBUG_FLAG(false);
     if(this!=&rhs){
       if(this->m_data.size()==rhs.m_data.size()){
         for (usint i = 0; i < this->m_data.size(); i++){
@@ -244,7 +236,7 @@ namespace exp_int {
   //Assignment with initializer list of usints
   template<class ubint_el_t>
   const mubintvec<ubint_el_t>& mubintvec<ubint_el_t>::operator=(std::initializer_list<uint64_t> rhs){
-    bool dbg_flag = false;
+    DEBUG_FLAG(false);
     size_t len = rhs.size();
     if (this->m_data.size()< len){
       this->m_data.resize(len);
@@ -266,7 +258,7 @@ namespace exp_int {
   //Assignment with initializer list of strings
   template<class ubint_el_t>
   const mubintvec<ubint_el_t>& mubintvec<ubint_el_t>::operator=(std::initializer_list<std::string> rhs){
-    bool dbg_flag = true;
+    DEBUG_FLAG(true);
     size_t len = rhs.size();
     if (this->m_data.size()< len){
       this->m_data.resize(len);
@@ -288,7 +280,7 @@ namespace exp_int {
   // move copy allocator
   template<class ubint_el_t>
   const mubintvec<ubint_el_t>& mubintvec<ubint_el_t>::operator=(mubintvec &&rhs){
-    bool dbg_flag = false;
+    DEBUG_FLAG(false);
 
     if(this!=&rhs){
       this->m_data.swap(rhs.m_data); //swap the two vector contents,
@@ -778,141 +770,6 @@ template<class ubint_el_t>
 
     return std::move(ans);
   }
-
-
-  //new serialize and deserialise operations
-  //currently using the same map as bigVector, with modulus. 
- // serialize and deserialise operations
-  template<class ubint_el_t>
-  bool mubintvec<ubint_el_t>::Serialize(lbcrypto::Serialized* serObj) const {
-
-    bool dbg_flag = false;
-  if( !serObj->IsObject() ){
-    serObj->SetObject();
-  }
-    //serialize the modulus or mark as unknown
-    std::string modstring ="";
-    DEBUG("in vector Serialize");
-    if (this->isModulusSet()){
-      modstring = this->GetModulus().ToString();
-    }else{
-      modstring = "undefined";
-    }
-    DEBUG("modstring "<<modstring);
-
-    //build the map for the serialization
-    lbcrypto::SerialItem bbvMap(rapidjson::kObjectType);
-    //add modulus
-    bbvMap.AddMember("Modulus", modstring, serObj->GetAllocator()); 
-    //add Integer type
-    DEBUG("IntegerType "<<ubint_el_t::IntegerTypeName());
-    bbvMap.AddMember("IntegerType", ubint_el_t::IntegerTypeName(), 
-		     serObj->GetAllocator());
-
-    //determine vector length 
-    size_t pkVectorLength = m_data.size();
-    DEBUG ("size "<<pkVectorLength);
-    bbvMap.AddMember("Length", std::to_string(pkVectorLength), 
-		     serObj->GetAllocator());
-
-    //build a string containing all vector elements concatenated
-    if( pkVectorLength > 0 ) {
-      std::string pkBufferString = "";
-      for (size_t i = 0; i < pkVectorLength; i++) {
-	DEBUG("element "<<i<<" "<<this->m_data[i]);
-	std::string tmp = this->m_data[i].SerializeToString(this->GetModulus());
-	pkBufferString += tmp;
-      }
-      DEBUG("add VectorValues");
-      bbvMap.AddMember("VectorValues", pkBufferString, serObj->GetAllocator());
-    }
-    //store the map.
-    DEBUG("add BigVectorImpl");
-    serObj->AddMember("BigVectorImpl", bbvMap, serObj->GetAllocator());
-
-    DEBUG("serialize done");
-    return true;
-  }
-
-  // Deserialize
-  template<class ubint_el_t>
-  bool mubintvec<ubint_el_t>::Deserialize(const lbcrypto::Serialized& serObj) {
-    bool dbg_flag = false;
-    DEBUG("in deserialize");
-
-    //decode in reverse order from Serialize above
-    lbcrypto::Serialized::ConstMemberIterator mIter = serObj.FindMember("BigVectorImpl");
-    if( mIter == serObj.MemberEnd() ){
-      std::cerr<<"myVecP::Deserialize() failed"
-	       <<" BigVectorImpl not found"<<std::endl;
-      return false;
-    }    
-
-    lbcrypto::SerialItem::ConstMemberIterator vIt; //iterator over serial items
-    //look for IntegerType
-    if( (vIt = mIter->value.FindMember("IntegerType")) 
-	== mIter->value.MemberEnd() ){
-      std::cerr<<"myVecP::Deserialize() failed IntegerType not found"
-	       <<std::endl;
-      return false;
-    }
-    if( ubint_el_t::IntegerTypeName() != vIt->value.GetString() ){
-      std::cerr<<"myVecP::Deserialize() failed IntegerType transltion"
-	       <<std::endl;
-      return false;
-    }
-    //look for Modulus
-    if( (vIt = mIter->value.FindMember("Modulus"))
-	== mIter->value.MemberEnd() ){
-      std::cerr<<"myVecP::Deserialize() failed Modulus not found"<<std::endl;
-      return false;
-    }
-    //decode modulus
-    std::string strval(vIt->value.GetString());
-    DEBUG("getting modulus string "<<strval);
-    ubint_el_t bbiModulus;
-    if (strval !="undefined"){
-      bbiModulus =  ubint_el_t(strval);
-    }
-    DEBUG("bbiModulus "<<bbiModulus);
-    
-    //find length of vector
-    if( (vIt = mIter->value.FindMember("Length")) 
-	== mIter->value.MemberEnd() ){
-      std::cerr<<"myVecP::Deserialize() failed Length not found"<<std::endl;
-      return false;
-    }
-    usint vectorLength = std::stoi(vIt->value.GetString());
-    DEBUG("vectorLength "<<vectorLength);
-    
-    if( (vIt = mIter->value.FindMember("VectorValues")) == 
-	mIter->value.MemberEnd() ){
-      std::cerr<<"myVecP::Deserialize() failed VectorValues not found"
-	       <<std::endl;
-      return false;
-    }    
-    
-    mubintvec<ubint_el_t> newVec(vectorLength, bbiModulus); //build new vector
-    ubint_el_t vectorElem; //element to store decode
-    
-    const char *vp = vIt->value.GetString(); //concatenated str of coded values
-    DEBUG("vp is size "<<strlen(vp));
-
-    for( usint ePos = 0; ePos < vectorLength; ePos++ ) {
-      if( *vp == '\0' ) {
-	std::cerr<<"myVecP::Deserialize() premature end of vector"<<std::endl;
-	std::cerr<<"at position "<<ePos<<std::endl;
-	return false; // premature end of vector
-      }
-      DEBUG("loop "<<ePos<<" vp before is size "<<strlen(vp));
-      vp = vectorElem.DeserializeFromString(vp, bbiModulus); //decode element
-      DEBUG("vp after is size "<<strlen(vp));
-      newVec[ePos] = vectorElem;//store it
-    }
-    *this = std::move(newVec);//save the overall vector
-    return true;
-  }
-
 } // namespace lbcrypto ends
  
 #ifdef UBINT_32

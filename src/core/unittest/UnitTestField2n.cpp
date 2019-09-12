@@ -1,8 +1,8 @@
 /*
  * @file 
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -36,7 +36,7 @@ using namespace lbcrypto;
 
 //TEST FOR GETTER FOR FORMAT
 TEST(UTField2n, get_format) {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 
 	DEBUG("Step 1");
 	Field2n test(2, COEFFICIENT, true);
@@ -47,7 +47,7 @@ TEST(UTField2n, get_format) {
 
 //TEST FOR INVERSE OF FIELD ELEMENT
 TEST(UTField2n, inverse) {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Step 1");
 	Field2n test(2, EVALUATION, true);
 	test.at(0) = std::complex<double>(2, 1);
@@ -62,7 +62,7 @@ TEST(UTField2n, inverse) {
 
 //TEST FOR ADDITION OPERATION
 TEST(UTField2n, plus) {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Step 1");
 	Field2n a(2, EVALUATION, true);
 	a.at(0) = std::complex<double>(2, 1);
@@ -80,7 +80,7 @@ TEST(UTField2n, plus) {
 
 //TEST FOR SCALAR ADDITION
 TEST(UTField2n, scalar_plus) {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Step 1");
 	Field2n a(2, COEFFICIENT, true);
 	a.at(0) = std::complex<double>(2, 0);
@@ -96,7 +96,7 @@ TEST(UTField2n, scalar_plus) {
 
 //TEST FOR SUBSTRACTION OPERATION
 TEST(UTField2n, minus) {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Step 1");
 	Field2n a(2, EVALUATION, true);
 	a.at(0) = std::complex<double>(2, 1);
@@ -119,7 +119,7 @@ TEST(UTField2n, minus) {
 
 //TEST FOR MULTIPLICATION OPERATION
 TEST(UTField2n, times) {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Step 1");
 	Field2n a(2, EVALUATION, true);
 	a.at(0) = std::complex<double>(4, 3);
@@ -143,7 +143,7 @@ TEST(UTField2n, times) {
 //TEST FOR MULTIPLICATION OPERATION WITH SWITCH FORMAT
 TEST(UTField2n, times_with_switch) {
 	DiscreteFourierTransform::PreComputeTable(8);
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Step 1");
 	Field2n a(4, COEFFICIENT, true);
 	a.at(0) = std::complex<double>(1, 0);
@@ -175,7 +175,7 @@ TEST(UTField2n, times_with_switch) {
 
 //TEST FOR SHIFT RIGHT OPERATION
 TEST(UTField2n, shift_right) {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Step 1");
 	Field2n a(4, COEFFICIENT, true);
 	a.at(0) = std::complex<double>(4, 0);
@@ -194,7 +194,7 @@ TEST(UTField2n, shift_right) {
 
 //TEST FOR TRANSPOSE OPERATION
 TEST(UTField2n, transpose) {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Step 1");
 	Field2n a(4, COEFFICIENT, true);
 	a.at(0) = std::complex<double>(4, 0);
@@ -214,7 +214,7 @@ TEST(UTField2n, transpose) {
 //TEST FOR TRANSPOSE OPERATION
 TEST(UTField2n, transpose_eval) {
 	DiscreteFourierTransform::PreComputeTable(8);
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Step 1");
 	Field2n a(4, COEFFICIENT, true);
 	a.at(0) = std::complex<double>(4, 0);
@@ -242,7 +242,7 @@ TEST(UTField2n, transpose_eval) {
 //TEST FOR AUTOMORPHISM OPERATION
 TEST(UTField2n, automorphism) {
 	DiscreteFourierTransform::PreComputeTable(8);
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Step 1");
 	Field2n a(4, COEFFICIENT, true);
 	a.at(0) = std::complex<double>(1, 0);
@@ -267,7 +267,7 @@ TEST(UTField2n, automorphism) {
 
 //TEST FOR EXTRACT ODD OPERATION
 TEST(UTField2n, extract_odd) {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Step 1");
 	Field2n a(4, COEFFICIENT, true);
 	a.at(0) = std::complex<double>(4, 0);
@@ -284,7 +284,7 @@ TEST(UTField2n, extract_odd) {
 
 //TEST FOR EXTRACT EVEN OPERATION
 TEST(UTField2n, extract_even) {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Step 1");
 	Field2n a(4, COEFFICIENT, true);
 	a.at(0) = std::complex<double>(4, 0);
@@ -301,7 +301,7 @@ TEST(UTField2n, extract_even) {
 
 //TEST FOR PERMUTE OPERATION
 TEST(UTField2n, permute) {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Step 1");
 	Field2n a(4, COEFFICIENT, true);
 	a.at(0) = std::complex<double>(1, 0);
@@ -320,7 +320,7 @@ TEST(UTField2n, permute) {
 
 //TEST FOR INVERSE PERMUTE OPERATION
 TEST(UTField2n, inverse_permute) {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Step 1");
 	Field2n a(4, COEFFICIENT, true);
 	a.at(0) = std::complex<double>(1, 0);
@@ -339,7 +339,7 @@ TEST(UTField2n, inverse_permute) {
 
 //TEST FOR SCALAR MULT OPERATION
 TEST(UTField2n, scalar_mult) {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Step 1");
 	Field2n a(4, EVALUATION, true);
 	a.at(0) = std::complex<double>(1, -1);
@@ -359,7 +359,7 @@ TEST(UTField2n, scalar_mult) {
 //TEST FOR COEFFICIENT TO EVALUATION FORMAT CHANGE
 TEST(UTField2n, coefficient_evaluation) {
 	DiscreteFourierTransform::PreComputeTable(16);
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Step 1");
 	Field2n a(8, COEFFICIENT, true);
 	a.at(0) = std::complex<double>(4, 0);
@@ -392,7 +392,7 @@ TEST(UTField2n, coefficient_evaluation) {
 //TEST FOR EVALUATION TO COEFFICIENT FORMAT CHANGE
 TEST(UTField2n, evaluation_coefficient) {
 	DiscreteFourierTransform::PreComputeTable(16);
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Step 1");
 	Field2n b(8, EVALUATION, true);
 	b.at(0) = std::complex<double>(4.03087, 26.2795);

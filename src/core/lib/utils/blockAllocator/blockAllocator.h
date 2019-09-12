@@ -104,12 +104,12 @@ private:
 #define DECLARE_ALLOCATOR \
     public: \
         void* operator new(size_t size) { \
-        bool dbg_flag = false;\
+        DEBUG_FLAG(false);\
         DEBUG( "allocating   " << size << " bytes");\
             return _allocator.Allocate(size); \
         } \
         void operator delete(void* pObject) { \
-        bool dbg_flag = false;\
+        DEBUG_FLAG(false);\
 	DEBUG("deallocating  ");\
             _allocator.Deallocate(pObject); \
         } \

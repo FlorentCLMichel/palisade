@@ -1,8 +1,8 @@
 /*
  * @file ildcrtparams.cpp - parameters for generalized double-crt parameters.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -24,7 +24,6 @@
  *
  */
 #include "ildcrtparams.h"
-#include "../utils/serializablehelper.h"
 
 
 namespace lbcrypto
@@ -59,47 +58,12 @@ ILDCRTParams<IntType>::ILDCRTParams(usint order, usint depth, usint bits) : Elem
 	RecalculateModulus();
 }
 
-template<typename IntType>
-bool
-ILDCRTParams<IntType>::Serialize(Serialized* serObj) const
-{
-    if( !serObj->IsObject() ){
-	  serObj->SetObject();
-	} 
-
-	Serialized ser(rapidjson::kObjectType, &serObj->GetAllocator());
-
-	SerializeVectorOfPointers<ILNativeParams>("Params", "ILParams", m_parms, &ser);
-	serObj->AddMember("ILDCRTParams", ser, serObj->GetAllocator());
-
-	return true;
 }
 
-template<typename IntType>
-bool
-ILDCRTParams<IntType>::Deserialize(const Serialized& serObj)
-{
-	Serialized::ConstMemberIterator rIt = serObj.FindMember("ILDCRTParams");
-	if( rIt == serObj.MemberEnd() ) return false;
+CEREAL_CLASS_VERSION( lbcrypto::ILDCRTParams<M2Integer>, lbcrypto::ILDCRTParams<M2Integer>::SerializedVersion() );
+CEREAL_CLASS_VERSION( lbcrypto::ILDCRTParams<M4Integer>, lbcrypto::ILDCRTParams<M4Integer>::SerializedVersion() );
+#ifdef WITH_NTL
+CEREAL_CLASS_VERSION( lbcrypto::ILDCRTParams<M6Integer>, lbcrypto::ILDCRTParams<M6Integer>::SerializedVersion() );
+#endif
+CEREAL_CLASS_VERSION( lbcrypto::ILDCRTParams<NativeInteger>, lbcrypto::ILDCRTParams<NativeInteger>::SerializedVersion() );
 
-	const SerialItem& arr = rIt->value;
-
-	Serialized::ConstMemberIterator it = arr.FindMember("Params");
-
-	if( it == arr.MemberEnd() ) {
-		return false;
-	}
-
-	if( DeserializeVectorOfPointers<ILNativeParams>("Params", "ILParams", it, &this->m_parms) == false )
-		return false;
-
-	this->cyclotomicOrder = this->m_parms[0]->GetCyclotomicOrder();
-	this->ringDimension = this->m_parms[0]->GetRingDimension();
-	this->isPowerOfTwo = this->ringDimension == this->cyclotomicOrder / 2;
-
-	RecalculateModulus();
-	return true;
-}
-
-
-}

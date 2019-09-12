@@ -1,8 +1,8 @@
 /*
  * @file native-impl.cpp - native integer implementation.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -44,7 +44,6 @@ ONES_FOR_TYPE(NativePoly)
 IDENTITY_FOR_TYPE(NativePoly)
 GADGET_FOR_TYPE(NativePoly)
 NORM_FOR_TYPE(NativePoly)
-MATRIX_NOT_SERIALIZABLE(NativePoly)
 SPLIT64_FOR_TYPE(NativePoly)
 SPLIT64ALT_FOR_TYPE(NativePoly)
 SPLIT32ALT_FOR_TYPE(NativePoly)
@@ -52,3 +51,5 @@ template Matrix<NativeVector> RotateVecResult(Matrix<NativePoly> const& inMat);
 template Matrix<NativeInteger> Rotate(Matrix<NativePoly> const& inMat);
 
 }  // namespace lbcrypto
+
+CEREAL_CLASS_VERSION( lbcrypto::NativePoly, lbcrypto::NativePoly::SerializedVersion() );

@@ -1,0 +1,882 @@
+stages:
+- build
+- unit_test
+- test
+- benchmark
+- memory
+- checksum
+- deploy
+- cleanup
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+before_script:
+- module load gcc/7.3.0
+- module load cmake/3.9.4
+- export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$(pwd)/build/third-party/lib:$(pwd)/build/lib
+
+code_quality:
+  stage: test
+  before_script:
+  - shopt -s globstar
+  script:
+  - cpplint benchmark/** src/abe/** src/circuit/** src/core/** src/pke/** src/signature/** src/trapdoor/** src/version.h/** src/wip/** 
+  allow_failure: true
+  dependencies: []
+
+shell_lint:
+  stage: test
+  script:
+  - shellcheck test/benchmark_all_backends.sh
+  - shellcheck test/build_all_backends.sh
+  - shellcheck test/build_cov_test_backends.sh
+  - shellcheck test/test_all_backends.sh
+  - shellcheck test/test_cov_backends.sh
+  - shellcheck test/valgrind_all_backends.sh
+  allow_failure: true
+  dependencies: []
+
+sast:
+  stage: test
+  script:
+  - flawfinder src/
+  allow_failure: true
+  dependencies: []
+
+check_abe:
+  stage: test
+  script:
+  - cppcheck -j $(nproc) -q --error-exitcode=1 src/abe/lib
+  allow_failure: true
+  dependencies: []
+
+check_circuit:
+  stage: test
+  script:
+  - cppcheck -j $(nproc) -q --error-exitcode=1 src/circuit/lib
+  allow_failure: true
+  dependencies: []
+
+check_core:
+  stage: test
+  script:
+  - cppcheck -j $(nproc) -q --error-exitcode=1 src/core/lib
+  allow_failure: true
+  dependencies: []
+
+check_pke:
+  stage: test
+  script:
+  - cppcheck -j $(nproc) -q --error-exitcode=1 src/pke/lib
+  allow_failure: true
+  dependencies: []
+
+check_signature:
+  stage: test
+  script:
+  - cppcheck -j $(nproc) -q --error-exitcode=1 src/signature/lib
+  allow_failure: true
+  dependencies: []
+
+check_trapdoor:
+  stage: test
+  script:
+  - cppcheck -j $(nproc) -q --error-exitcode=1 src/trapdoor/lib
+  allow_failure: true
+  dependencies: []
+
+check_wip:
+  stage: test
+  script:
+  - cppcheck -j $(nproc) -q --error-exitcode=1 src/wip/lib
+  allow_failure: true
+  dependencies: []
+
+build:
+  stage: build
+  script:
+  - mkdir -p build
+  - cd build
+  - CC=gcc CXX=g++ cmake ..
+  - make gmp_unpack
+  - make ntl_unpack_nowizard
+  - make -j $(nproc) gmp_all
+  - make -j $(nproc) ntl_all
+  - make -j $(nproc) all
+  artifacts:
+    paths:
+    - build/third-party/lib
+    - build/lib
+    - build/unittest
+    - build/bin/benchmark
+    expire_in: 1 day
+  dependencies: []
+
+test_abe:
+  stage: unit_test
+  script:
+  - pwd
+  - echo $LD_LIBRARY_PATH
+  - build/unittest/abe_tests --gtest_output=xml
+  artifacts:
+    paths:
+    - test_detail.xml
+    expire_in: 2 days
+  dependencies:
+  - build
+
+#test_circuit:
+#  stage: unit_test
+#  script:
+#  - build/src/circuit/circuit_tests --gtest_output=xml
+#  artifacts:
+#    paths:
+#    - test_detail.xml
+#    expire_in: 2 days
+#  dependencies:
+#  - build
+
+test_core:
+  stage: unit_test
+  script:
+  - build/unittest/core_tests --gtest_output=xml
+  artifacts:
+    paths:
+    - test_detail.xml
+    expire_in: 2 days
+  dependencies:
+  - build
+
+test_pke:
+  stage: unit_test
+  script:
+  - build/unittest/pke_tests --gtest_output=xml
+  artifacts:
+    paths:
+    - test_detail.xml
+    expire_in: 2 days
+  dependencies:
+  - build
+
+test_signature:
+  stage: unit_test
+  script:
+  - build/unittest/signature_tests --gtest_output=xml
+  artifacts:
+    paths:
+    - test_detail.xml
+    expire_in: 2 days
+  dependencies:
+  - build
+
+test_trapdoor:
+  stage: unit_test
+  script:
+  - build/unittest/trapdoor_tests --gtest_output=xml
+  artifacts:
+    paths:
+    - test_detail.xml
+    expire_in: 2 days
+  dependencies:
+  - build
+
+test_wip:
+  stage: unit_test
+  script:
+  - build/unittest/wip_tests --gtest_output=xml
+  artifacts:
+    paths:
+    - test_detail.xml
+    expire_in: 2 days
+  dependencies:
+  - build
+
+cyclo:
+  stage: test
+  script:
+  - lizard -t $(nproc) src/
+  allow_failure: true
+  dependencies: []
+
+coverage:
+  stage: test
+  script:
+  - make -j $(nproc) all COVERAGE=1
+  - make -j $(nproc) testall COVERAGE=1
+  - mkdir -p doc/coverage
+  - gcovr -j $(nproc) --verbose -r . --filter src/[^/]+/lib/* --filter src/* --html --html-details -o doc/coverage/index.html --print-summary
+  allow_failure: true
+  dependencies: 
+  - build
+  artifacts:
+    paths:
+    - doc/coverage
+    expire_in: 3 hours
+
+pages:
+  stage: deploy
+  script:
+  - make -j $(nproc) docs
+  - mkdir public
+  - mv doc/apidocs/html public
+  - mv doc/coverage public
+  artifacts:
+    paths:
+    - public
+    expire_in: 1 day
+  only:
+  - master
+  allow_failure: true
+  dependencies:
+  - coverage
+
+clean:
+  stage: cleanup
+  script:
+  - cd build
+  - make -j $(nproc) gmp_clobber ntl_clobber clean
+  when: always
+  dependencies: []
+
+memleak:
+  stage: memory
+  script:
+  - make -j $(nproc) all MEM=1
+  - valgrind --leak-check=yes ../build/src_tests
+  only:
+  - schedules
+  tags:
+  - linux
+  dependencies: []
+
+benchmark_basic:
+  stage: benchmark
+  script:
+  - build/bin/benchmark/basic_test --benchmark_out="${CI_JOB_NAME}_${CI_COMMIT_SHA}" --benchmark_out_format=csv 
+  dependencies:
+  - build
+  artifacts:
+    paths:
+      - "${CI_JOB_NAME}_${CI_COMMIT_SHA}"
+    expire_in: 1 month
+
+benchmark_crypto:
+  stage: benchmark
+  script:
+  - build/bin/benchmark/Crypto --benchmark_out="${CI_JOB_NAME}_${CI_COMMIT_SHA}" --benchmark_out_format=csv
+  dependencies:
+  - build
+  artifacts:
+    paths:
+      - "${CI_JOB_NAME}_${CI_COMMIT_SHA}"
+    expire_in: 1 month
+
+benchmark_encoding:
+  stage: benchmark
+  script:
+  - build/bin/benchmark/Encoding --benchmark_out="${CI_JOB_NAME}_${CI_COMMIT_SHA}" --benchmark_out_format=csv
+  dependencies:
+  - build
+  artifacts:
+    paths:
+      - "${CI_JOB_NAME}_${CI_COMMIT_SHA}"
+    expire_in: 1 month
+
+benchmark_integermath:
+  stage: benchmark
+  script:
+  - build/bin/benchmark/IntegerMath --benchmark_out="${CI_JOB_NAME}_${CI_COMMIT_SHA}" --benchmark_out_format=csv
+  dependencies:
+  - build
+  artifacts:
+    paths:
+      - "${CI_JOB_NAME}_${CI_COMMIT_SHA}"
+    expire_in: 1 month
+
+benchmark_lattice:
+  stage: benchmark
+  script:
+  - build/bin/benchmark/Lattice --benchmark_out="${CI_JOB_NAME}_${CI_COMMIT_SHA}" --benchmark_out_format=csv
+  dependencies:
+  - build
+  artifacts:
+    paths:
+      - "${CI_JOB_NAME}_${CI_COMMIT_SHA}"
+    expire_in: 1 month
+
+benchmark_nbtheory:
+  stage: benchmark
+  script:
+  - build/bin/benchmark/NbTheory --benchmark_out="${CI_JOB_NAME}_${CI_COMMIT_SHA}" --benchmark_out_format=csv
+  dependencies:
+  - build
+  artifacts:
+    paths:
+      - "${CI_JOB_NAME}_${CI_COMMIT_SHA}"
+    expire_in: 1 month
+
+benchmark_she:
+  stage: benchmark
+  script:
+  - build/bin/benchmark/SHE --benchmark_out="${CI_JOB_NAME}_${CI_COMMIT_SHA}" --benchmark_out_format=csv
+  dependencies:
+  - build
+  artifacts:
+    paths:
+      - "${CI_JOB_NAME}_${CI_COMMIT_SHA}"
+    expire_in: 1 month
+
+benchmark_vectormath:
+  stage: benchmark
+  script:
+  - build/bin/benchmark/VectorMath --benchmark_out="${CI_JOB_NAME}_${CI_COMMIT_SHA}" --benchmark_out_format=csv
+  dependencies:
+  - build
+  artifacts:
+    paths:
+      - "${CI_JOB_NAME}_${CI_COMMIT_SHA}"
+    expire_in: 1 month
+
+benchmark_lib:
+  stage: benchmark
+  script:
+  - build/bin/benchmark/lib-benchmark --benchmark_out="${CI_JOB_NAME}_${CI_COMMIT_SHA}" --benchmark_out_format=csv
+  dependencies:
+  - build
+  artifacts:
+    paths:
+      - "${CI_JOB_NAME}_${CI_COMMIT_SHA}"
+    expire_in: 1 month
+
+md5_abe:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - md5sum libPALISADEabe.so > abe.md5
+  - cat abe.md5
+  after_script:
+  - mv build/lib/abe.md5 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - abe.md5
+  allow_failure: true
+
+sha1_abe:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha1sum libPALISADEabe.so > abe.sha1
+  - cat abe.sha1
+  after_script:
+  - mv build/lib/abe.sha1 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - abe.sha1
+  allow_failure: true
+
+sha256_abe:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha256sum libPALISADEabe.so > abe.sha256
+  - cat abe.sha256
+  after_script:
+  - mv build/lib/abe.sha256 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - abe.sha256
+  allow_failure: true
+
+sha512_abe:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha512sum libPALISADEabe.so > abe.sha512
+  - cat abe.sha512
+  after_script:
+  - mv build/lib/abe.sha512 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - abe.sha512
+  allow_failure: true
+
+md5_circuit:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - md5sum libPALISADEcircuit.so > circuit.md5
+  - cat circuit.md5
+  after_script:
+  - mv build/lib/circuit.md5 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - circuit.md5
+  allow_failure: true
+
+sha1_circuit:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha1sum libPALISADEcircuit.so > circuit.sha1
+  - cat circuit.sha1
+  after_script:
+  - mv build/lib/circuit.sha1 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - circuit.sha1
+  allow_failure: true
+
+sha256_circuit:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha256sum libPALISADEcircuit.so > circuit.sha256
+  - cat circuit.sha256
+  after_script:
+  - mv build/lib/circuit.sha256 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - circuit.sha256
+  allow_failure: true
+
+sha512_circuit:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha512sum libPALISADEcircuit.so > circuit.sha512
+  - cat circuit.sha512
+  after_script:
+  - mv build/lib/circuit.sha512 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - circuit.sha512
+  allow_failure: true
+
+md5_core:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - md5sum libPALISADEcore.so > core.md5
+  - cat core.md5
+  after_script:
+  - mv build/lib/core.md5 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - core.md5
+  allow_failure: true
+
+sha1_core:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha1sum libPALISADEcore.so > core.sha1
+  - cat core.sha1
+  after_script:
+  - mv build/lib/core.sha1 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - core.sha1
+  allow_failure: true
+
+sha256_core:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha256sum libPALISADEcore.so > core.sha256
+  - cat core.sha256
+  after_script:
+  - mv build/lib/core.sha256 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - core.sha256
+  allow_failure: true
+
+sha512_core:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha512sum libPALISADEcore.so > core.sha512
+  - cat core.sha512
+  after_script:
+  - mv build/lib/core.sha512 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - core.sha512
+  allow_failure: true
+
+md5_pke:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - md5sum libPALISADEpke.so > pke.md5
+  - cat pke.md5
+  after_script:
+  - mv build/lib/pke.md5 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - pke.md5
+  allow_failure: true
+
+sha1_pke:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha1sum libPALISADEpke.so > pke.sha1
+  - cat pke.sha1
+  after_script:
+  - mv build/lib/pke.sha1 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - pke.sha1
+  allow_failure: true
+
+sha256_pke:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha256sum libPALISADEpke.so > pke.sha256
+  - cat pke.sha256
+  after_script:
+  - mv build/lib/pke.sha256 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - pke.sha256
+  allow_failure: true
+
+sha512_pke:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha512sum libPALISADEpke.so > pke.sha512
+  - cat pke.sha512
+  after_script:
+  - mv build/lib/pke.sha512 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - pke.sha512
+  allow_failure: true
+
+md5_signature:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - md5sum libPALISADEsignature.so > signature.md5
+  - cat signature.md5
+  after_script:
+  - mv build/lib/signature.md5 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - signature.md5
+  allow_failure: true
+
+sha1_signature:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha1sum libPALISADEsignature.so > signature.sha1
+  - cat signature.sha1
+  after_script:
+  - mv build/lib/signature.sha1 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - signature.sha1
+  allow_failure: true
+
+sha256_signature:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha256sum libPALISADEsignature.so > signature.sha256
+  - cat signature.sha256
+  after_script:
+  - mv build/lib/signature.sha256 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - signature.sha256
+  allow_failure: true
+
+sha512_signature:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha512sum libPALISADEsignature.so > signature.sha512
+  - cat signature.sha512
+  after_script:
+  - mv build/lib/signature.sha1 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - signature.sha512
+  allow_failure: true
+
+md5_trapdoor:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - md5sum libPALISADEtrapdoor.so > trapdoor.md5
+  - cat trapdoor.md5
+  after_script:
+  - mv build/lib/trapdoor.md5 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - trapdoor.md5
+  allow_failure: true
+
+sha1_trapdoor:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha1sum libPALISADEtrapdoor.so > trapdoor.sha1
+  - cat trapdoor.sha1
+  after_script:
+  - mv build/lib/trapdoor.sha1 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - trapdoor.sha1
+  allow_failure: true
+
+sha256_trapdoor:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha256sum libPALISADEtrapdoor.so > trapdoor.sha256
+  - cat trapdoor.sha256
+  after_script:
+  - mv build/lib/trapdoor.sha256 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - trapdoor.sha256
+  allow_failure: true
+
+sha512_trapdoor:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha512sum libPALISADEtrapdoor.so > trapdoor.sha512
+  - cat trapdoor.sha512
+  after_script:
+  - mv build/lib/trapdoor.sha512 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - trapdoor.sha512
+  allow_failure: true
+
+md5_wip:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - md5sum libPALISADEwip.so > wip.md5
+  - cat wip.md5
+  after_script:
+  - mv build/lib/wip.md5 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - wip.md5
+  allow_failure: true
+
+sha1_wip:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha1sum libPALISADEwip.so > wip.sha1
+  - cat wip.sha1
+  after_script:
+  - mv build/lib/wip.sha1 $(pwd) 
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - wip.sha1
+  allow_failure: true
+
+sha256_wip:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha256sum libPALISADEwip.so > wip.sha256
+  - cat wip.sha256
+  after_script:
+  - mv build/lib/wip.sha256 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - wip.sha256
+  allow_failure: true
+
+sha512_wip:
+  stage: checksum
+  before_script:
+  - cd build/lib
+  script:
+  - sha512sum libPALISADEwip.so > wip.sha512
+  - cat wip.sha512
+  after_script:
+  - mv wip.sha512 $(pwd)
+  dependencies:
+  - build
+  artifacts:
+    paths:
+    - wip.sha512
+  allow_failure: true
+
+md5_checksums:
+  stage: deploy
+  script:
+  - touch palisade.md5
+  - cat abe.md5 >> palisade.md5
+  - cat circuit.md5 >> palisade.md5
+  - cat core.md5 >> palisade.md5
+  - cat pke.md5 >> palisade.md5
+  - cat signature.md5 >> palisade.md5
+  - cat trapdoor.md5 >> palisade.md5
+  - cat wip.md5 >> palisade.md5
+  dependencies:
+  - md5_abe
+  - md5_circuit
+  - md5_core
+  - md5_pke
+  - md5_signature
+  - md5_trapdoor
+  - md5_wip
+  allow_failure: true
+
+sha1_checksums:
+  stage: deploy
+  script:
+  - touch palisade.sha1
+  - cat abe.sha1 >> palisade.sha1
+  - cat circuit.sha1 >> palisade.sha1
+  - cat core.sha1 >> palisade.sha1
+  - cat pke.sha1 >> palisade.sha1
+  - cat signature.sha1 >> palisade.sha1
+  - cat trapdoor.sha1 >> palisade.sha1
+  - cat wip.sha1 >> palisade.sha1
+  dependencies:
+  - sha1_abe
+  - sha1_circuit
+  - sha1_core
+  - sha1_pke
+  - sha1_signature
+  - sha1_trapdoor
+  - sha1_wip
+  allow_failure: true
+
+sha256_checksums:
+  stage: deploy
+  script:
+  - touch palisade.sha256
+  - cat abe.sha256 >> palisade.sha256
+  - cat circuit.sha256 >> palisade.sha256
+  - cat core.sha256 >> palisade.sha256
+  - cat pke.sha256 >> palisade.sha256
+  - cat signature.sha256 >> palisade.sha256
+  - cat trapdoor.sha256 >> palisade.sha256
+  - cat wip.sha256 >> palisade.sha256
+  dependencies:
+  - sha256_abe
+  - sha256_circuit
+  - sha256_core
+  - sha256_pke
+  - sha256_signature
+  - sha256_trapdoor
+  - sha256_wip
+  allow_failure: true
+
+sha512_checksums:
+  stage: deploy
+  script:
+  - touch palisade.sha512
+  - cat abe.sha512 >> palisade.sha512
+  - cat circuit.sha512 >> palisade.sha512
+  - cat core.sha512 >> palisade.sha512
+  - cat pke.sha512 >> palisade.sha512
+  - cat signature.sha512 >> palisade.sha512
+  - cat trapdoor.sha512 >> palisade.sha512
+  - cat wip.sha512 >> palisade.sha512
+  dependencies:
+  - sha512_abe
+  - sha512_circuit
+  - sha512_core
+  - sha512_pke
+  - sha512_signature
+  - sha512_trapdoor
+  - sha512_wip
+  allow_failure: true

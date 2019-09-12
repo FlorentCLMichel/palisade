@@ -1,8 +1,8 @@
 /*
  * @file field2n.cpp - implementation of the power-of-2 fields.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -327,3 +327,5 @@ void Field2n::SwitchFormat()
 	}
 }
 }
+
+CEREAL_CLASS_VERSION( lbcrypto::Field2n, lbcrypto::Field2n::SerializedVersion() );

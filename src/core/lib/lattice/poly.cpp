@@ -1,8 +1,8 @@
 /*
  * @file  poly.cpp - implementation of the integer lattice
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -119,7 +119,7 @@ PolyImpl<VecType>::PolyImpl( DiscreteUniformGeneratorImpl<VecType> &dug, const s
 template<typename VecType>
 PolyImpl<VecType>::PolyImpl(const BinaryUniformGeneratorImpl<VecType> &bug, const shared_ptr<PolyImpl::Params> params, Format format)
 {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	m_params = params;
 
 	usint vectorSize = params->GetRingDimension();
@@ -151,7 +151,7 @@ PolyImpl<VecType>::PolyImpl(const TernaryUniformGeneratorImpl<VecType> &tug, con
 template<typename VecType>
 PolyImpl<VecType>::PolyImpl(const PolyImpl &element, shared_ptr<PolyImpl::Params>) : m_format(element.m_format), m_params(element.m_params)
 {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	if (!IsEmpty()){
 		DEBUG("in ctor & m_values was "<<*m_values);
 	} else {
@@ -195,7 +195,7 @@ template<typename VecType>
 PolyImpl<VecType>::PolyImpl(PolyImpl &&element, shared_ptr<PolyImpl::Params>) : m_format(element.m_format), m_params(element.m_params)
 //m_values(element.m_values) //note this becomes move below
 {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	if (!IsEmpty()){
 		DEBUG("in ctor && m_values was "<<*m_values);
 	}else{
@@ -618,7 +618,7 @@ PolyImpl<VecType> PolyImpl<VecType>::Times(const PolyImpl &element) const
 template<typename VecType>
 const PolyImpl<VecType>& PolyImpl<VecType>::operator+=(const PolyImpl &element)
 {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	if (!(*this->m_params == *element.m_params)){
 		DEBUGEXP(*this->m_params);
 		DEBUGEXP(*element.m_params);
@@ -721,11 +721,14 @@ PolyImpl<VecType> PolyImpl<VecType>::AutomorphismTransform(const usint &k) const
 			if (k % 2 == 0)
 				throw std::runtime_error("automorphism index should be odd\n");
 
+			usint logm = std::round(log2(m));
+
 			for (usint j = 1; j < m; j = j + 2) {
 
 				//determines which power of primitive root unity we should switch to
-				usint idx = (j*k) % m;
-				result.m_values->operator[]((j + 1) / 2 - 1)= GetValues().operator[]((idx + 1) / 2 - 1);
+				// computes (j*k) % m more efficiently
+				usint idx = (j*k) - (((j*k)>>logm)<<logm);
+				result.m_values->operator[](j >> 1)= GetValues().operator[](idx >> 1);
 
 			}
 
@@ -814,7 +817,7 @@ template<typename VecType>
 void PolyImpl<VecType>::SwitchFormat()
 {
 
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	if (m_values == nullptr) {
 		std::string errMsg = "Poly switch format to empty values";
 		throw std::runtime_error(errMsg);
@@ -849,7 +852,7 @@ template<typename VecType>
 void PolyImpl<VecType>::ArbitrarySwitchFormat()
 {
 
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	if (m_values == nullptr) {
 		std::string errMsg = "Poly switch format to empty values";
 		throw std::runtime_error(errMsg);
@@ -984,7 +987,7 @@ double PolyImpl<VecType>::Norm() const
 template<typename VecType>
 std::vector<PolyImpl<VecType>> PolyImpl<VecType>::BaseDecompose(usint baseBits, bool evalModeAnswer) const
 {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 
 	DEBUG("PolyImpl::BaseDecompose" );
 	usint nBits = m_params->GetModulus().GetLengthForBase(2);
@@ -1025,10 +1028,12 @@ std::vector<PolyImpl<VecType>> PolyImpl<VecType>::BaseDecompose(usint baseBits, 
 		DEBUG("<xDigit.SwitchFormat." << i << ">" << std::endl << xDigit << "</xDigit.SwitchFormat." << i << ">" );
 	}
 
+#if!defined(NDEBUG)
 	DEBUG("<result>" );
 	for( auto i : result){
 		DEBUG(i );
 	}
+#endif
 	DEBUG("</result>" );
 
 	return std::move(result);
@@ -1077,77 +1082,6 @@ PolyImpl<VecType>::DecryptionCRTInterpolate(PlaintextModulus ptm) const {
 	}
 
 	return std::move( interp );
-}
-
-// JSON FACILITY - Serialize Operation
-template<typename VecType>
-bool PolyImpl<VecType>::Serialize(Serialized* serObj) const {
-	bool dbg_flag = false;
-	DEBUG("in PolyImpl<> Serialize");
-	if( !serObj->IsObject() ){
-	  serObj->SetObject();
-	}
-	Serialized obj(rapidjson::kObjectType, &serObj->GetAllocator());
-	if (!this->GetValues().Serialize(&obj)){
-	        PALISADE_THROW(lbcrypto::serialize_error, "PolyImpl::Serialize Get values failed");
-	}
-
-	if (!m_params->Serialize(&obj)){
-	        PALISADE_THROW(lbcrypto::serialize_error, "PolyImpl::Serialize m_[arams failed");
-	}
-	obj.AddMember("Format", std::to_string(this->GetFormat()), obj.GetAllocator());
-
-	serObj->AddMember("PolyImpl", obj.Move(), serObj->GetAllocator());
-
-	return true;
-}
-
-// JSON FACILITY - Deserialize Operation
-template<typename VecType>
-bool PolyImpl<VecType>::Deserialize(const Serialized& serObj) {
-	bool dbg_flag= false;
-	DEBUG("in PolyImpl<> Deserialize");
-
-	Serialized::ConstMemberIterator iMap = serObj.FindMember("PolyImpl");
-	if (iMap == serObj.MemberEnd()) {
-		PALISADE_THROW(lbcrypto::deserialize_error, "PolyImpl::Deserialize could not find PolyImpl");
-	}
-
-	SerialItem::ConstMemberIterator pIt = iMap->value.FindMember("ILParams");
-	if (pIt == iMap->value.MemberEnd()) {
-		PALISADE_THROW(lbcrypto::deserialize_error, "PolyImpl::Deserialize could not find ILParams");
-	}
-
-	Serialized parm(rapidjson::kObjectType);
-	parm.AddMember(SerialItem(pIt->name, parm.GetAllocator()), SerialItem(pIt->value, parm.GetAllocator()), parm.GetAllocator());
-
-	shared_ptr<PolyImpl::Params> json_ilParams(new PolyImpl::Params());
-	if (!json_ilParams->Deserialize(parm)){
-		PALISADE_THROW(lbcrypto::deserialize_error, "PolyImpl::Deserialize could not deserialize Params");
-	}
-	m_params = json_ilParams;
-
-	usint vectorLength = this->m_params->GetRingDimension();
-
-	VecType vectorBBV = VecType(vectorLength, m_params->GetModulus());
-
-	SerialItem::ConstMemberIterator vIt = iMap->value.FindMember("BigVectorImpl");
-	if (vIt == iMap->value.MemberEnd()) {
-		PALISADE_THROW(lbcrypto::deserialize_error, "PolyImpl::Deserialize could not find BigVectorImpl");
-	}
-
-	Serialized s(rapidjson::kObjectType);
-	s.AddMember(SerialItem(vIt->name, s.GetAllocator()), SerialItem(vIt->value, s.GetAllocator()), s.GetAllocator());
-	if (!vectorBBV.Deserialize(s)) {
-		PALISADE_THROW(lbcrypto::deserialize_error, "PolyImpl::Deserialize could not deserialize s");
-	}
-
-	if ((vIt = iMap->value.FindMember("Format")) == iMap->value.MemberEnd()) {
-		PALISADE_THROW(lbcrypto::deserialize_error, "PolyImpl::Deserialize could not find format");
-	}
-	this->SetValues(vectorBBV, Format(atoi(vIt->value.GetString())));
-
-	return true;
 }
 
 } // namespace lbcrypto ends

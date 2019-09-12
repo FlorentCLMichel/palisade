@@ -1,8 +1,8 @@
 /**
  * @file utilities.h This file contains the utility function functionality.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -121,9 +121,8 @@ inline uint32_t AdditionWithCarryOut(uint64_t a, uint64_t b, uint64_t &c)
  * @param b: operand 2
  * @return result: 128-bit result = a * b
  */
-inline DoubleNativeInteger Mul128(uint64_t a, uint64_t b) {
-	DoubleNativeInteger result = (DoubleNativeInteger)a * (DoubleNativeInteger)b;
-    return result;
+inline DoubleNativeInt Mul128(uint64_t a, uint64_t b) {
+	return DoubleNativeInt(a) * DoubleNativeInt(b);
 }
 
 /**
@@ -133,11 +132,11 @@ inline DoubleNativeInteger Mul128(uint64_t a, uint64_t b) {
  * @param mu: 2^128/modulus (128-bit)
  * @return result: 64-bit result = a mod m
  */
-inline uint64_t BarrettUint128ModUint64(DoubleNativeInteger a, uint64_t modulus, DoubleNativeInteger mu)
+inline uint64_t BarrettUint128ModUint64(const DoubleNativeInt& a, uint64_t modulus, const DoubleNativeInt& mu)
 {
 	// (a * mu)/2^128 // we need the upper 128-bit of (256-bit product)
 	uint64_t result = 0, a_lo = 0, a_hi = 0, mu_lo = 0, mu_hi = 0, left_hi = 0, middle_lo = 0, middle_hi = 0, tmp1 = 0, tmp2 = 0, carry = 0;
-	DoubleNativeInteger middle = 0;
+	DoubleNativeInt middle = 0;
 
 	a_lo = (uint64_t)a;
 	a_hi = a >> 64;
@@ -178,9 +177,9 @@ inline uint64_t BarrettUint128ModUint64(DoubleNativeInteger a, uint64_t modulus,
  * @param a: 128-bit integer to convert
  * @return std:string of a
  */
-inline std::string Uint128ToString(DoubleNativeInteger &a) noexcept
+inline std::string Uint128ToString(const DoubleNativeInt &a) noexcept
 {
-	DoubleNativeInteger tmp = a;
+	DoubleNativeInt tmp = a;
 	char buffer[128];
 	memset(buffer, 0, sizeof(buffer));
 

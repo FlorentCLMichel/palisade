@@ -1,8 +1,8 @@
 /*
  * @file 
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -97,7 +97,7 @@ TEST(UTTransform, CRT_polynomial_mult) {
 template<typename V>
 void CRT_polynomial_mult_small(const string& msg) {
 
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 
 	usint m = 22;
 	typename V::Integer squareRootOfRoot(3750);
@@ -189,7 +189,7 @@ TEST(UTTransform, CRT_polynomial_mult_big_ring) {
 
 template<typename V>
 void CRT_polynomial_mult_big_ring_prime_cyclotomics(const string& msg) {
-        bool dbg_flag = false;
+        DEBUG_FLAG(false);
 
 	usint m = 1733;
 
@@ -339,7 +339,7 @@ TEST(UTTransform, CRT_CHECK_small_ring_precomputed) {
 
 template<typename V>
 void CRT_CHECK_very_big_ring_precomputed(const string& msg) {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	usint m = 8422;
 	DEBUG("1");
 	typename V::Integer modulus("619578785044668429129510602549015713");//find a modulus that has 2*8422 root of unity and is 120 bit long

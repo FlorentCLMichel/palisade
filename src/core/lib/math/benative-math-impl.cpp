@@ -1,9 +1,9 @@
 /**
  * @file be6-math-impl.cpp This file contains template instantiations for all math classes & functions using math be6
  *
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -74,12 +74,13 @@ template class Matrix<NativeInteger>;
 ONES_FOR_TYPE(NativeInteger)
 IDENTITY_FOR_TYPE(NativeInteger)
 GADGET_FOR_TYPE(NativeInteger)
-MATRIX_NOT_SERIALIZABLE(NativeInteger)
 
 template class Matrix<NativeVector>;
 ONES_FOR_TYPE(NativeVector)
 IDENTITY_FOR_TYPE(NativeVector)
 GADGET_FOR_TYPE(NativeVector)
-MATRIX_NOT_SERIALIZABLE(NativeVector)
 
 }
+
+CEREAL_CLASS_VERSION( NativeInteger, NativeInteger::SerializedVersion() );
+CEREAL_CLASS_VERSION( NativeVector, NativeVector::SerializedVersion() );

@@ -1,7 +1,7 @@
 /*
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -33,7 +33,7 @@ void SplitBytes(int64_t* numbers,  unsigned char* bytes,const unsigned int numbe
 
 int main() {
 	double totaltime=0;
-	bool dbg_flag = true;
+	DEBUG_FLAG(true);
 	unsigned char iv[4]={1,2,3,4};
 	unsigned char key[32]={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32};
 	AESUtil util(iv,key,32);

@@ -1,3 +1,11 @@
+9/12/2019: PALISADE v1.6.0 is released
+
+* Significantly simplifies/automates the PALISADE build/installation process. Now we use CMake.
+* Serialization/deserialization is now much faster (by 3x to 10x). Both binary and JSON formats are supported.
+* By default, PALISADE compiles w/o external dependencies in Linux and Windows, i.e., NTL/GMP is now optional for these OSes.
+* The performance in Windows is now as fast as in Linux (4x to 7x times faster than previously).
+* Applies several low-level optimizations, and fixes some bugs.
+
 3/20/2019: PALISADE v1.5.0 is released
 
 * Fixes the vulnerability found in https://eprint.iacr.org/2017/785 (PKC'19) for the PRE schemes based on BGV/BFV 

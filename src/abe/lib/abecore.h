@@ -1,8 +1,8 @@
 /*
 * @file abecore.h - Virtual classes for core functionality of ABE related schemes.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -29,8 +29,9 @@
 
 #include <cmath>
 #include <vector>
-#include "palisade.h"
-#include "cryptocontexthelper.h"
+//#include "palisade.h"
+//#include "cryptocontexthelper.h"
+#include "encoding/plaintextfactory.h"
 #include "utils/inttypes.h"
 #include "math/distrgen.h"
 #include "math/backend.h"

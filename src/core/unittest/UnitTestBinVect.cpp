@@ -1,8 +1,8 @@
 /*
  * @file 
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -67,7 +67,7 @@ using namespace lbcrypto;
 */
 template<typename V>
 void AtAndSetModulusTest(const string& msg) {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	usint len = 10;
 	V m(len);
 
@@ -157,62 +157,6 @@ TEST(UTBinVect,AtAndSetModulusTest) {
 	RUN_BIG_BACKENDS(AtAndSetModulusTest, "AtAndSetModulusTest")
 }
 
-#ifdef OUT // i think this is redundant?
-template<typename V>
-void NTL_modulus_framework(const string& msg) {
-	
-  bool dbg_flag = false;
-	
-  //code to test that the modulus framwork is ok
-  
-  NTL::myZZ q1("1234567"); // a bigger number
-  NTL::myZZ q2("345"); // a smaller bigger number
-
-  NTL::myVecP<NTL::myZZ>  m(5); 
-  m = {"9868", "5879", "4554", "2343", "4624",}; 
-  vector<usint> m_expected_1 = {9868, 5879, 4554, 2343, 4624,}; 
-
-  m.SetModulus(q1);
-
-  //test the modulus of the entire vector.
-  NTL::myZZ qtest1 = m.GetModulus();
-  DEBUG("m "<<m);
-  DEBUG("q1 "<<q1);
-  DEBUG("qtest1 "<<qtest1);
-  EXPECT_EQ(q1, qtest1)<<"Failure NTL vector.GetModulus() 1";
-
-  for (size_t i = 0; i < m.GetLength(); i++){
-    EXPECT_EQ(m_expected_1[i],m[i].ConvertToInt()) << "Failure in NTL ["<<i<<"]";
-  }
-  NTL::myZZ elem = m[0]; 
-
-  EXPECT_EQ(9868U,elem.ConvertToInt()) << "Failure in NTL elem 1";
-
-  //now switch the modulus.
-  m.SetModulus(q2);
-  //but the vector values do not get updated!
-
-  //test the modulus of the entire vector.
-  NTL::myZZ qtest2 = m.GetModulus();
-  DEBUG("m "<<m);
-  DEBUG("q2 "<<q2);
-  DEBUG("qtest2 "<<qtest2);
-  vector<usint> m_modulus_2 = {208, 14, 69, 273, 139,}; 
-  EXPECT_EQ(q2, qtest2)<<"Failure NTL vector.GetModulus() 2";
-
-  for (size_t i = 0; i < m.GetLength(); i++){
-    EXPECT_NE(m_modulus_2[i],m[i].ConvertToInt()) << "Failure in NTL ["<<i<<"]";
-  }
-}
-
-TEST(UTBinVect,AtAndSetModulusTest) {
-	{ using V = M2Vector; AtAndSetModulusTest<V>("BE2 AtAndSetModulusTest"); }
-	{ using V = M4Vector; AtAndSetModulusTest<V>("BE4 AtAndSetModulusTest"); }
-	{ using V = M6Vector; AtAndSetModulusTest<V>("BE6 AtAndSetModulusTest"); }
-	{ using V = NativeVector; AtAndSetModulusTest<V>("Native AtAndSetModulusTest"); }
-}
-#endif
-
 template<typename V>
 void CTOR_Test(const string& msg) {
 
@@ -288,7 +232,7 @@ TEST(UTBinVect,ModAddBigModulus) {
 
 template<typename V>
 void ModAddSmallerModulus(const string& msg) {
-  bool dbg_flag = false;
+  DEBUG_FLAG(false);
 
 	typename V::Integer q("3534");	// constructor calling to set mod value
 	V m(5,q);		// calling constructor to create a vector of length 5 and passing value of q
@@ -424,7 +368,7 @@ TEST(UTBinVect,ModMulTest) {
 */
 template<typename V>
 void ModExpTest(const string& msg) {
-  bool dbg_flag = false;
+  DEBUG_FLAG(false);
 	typename V::Integer q("3534");			// constructor calling to set mod value
 	V m(5,q);				// calling constructor to create a vector of length 5 and passing value of q
 	typename V::Integer n("3");
@@ -529,7 +473,7 @@ TEST(UTBinVect,modadd_vector_result_smaller_modulus) {
 
 template<typename V>
 void modadd_vector_result_greater_modulus(const string& msg) {
-    bool dbg_flag = false;
+    DEBUG_FLAG(false);
 	typename V::Integer q("657");		// constructor calling to set mod value
 	V m(5,q);			// calling constructor to create a vector of length 5 and passing value of q
 	V n(5,q);
@@ -566,7 +510,7 @@ TEST(UTBinVect,modadd_vector_result_greater_modulus) {
 */
 template<typename V>
 void method_plus_equals_vector_operation(const string& msg) {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	typename V::Integer q("657");
 	V m(5,q); // calling constructor to create a vector of length 5 and passing value of q
 	V n(5,q);

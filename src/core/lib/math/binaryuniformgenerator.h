@@ -1,9 +1,9 @@
 /**
  * @file binaryuniformgenerator.cpp This code provides generation of a uniform distribution of binary values (modulus 2).
  * Discrete uniform generator relies on the built-in C++ generator for 32-bit unsigned integers defined in <random>.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:

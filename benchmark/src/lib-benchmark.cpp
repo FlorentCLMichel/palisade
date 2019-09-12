@@ -1,8 +1,8 @@
 /*
  * @file lib-benchmark : library benchmark routines for comparison by build
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -30,7 +30,7 @@
 
 #define PROFILE
 #define _USE_MATH_DEFINES
-#include "benchmark/benchmark_api.h"
+#include "benchmark/benchmark.h"
 
 #include <iostream>
 #include <fstream>
@@ -197,4 +197,4 @@ void NTTTransform(benchmark::State& state) {
 
 BENCHMARK(NTTTransform)->Unit(benchmark::kMicrosecond);
 
-BENCHMARK_MAIN()
+BENCHMARK_MAIN();

@@ -1,10 +1,10 @@
 /**
  * @file ciphertextgen.h -- Generator for crypto contexts.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
  * @section LICENSE
  *
- * Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT))
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -51,18 +51,6 @@ GenCryptoContextNull(usint ORDER, PlaintextModulus ptm, usint bits=DefaultQbits,
 	return cc;
 }
 
-template<typename Element>
-inline CryptoContext<Element>
-GenCryptoContextLTV(usint ORDER, PlaintextModulus ptm, usint bits=55, usint towers=DefaultT) {
-	shared_ptr<typename Element::Params> p = ElemParamFactory::GenElemParams<typename Element::Params>(ORDER, bits, towers);
-
-	CryptoContext<Element> cc = CryptoContextFactory<Element>::genCryptoContextLTV(p, ptm, 1, 4);
-	cc->Enable(ENCRYPTION);
-	cc->Enable(PRE);
-	cc->Enable(SHE);
-
-	return cc;
-}
 
 template<typename Element>
 inline CryptoContext<Element>
@@ -194,8 +182,6 @@ GenTestCryptoContext(const string& name, usint ORDER, PlaintextModulus ptm, usin
 	if( name == "Null" ) {
 		cc = CryptoContextFactory<Element>::genCryptoContextNull(ORDER, ptm);
 	}
-	else if( name == "LTV" )
-		cc = CryptoContextFactory<Element>::genCryptoContextLTV(p, ptm, 1, 4);
 	else if( name == "StSt" )
 		cc = CryptoContextFactory<Element>::genCryptoContextStehleSteinfeld(p, ptm, 1, 4, 41411.5);
 	else if( name == "BGV_rlwe" )

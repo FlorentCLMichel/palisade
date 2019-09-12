@@ -1,9 +1,9 @@
 /**
  * @file mgmpintvec.h This file contains mgmpintvec, a <vector> of gmpint, with associated
  * math operators
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -34,6 +34,8 @@
 
 #ifndef LBCRYPTO_MATH_GMPINT_MGMPINTVEC_H
 #define LBCRYPTO_MATH_GMPINT_MGMPINTVEC_H
+
+#ifdef WITH_NTL
 
 #include <iostream>
 #include <vector>
@@ -196,7 +198,7 @@ public:
 	inline void push_back(const myT& a) { this->append(a);};
 
 	static inline myVecP Single(const myT& val, const myT &modulus) {
-		bool dbg_flag = false;
+		DEBUG_FLAG(false);
 		DEBUG("single in");
 		myVecP vec(1);
 		DEBUG("a");
@@ -356,7 +358,7 @@ public:
 
 	//sets modulus and the NTL init function uint64_t argument
 	inline void SetModulus(const uint64_t& value){
-		bool dbg_flag = false;
+		DEBUG_FLAG(false);
 		DEBUG("SetModulus(const uint64_t& "<<value<<")");
 		if (value == 0) {
 			PALISADE_THROW(lbcrypto::palisade_error, "SetModulus(uint64_t) cannot be zero");
@@ -370,7 +372,7 @@ public:
 
 	//sets modulus and the NTL init function myT argument
 	void SetModulus(const myT& value){
-		bool dbg_flag = false;
+		DEBUG_FLAG(false);
 		DEBUG("SetModulus(const myT& "<<value<<")");
 		if (value == myT(0)) {
 			PALISADE_THROW( lbcrypto::palisade_error, "SetModulus(myT) cannot be zero");
@@ -382,7 +384,7 @@ public:
 
 	//sets modulus and the NTL init function string argument
 	inline void SetModulus(const std::string& value){
-		bool dbg_flag = false;
+		DEBUG_FLAG(false);
 		DEBUG("SetModulus(const string& "<<value<<")");
 		this->m_modulus = myT(value);
 		if (this->m_modulus == myT(0)) {
@@ -395,7 +397,7 @@ public:
 	};
 	//sets modulus and the NTL init function uses same modulus
 	inline void SetModulus(const myVecP& value){
-		bool dbg_flag = false;
+		DEBUG_FLAG(false);
 		DEBUG("SetModulus(const myVecP& "<<value<<")");
 		this->m_modulus = value.GetModulus();
 		if (this->m_modulus == myT(0)) {
@@ -416,7 +418,7 @@ public:
 	}
 
 	inline int CopyModulus(const myVecP& rhs){
-		bool dbg_flag = false;
+		DEBUG_FLAG(false);
 		DEBUG("CopyModulus(const myVecP& modulus is "<<rhs.m_modulus);
 		DEBUG("CopyModulus(const myVecP& modulus_state is "<<rhs.m_modulus_state);
 		this->m_modulus = rhs.m_modulus;
@@ -438,26 +440,93 @@ public:
 		this->SetLength(n); //SetLength() is an NTL call
 	}
 
-	//JSON FACILITY
-	/**
-	 * Serialize the object into a Serialized
-	 *
-	 * @param serObj is used to store the serialized result. It MUST
-	 * be a rapidjson Object (SetObject());
-	 *
-	 * @param fileFlag is an object-specific parameter for the
-	 * serialization
-	 *
-	 * @return true if successfully serialized
-	 */
-	bool Serialize(lbcrypto::Serialized* serObj) const;
+	template <class Archive>
+	typename std::enable_if<!cereal::traits::is_text_archive<Archive>::value,void>::type
+	save( Archive & ar, std::uint32_t const version ) const
+	{
+		// YSP. This was seg-faulting in MINGW
+		//ar( m_modulus.ToString() );
+		//ar( m_modulus_state );
+		//ar( this->GetLength() );
+		//for(size_t i=0; i<this->GetLength(); i++ )
+		//	ar( (*this)[i] );
+		ar( ::cereal::make_nvp("m", m_modulus.ToString()) );
+		ar( ::cereal::make_nvp("ms", m_modulus_state) );
+		ar( ::cereal::make_nvp("l", this->GetLength()) );
+		for(size_t i=0; i<this->GetLength(); i++ ) {
+			ar( ::cereal::make_nvp("v", (*this)[i].ToString()) );
+		}
 
-	/**
-	 * Populate the object from the deserialization of the Setialized
-	 * @param serObj contains the serialized object
-	 * @return true on success
-	 */
-	bool Deserialize(const lbcrypto::Serialized& serObj);
+	}
+
+	template <class Archive>
+	typename std::enable_if<cereal::traits::is_text_archive<Archive>::value,void>::type
+	save( Archive & ar, std::uint32_t const version ) const
+	{
+		ar( ::cereal::make_nvp("m", m_modulus.ToString()) );
+		ar( ::cereal::make_nvp("ms", m_modulus_state) );
+		ar( ::cereal::make_nvp("l", this->GetLength()) );
+		for(size_t i=0; i<this->GetLength(); i++ ) {
+			ar( ::cereal::make_nvp("v", (*this)[i].ToString()) );
+		}
+	}
+
+	template <class Archive>
+	typename std::enable_if<!cereal::traits::is_text_archive<Archive>::value,void>::type
+	load( Archive & ar, std::uint32_t const version )
+	{
+		if( version > SerializedVersion() ) {
+			PALISADE_THROW(lbcrypto::deserialize_error, "serialized object version " + std::to_string(version) + " is from a later version of the library");
+		}
+		// YSP. This was seg-faulting in MINGW
+		//std::string m;
+		//ar( m );
+		//m_modulus = m;
+		//ar( m_modulus_state );
+		//cereal::size_type len;
+		//ar( len );
+		//this->SetLength(len);
+		//for(size_t i=0; i<len; i++ )
+		//	ar( (*this)[i] );
+
+		std::string m;
+		ar( ::cereal::make_nvp("m", m) );
+		m_modulus = m;
+		ar( ::cereal::make_nvp("ms", m_modulus_state) );
+		cereal::size_type len;
+		ar( ::cereal::make_nvp("l", len) );
+		this->resize(len);
+		for(size_t i=0; i<len; i++ ) {
+			std::string s;
+			ar( ::cereal::make_nvp("v", s) );
+			(*this)[i] = s;
+		}
+
+	}
+
+	template <class Archive>
+	typename std::enable_if<cereal::traits::is_text_archive<Archive>::value,void>::type
+	load( Archive & ar, std::uint32_t const version )
+	{
+		if( version > SerializedVersion() ) {
+			PALISADE_THROW(lbcrypto::deserialize_error, "serialized object version " + std::to_string(version) + " is from a later version of the library");
+		}
+		std::string m;
+		ar( ::cereal::make_nvp("m", m) );
+		m_modulus = m;
+		ar( ::cereal::make_nvp("ms", m_modulus_state) );
+		cereal::size_type len;
+		ar( ::cereal::make_nvp("l", len) );
+		this->resize(len);
+		for(size_t i=0; i<len; i++ ) {
+			std::string s;
+			ar( ::cereal::make_nvp("v", s) );
+			(*this)[i] = s;
+		}
+	}
+
+	std::string SerializedObjectName() const { return "NTLVector"; }
+	static uint32_t	SerializedVersion() { return 1; }
 
 private:
 	//utility function to warn if modulus is no good
@@ -481,7 +550,7 @@ private:
 
 	//used to make sure all entries in this are <=current modulus
 	void Renormalize(void) {
-		bool dbg_flag = false;
+		DEBUG_FLAG(false);
 		DEBUG("mgmpintvec Renormalize modulus"<<m_modulus);
 		DEBUG("mgmpintvec size"<< this->GetLength());
 		//loop over each entry and fail if !=
@@ -508,9 +577,8 @@ protected:
 
 }; //template class ends
 
-
-
 } // namespace NTL ends
 
-#endif // LBCRYPTO_MATH_GMPINT_MGMPINTVEC_H
+#endif
 
+#endif // LBCRYPTO_MATH_GMPINT_MGMPINTVEC_H

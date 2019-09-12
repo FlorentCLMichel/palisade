@@ -1,8 +1,8 @@
 /*
  * @file 
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -72,10 +72,7 @@ GeneratePREContext(string scheme, PlaintextModulus ptm) {
 	CryptoContext<Poly>	cc;
 	unsigned int m = 2048;
 
-	if( scheme == "LTV" ) {
-		cc = GenTestCryptoContext<Poly>(scheme, m, ptm);
-	}
-	else if( scheme == "StSt" ) {
+	if ( scheme == "StSt" ) {
 		cc = GenTestCryptoContext<Poly>("StSt", m, ptm, 80);
 	}
 	else if( scheme == "Null" ) {
@@ -86,7 +83,7 @@ GeneratePREContext(string scheme, PlaintextModulus ptm) {
 	}
 	else {
 		cout << "Unrecognized scheme '" << scheme << "'" << endl;
-		cout << "Available schemes are: LTV, StSt, Null, and BFV" << endl;
+		cout << "Available schemes are: StSt, Null, and BFV" << endl;
 	}
 
 	return cc;

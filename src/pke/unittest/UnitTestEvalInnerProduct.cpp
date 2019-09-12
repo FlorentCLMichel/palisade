@@ -1,28 +1,26 @@
 /*
-PRE SCHEME PROJECT, Crypto Lab, NJIT
-Version:
-v00.01
-Last Edited:
-12/22/2015 2:37PM
-List of Authors:
-TPOC:
-Dr. Kurt Rohloff, rohloff@njit.edu
-Programmers:
-Dr. Yuriy Polyakov, polyakov@njit.edu
-Gyana Sahu, grs22@njit.edu
-Nishanth Pasham, np386@njit.edu
-Description:
-This code tests the transform feature of the PALISADE lattice encryption library.
-
-License Information:
-
-Copyright (c) 2015, New Jersey Institute of Technology (NJIT)
-All rights reserved.
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ * @author  TPOC: contact@palisade-crypto.org
+ *
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
+ * All rights reserved.
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or other
+ * materials provided with the distribution.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+ * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * */
 
 #include "include/gtest/gtest.h"
 #include <iostream>
@@ -51,43 +49,8 @@ protected:
 public:
 };
 
-int64_t ArbLTVInnerProductPackedArray(std::vector<int64_t> &input1,std::vector<int64_t> &input2);
 int64_t ArbBGVInnerProductPackedArray(std::vector<int64_t> &input1, std::vector<int64_t> &input2);
 int64_t ArbBFVInnerProductPackedArray(std::vector<int64_t> &input1, std::vector<int64_t> &input2);
-
-TEST_F(UTEvalIP, Test_LTV_EvalInnerProduct) {
-
-	usint size = 10;
-	std::vector<int64_t> input1(size, 0);
-	std::vector<int64_t> input2(size, 0);
-	usint limit = 15;
-	usint plainttextMod = 89;
-
-	random_device rnd_device;
-	mt19937 mersenne_engine(rnd_device());
-	uniform_int_distribution<usint> dist(0, limit);
-
-	auto gen = std::bind(dist, mersenne_engine);
-	generate(input1.begin(), input1.end() - 2, gen);
-	generate(input2.begin(), input2.end() - 2, gen);
-
-	int64_t expectedResult = std::inner_product(input1.begin(), input1.end(), input2.begin(), 0);
-	expectedResult %= plainttextMod;
-
-	int64_t half = int64_t(plainttextMod)/2;
-
-	if( expectedResult > half )
-		expectedResult-= plainttextMod;
-
-	try {
-		int64_t result = ArbLTVInnerProductPackedArray(input1, input2);
-
-		EXPECT_EQ(result, expectedResult);
-	} catch( const std::logic_error& e ) {
-		FAIL() << e.what();
-	}
-	
-}
 
 TEST_F(UTEvalIP, Test_BGV_EvalInnerProduct) {
 	usint size = 10;
@@ -154,67 +117,6 @@ TEST_F(UTEvalIP, Test_BFV_EvalInnerProduct) {
 		FAIL() << e.what();
 	}
 }
-
-
-
-int64_t ArbLTVInnerProductPackedArray(std::vector<int64_t> &input1, std::vector<int64_t> &input2) {
-
-	usint m = 22;
-	PlaintextModulus p = 89;
-	BigInteger modulusP(p);
-	
-	BigInteger modulusQ("1267650600228229401496703214121");
-	BigInteger squareRootOfRoot("498618454049802547396506932253");
-
-	BigInteger bigmodulus("1645504557321206042154969182557350504982735865633579863348616321");
-	BigInteger bigroot("201473555181182026164891698186176997440470643522932663932844212");
-
-	auto cycloPoly = GetCyclotomicPolynomial<BigVector>(m, modulusQ);
-	ChineseRemainderTransformArb<BigVector>::SetCylotomicPolynomial(cycloPoly, modulusQ);
-
-	float stdDev = 4;
-
-	usint batchSize = 8;
-
-	shared_ptr<ILParams> params(new ILParams(m, modulusQ, squareRootOfRoot, bigmodulus, bigroot));
-
-	EncodingParams encodingParams(new EncodingParamsImpl(p, batchSize, PackedEncoding::GetAutomorphismGenerator(m)));
-
-	PackedEncoding::SetParams(m, encodingParams);
-
-	CryptoContext<Poly> cc = CryptoContextFactory<Poly>::genCryptoContextLTV(params, encodingParams, 16, stdDev);
-
-	cc->Enable(ENCRYPTION);
-	cc->Enable(SHE);
-
-	// Initialize the public key containers.
-	LPKeyPair<Poly> kp = cc->KeyGen();
-
-	Ciphertext<Poly> ciphertext1;
-	Ciphertext<Poly> ciphertext2;
-
-	std::vector<int64_t> vectorOfInts1 = std::move(input1);
-	std::vector<int64_t> vectorOfInts2 = std::move(input2);
-
-	Plaintext intArray1 = cc->MakePackedPlaintext(vectorOfInts1);
-	Plaintext intArray2 = cc->MakePackedPlaintext(vectorOfInts2);
-
-	cc->EvalSumKeyGen(kp.secretKey, kp.publicKey);
-	cc->EvalMultKeyGen(kp.secretKey);
-
-	ciphertext1 = cc->Encrypt(kp.publicKey, intArray1);
-	ciphertext2 = cc->Encrypt(kp.publicKey, intArray2);
-
-	auto result = cc->EvalInnerProduct(ciphertext1, ciphertext2, batchSize);
-
-	Plaintext intArrayNew;
-
-	cc->Decrypt(kp.secretKey, result, &intArrayNew);
-
-	return intArrayNew->GetPackedValue()[0];
-
-}
-
 
 int64_t ArbBGVInnerProductPackedArray(std::vector<int64_t> &input1, std::vector<int64_t> &input2) {
 

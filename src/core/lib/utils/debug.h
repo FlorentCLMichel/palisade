@@ -1,9 +1,9 @@
 /**
  * @file debug.h This file contains macros and associated helper functions for quick cerr oriented debugging 
 	that can be quickly enabled and disabled. It also contains functions for timing code.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -43,7 +43,8 @@
 
 #if!defined(NDEBUG) 
 
-// note that for the following dbg_flag needs to be defined in some scope
+// note that for the following dbg_flag needs to be defined in some scope using DEBUG_FLAG
+#define DEBUG_FLAG(x) bool dbg_flag = x;
 
 // debugging macro prints value of x on cerr
 #define DEBUG(x) do {					\
@@ -78,7 +79,7 @@
     if (true){ std::cout << #x << ":" << x << " at " << __FILE__ << " line "<< __LINE__ << std::endl;} \
   } while (0)
 
-#else //#if defined(PROFILE) //profiling a noop
+#else //#if!defined(PROFILE) //profiling a noop
 #define PROFILELOG(x)  
 #define PROFILELOGEXP(x)
 #define PROFILELOGWHERE(x)
@@ -99,6 +100,7 @@
 
 //these are turned off functions
 
+#define DEBUG_FLAG(x)
 #define DEBUG(x) 
 #define DEBUGEXP(x) 
 #define DEBUGWHERE(x)
@@ -107,16 +109,16 @@
 #define PROFILELOGEXP(x)
 #define PROFILELOGWHERE(x)
 
-
-#define TIC(t) 0
-#define TOC(t) 0
-#define TOC_NS(t) 0
-#define TOC_US(t) 0
-#define TOC_MS(t) 0
+#define TIC(t) t=timeNow()
+#define TOC(t) std::chrono::steady_clock::duration::zero().count()
+#define TOC_NS(t) std::chrono::steady_clock::duration::zero().count()
+#define TOC_US(t) std::chrono::steady_clock::duration::zero().count()
+#define TOC_MS(t) std::chrono::steady_clock::duration::zero().count()
 
 #else //PROFILE
 //if PROFILE is turned on, then TIC TOC still work and 
 
+#define DEBUG_FLAG(x)
 #define DEBUG(x) 
 #define DEBUGEXP(x) 
 #define DEBUGWHERE(x)
