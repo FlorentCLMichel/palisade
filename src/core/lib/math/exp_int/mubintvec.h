@@ -1,34 +1,26 @@
 /**
  * @file
- * @author  TPOC: Dr. Kurt Rohloff <rohloff@njit.edu>,
- *	Programmers: Dr. Yuriy Polyakov, <polyakov@njit.edu>, Gyana Sahu <grs22@njit.edu>
- * @version 00_03
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @section LICENSE
- * 
- * Copyright (c) 2015, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
-
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met: 1. Redistributions of source code must retain the above
- * copyright notice, this list of conditions and the following
- * disclaimer.  2. Redistributions in binary form must reproduce the
- * above copyright notice, this list of conditions and the following
- * disclaimer in the documentation and/or other materials provided
- * with the distribution.  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
- * HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
- * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
- * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
- * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or other
+ * materials provided with the distribution.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+ * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * @section DESCRIPTION
  *
@@ -482,26 +474,27 @@ public:
   
   // auxiliary functions
 
-  //JSON FACILITY
-  /**
-   * Serialize the object into a Serialized 
-   *
-   * @param serObj is used to store the serialized result. It MUST
-   * be a rapidjson Object (SetObject());
-   *
-   * @param fileFlag is an object-specific parameter for the
-   * serialization 
-   *
-   * @return true if successfully serialized
-   */
-  bool Serialize(lbcrypto::Serialized* serObj) const;
+	template <class Archive>
+	void save( Archive & ar, std::uint32_t const version ) const
+	{
+		ar( ::cereal::make_nvp("d", m_data) );
+		ar( ::cereal::make_nvp("m", m_modulus) );
+		ar( ::cereal::make_nvp("ms", m_modulus_state) );
+	}
 
-  /**
-   * Populate the object from the deserialization of the Setialized
-   * @param serObj contains the serialized object
-   * @return true on success
-   */
-  bool Deserialize(const lbcrypto::Serialized& serObj);
+	template <class Archive>
+	void load( Archive & ar, std::uint32_t const version )
+	{
+		if( version > SerializedVersion() ) {
+			PALISADE_THROW(lbcrypto::deserialize_error, "serialized object version " + std::to_string(version) + " is from a later version of the library");
+		}
+		ar( ::cereal::make_nvp("d", m_data) );
+		ar( ::cereal::make_nvp("m", m_modulus) );
+		ar( ::cereal::make_nvp("ms", m_modulus_state) );
+	}
+
+	std::string SerializedObjectName() const { return "ExpVector"; }
+	static uint32_t	SerializedVersion() { return 1; }
 
 private:
   ubint_el_t m_modulus;

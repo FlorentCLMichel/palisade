@@ -1,8 +1,8 @@
 /**
  * @file palisade.h -- PALISADE.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -58,6 +58,10 @@ template<typename Element>
 using ConstCiphertext = const shared_ptr<const CiphertextImpl<Element>>;
 }
 
+#include "utils/serializable.h"
+#include "utils/inttypes.h"
+#include "utils/exception.h"
+
 #include "math/backend.h"
 #include "lattice/backend.h"
 #include "lattice/stdlatticeparms.h"
@@ -65,16 +69,12 @@ using ConstCiphertext = const shared_ptr<const CiphertextImpl<Element>>;
 #include "math/distrgen.h"
 #include "math/matrix.h"
 
-#include "utils/inttypes.h"
-#include "utils/exception.h"
-
 #include "encoding/encodings.h"
 #include "encoding/plaintextfactory.h"
 
 #include "pubkeylp.h"
 
 #include "rlwe.h"
-#include "ltv.h"
 #include "stst.h"
 #include "bgv.h"
 #include "bfv.h"
@@ -82,11 +82,7 @@ using ConstCiphertext = const shared_ptr<const CiphertextImpl<Element>>;
 #include "bfvrnsB.h"
 #include "nullscheme.h"
 
-#include "utils/serializable.h"
-
 #include "ciphertext.h"
 #include "rationalciphertext.h"
-
-
 
 #endif /* SRC_LIB_PALISADE_H_ */

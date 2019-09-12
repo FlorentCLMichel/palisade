@@ -1,8 +1,8 @@
 /**
  * @file ildcrtparams.h Wraps parameters for integer lattice operations using double-CRT representation.  Inherits from ElemParams.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -79,7 +79,7 @@ public:
 		if( cyclotomic_order == 0 )
 			return;
 
- 	          bool dbg_flag(false);
+ 	          DEBUG_FLAG(false);
 		  DEBUG("in ILDCRTParams(const usint cyclotomic_order, const IntType &modulus, const IntType& rootOfUnity");
 		  DEBUGEXP(cyclotomic_order);
 		  DEBUGEXP(modulus);
@@ -239,15 +239,6 @@ public:
 	~ILDCRTParams() {}
 
 	/**
-	 * @brief Serialize the object into a Serialized
-	 * @param serObj is used to store the serialized result. It MUST be a rapidjson Object (SetObject());
-	 * @return true if successfully serialized
-	 */
-	bool Serialize(Serialized* serObj) const;
-
-	bool Deserialize(const Serialized& serObj);
-
-	/**
 	 * @brief Equality operator checks if the ElemParams are the same.
 	 *
 	 * @param &other ElemParams to compare against.
@@ -270,8 +261,8 @@ public:
 				return false;
 		}
 
-		if (originalModulus != dcrtParams->originalModulus)
-			return false;
+//		if (originalModulus != dcrtParams->originalModulus)
+//			return false;
 		
 		return true;
 	}
@@ -300,7 +291,27 @@ public:
 		}
 	}
 
+	template <class Archive>
+	void save( Archive & ar, std::uint32_t const version ) const
+	{
+	    ar( ::cereal::base_class<ElemParams<IntType>>( this ) );
+		ar( ::cereal::make_nvp("p", m_parms) );
+		ar( ::cereal::make_nvp("m", originalModulus) );
+	}
 
+	template <class Archive>
+	void load( Archive & ar, std::uint32_t const version )
+	{
+		if( version > SerializedVersion() ) {
+			PALISADE_THROW(deserialize_error, "serialized object version " + std::to_string(version) + " is from a later version of the library");
+		}
+	    ar( ::cereal::base_class<ElemParams<IntType>>( this ) );
+		ar( ::cereal::make_nvp("p", m_parms) );
+		ar( ::cereal::make_nvp("m", originalModulus) );
+	}
+
+	std::string SerializedObjectName() const { return "DCRTParams"; }
+	static uint32_t	SerializedVersion() { return 1; }
 
 private:
 	std::ostream& doprint(std::ostream& out) const {
@@ -310,10 +321,10 @@ private:
 		for( size_t i=0; i < m_parms.size(); i++ ) {
 			out << "   " << i << ":" << *m_parms[i] << std::endl;
 		}
+		out << "OriginalModulus " << originalModulus << std::endl;
 		return out;
 	}
 
-private:
 	// array of smaller ILParams
 	std::vector<std::shared_ptr<ILNativeParams>>	m_parms;	
 
@@ -323,8 +334,6 @@ private:
 	//   i.e. \Prod_i=0^k-1 m_params[i]->GetModulus()
 	// note not using ElemParams::ciphertextModulus due to object stripping
 	Integer originalModulus;
-
-
 };
 
 } // namespace lbcrypto ends

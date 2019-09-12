@@ -1,8 +1,8 @@
 ﻿/*
 * @file bfvrnsB.cpp - implementation of the BEHZ variant of BFVrns.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -127,66 +127,38 @@ LPCryptoParametersBFVrnsB<Element>::LPCryptoParametersBFVrnsB(shared_ptr<typenam
 			mode), m_numq(0), m_numB(0) {
 	}
 
-template <class Element>
-bool LPCryptoParametersBFVrnsB<Element>::Serialize(Serialized* serObj) const {
-	if (!serObj->IsObject())
-		return false;
-
-	SerialItem cryptoParamsMap(rapidjson::kObjectType);
-	if (this->SerializeRLWE(serObj, cryptoParamsMap) == false)
-		return false;
-
-	serObj->AddMember("LPCryptoParametersBFVrnsB", cryptoParamsMap.Move(), serObj->GetAllocator());
-	serObj->AddMember("LPCryptoParametersType", "LPCryptoParametersBFVrnsB", serObj->GetAllocator());
-
-	return true;
-}
-
-template <class Element>
-bool LPCryptoParametersBFVrnsB<Element>::Deserialize(const Serialized& serObj) {
-	Serialized::ConstMemberIterator mIter = serObj.FindMember("LPCryptoParametersBFVrnsB");
-	if (mIter == serObj.MemberEnd()) return false;
-
-	if (this->DeserializeRLWE(mIter) == false)
-		return false;
-
-	SerialItem::ConstMemberIterator pIt;
-
-	return PrecomputeCRTTables();
-}
-
-// Enable for LPPublicKeyEncryptionSchemeBFV
+// Enable for LPPublicKeyEncryptionSchemeBFVrnsB
 template <class Element>
 void LPPublicKeyEncryptionSchemeBFVrnsB<Element>::Enable(PKESchemeFeature feature) {
 	switch (feature)
 	{
 	case ENCRYPTION:
 		if (this->m_algorithmEncryption == NULL)
-			this->m_algorithmEncryption = new LPAlgorithmBFVrnsB<Element>();
+			this->m_algorithmEncryption.reset( new LPAlgorithmBFVrnsB<Element>() );
 		break;
 	case SHE:
 		if (this->m_algorithmEncryption == NULL)
-			this->m_algorithmEncryption = new LPAlgorithmBFVrnsB<Element>();
+			this->m_algorithmEncryption.reset( new LPAlgorithmBFVrnsB<Element>() );
 		if (this->m_algorithmSHE == NULL)
-			this->m_algorithmSHE = new LPAlgorithmSHEBFVrnsB<Element>();
+			this->m_algorithmSHE.reset( new LPAlgorithmSHEBFVrnsB<Element>() );
 		break;
 	case PRE:
 		if (this->m_algorithmEncryption == NULL)
-			this->m_algorithmEncryption = new LPAlgorithmBFVrnsB<Element>();
+			this->m_algorithmEncryption.reset( new LPAlgorithmBFVrnsB<Element>() );
 		if (this->m_algorithmSHE == NULL)
-			this->m_algorithmSHE = new LPAlgorithmSHEBFVrnsB<Element>();
+			this->m_algorithmSHE.reset( new LPAlgorithmSHEBFVrnsB<Element>() );
 		if (this->m_algorithmPRE == NULL)
-			this->m_algorithmPRE = new LPAlgorithmPREBFVrnsB<Element>();
+			this->m_algorithmPRE.reset( new LPAlgorithmPREBFVrnsB<Element>() );
 		break; 
 	case MULTIPARTY:
 		if (this->m_algorithmEncryption == NULL)
-			this->m_algorithmEncryption = new LPAlgorithmBFVrnsB<Element>();
+			this->m_algorithmEncryption.reset( new LPAlgorithmBFVrnsB<Element>() );
 		if (this->m_algorithmPRE == NULL)
-			this->m_algorithmPRE = new LPAlgorithmPREBFVrnsB<Element>();
+			this->m_algorithmPRE.reset( new LPAlgorithmPREBFVrnsB<Element>() );
 		if (this->m_algorithmSHE == NULL)
-			this->m_algorithmSHE = new LPAlgorithmSHEBFVrnsB<Element>();
+			this->m_algorithmSHE.reset( new LPAlgorithmSHEBFVrnsB<Element>() );
 		if (this->m_algorithmMultiparty == NULL)
-			this->m_algorithmMultiparty = new LPAlgorithmMultipartyBFVrnsB<Element>();
+			this->m_algorithmMultiparty.reset( new LPAlgorithmMultipartyBFVrnsB<Element>() );
 		break; 
 	case FHE:
 		throw std::logic_error("FHE feature not supported for BFVrnsB scheme");
@@ -197,7 +169,7 @@ void LPPublicKeyEncryptionSchemeBFVrnsB<Element>::Enable(PKESchemeFeature featur
 
 template <class Element>
 LPPublicKeyEncryptionSchemeBFVrnsB<Element>::LPPublicKeyEncryptionSchemeBFVrnsB() : LPPublicKeyEncryptionScheme<Element>() {
-			this->m_algorithmParamsGen = new LPAlgorithmParamsGenBFVrnsB<Element>();
+			this->m_algorithmParamsGen.reset(new LPAlgorithmParamsGenBFVrnsB<Element>());
 		}
 
 template <class Element>

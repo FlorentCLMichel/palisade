@@ -1,8 +1,8 @@
 /*
 * @file cryptocontexthelper-impl.cpp - cryptocontext helper class implementation
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -29,7 +29,6 @@
 #include "cryptocontext.h"
 #include "cryptocontexthelper.h"
 #include "utils/parmfactory.h"
-#include "rapidjson/filewritestream.h"
 
 namespace lbcrypto {
 
@@ -65,21 +64,7 @@ buildContextFromSerialized(const map<string,string>& s, shared_ptr<typename Elem
 		return 0;
 	}
 
-	if( parmtype == "LTV" ) {
-		if( !getValueForName(s, "plaintextModulus", plaintextModulus) ||
-				!getValueForName(s, "relinWindow", relinWindow) ||
-				!getValueForName(s, "stDev", stDev) ) {
-			return 0;
-		}
-
-		if( ep.get() != 0 )
-			return CryptoContextFactory<Element>::genCryptoContextLTV(parms, ep,
-					stoul(relinWindow), stof(stDev));
-
-		return CryptoContextFactory<Element>::genCryptoContextLTV(parms, stoul(plaintextModulus),
-				stoul(relinWindow), stof(stDev));
-	}
-	else if( parmtype == "StehleSteinfeld" ) {
+	if ( parmtype == "StehleSteinfeld" ) {
 		if( !getValueForName(s, "plaintextModulus", plaintextModulus) ||
 				!getValueForName(s, "relinWindow", relinWindow) ||
 				!getValueForName(s, "stDev", stDev) ||
@@ -96,7 +81,7 @@ buildContextFromSerialized(const map<string,string>& s, shared_ptr<typename Elem
 			return 0;
 
 		return CryptoContextFactory<Element>::genCryptoContextBFV(stoul(plaintextModulus), stof(secLevel), 2, 4,
-				0, 0, 1);
+				0, 1, 0);
 
 	}
 	else if( parmtype == "BFVrns" ) {
@@ -139,96 +124,6 @@ buildContextFromSerialized(const map<string,string>& s, shared_ptr<typename Elem
 		throw std::logic_error("Unrecognized parmtype " + parmtype + " in buildContextFromSerialized");
 	}
 
-	return 0;
-}
-
-// forward declaration of DeserializeCryptoParameters
-template <typename Element>
-inline shared_ptr<LPCryptoParameters<Element>> DeserializeCryptoParameters(const Serialized &serObj);
-
-// forward declaration of DeserializeAndValidateCryptoParameters
-template <typename Element>
-inline shared_ptr<LPCryptoParameters<Element>> DeserializeAndValidateCryptoParameters(const Serialized& serObj, const LPCryptoParameters<Element>& curP);
-
-/** This function is used to deserialize the Crypto Parameters
-*
-* @param &serObj object to be serialized
-*
-* @return the parameters or null on failure
-*/
-template <typename Element>
-inline shared_ptr<LPCryptoParameters<Element>> DeserializeCryptoParameters(const Serialized &serObj)
-{
-	Serialized::ConstMemberIterator cit = serObj.FindMember("CryptoContext");
-	if (cit == serObj.MemberEnd()) return 0;
-
-	cit = cit->value.FindMember("Params");
-	if (cit == serObj.MemberEnd()) return 0;
-
-	LPCryptoParameters<Element>* parmPtr = 0;
-
-	Serialized::ConstMemberIterator it = cit->value.FindMember("LPCryptoParametersType");
-	if (it == serObj.MemberEnd()) return 0;
-	std::string type = it->value.GetString();
-
-	if (type == "LPCryptoParametersLTV") {
-		parmPtr = new LPCryptoParametersLTV<Element>();
-	}
-	else if (type == "LPCryptoParametersStehleSteinfeld") {
-		parmPtr = new LPCryptoParametersStehleSteinfeld<Element>();
-	}
-	else if (type == "LPCryptoParametersBGV") {
-		parmPtr = new LPCryptoParametersBGV<Element>();
-	}
-	else if (type == "LPCryptoParametersNull") {
-		parmPtr = new LPCryptoParametersNull<Element>();
-	}
-	else if (type == "LPCryptoParametersBFV") {
-		parmPtr = new LPCryptoParametersBFV<Element>();
-	}
-	else if (type == "LPCryptoParametersBFVrns") {
-		parmPtr = new LPCryptoParametersBFVrns<Element>();
-	}
-	else if (type == "LPCryptoParametersBFVrnsB") {
-		parmPtr = new LPCryptoParametersBFVrnsB<Element>();
-	}
-	else
-		return 0;
-
-	it = cit->value.FindMember(type);
-	if (it == serObj.MemberEnd()) return 0;
-
-	Serialized temp(rapidjson::kObjectType);
-	temp.AddMember(SerialItem(it->name, temp.GetAllocator()), SerialItem(it->value, temp.GetAllocator()), temp.GetAllocator());
-
-	if (!parmPtr->Deserialize(temp)) {
-		delete parmPtr;
-		return 0;
-	}
-
-	return shared_ptr<LPCryptoParameters<Element>>(parmPtr);
-}
-
-/** This function is used to deserialize the Crypto Parameters, to compare them to the existing parameters,
-* and to fail if they do not match
-*
-* @param &serObj object to be desrialized
-* @param &curP LPCryptoParameters to validate against
-*
-* @return the parameters or null on failure
-*/
-template <typename Element>
-inline shared_ptr<LPCryptoParameters<Element>> DeserializeAndValidateCryptoParameters(const Serialized& serObj, const LPCryptoParameters<Element>& curP)
-{
-	LPCryptoParameters<Element>* parmPtr = DeserializeCryptoParameters<Element>(serObj);
-
-	if (parmPtr == 0) return 0;
-
-	// make sure the deserialized parms match the ones in the current context
-	if (*parmPtr == curP)
-		return parmPtr;
-
-	delete parmPtr;
 	return 0;
 }
 
@@ -314,8 +209,6 @@ CreateSchemeGivenName(const string& schemeName) {
 //	shared_ptr<LPPublicKeyEncryptionScheme<Element>> scheme( new LPPublicKeyEncryptionSchemeBFVrns<Element>());
 //	shared_ptr<LPPublicKeyEncryptionScheme<Element>> scheme( new LPPublicKeyEncryptionSchemeBFVrnsB<Element>());
 //	shared_ptr<LPPublicKeyEncryptionScheme<Element>> scheme( new LPPublicKeyEncryptionSchemeBGV<Element>());
-	else if( schemeName == "LTV" )
-		return shared_ptr<LPPublicKeyEncryptionScheme<Element>>( new LPPublicKeyEncryptionSchemeLTV<Element>());
 //	shared_ptr<LPPublicKeyEncryptionScheme<Element>> scheme( new LPPublicKeyEncryptionSchemeStehleSteinfeld<T>());
 //	};
 //
@@ -384,11 +277,7 @@ CryptoContextHelper::ContextFromAppProfile(const string& sch,
 //	usint relinWindow;
 //	float dist;
 //
-//	if( sch == "LTV") {
-//		return CryptoContextFactory<Element>::genCryptoContextLTV(ptm, secFactor, relinWindow, dist,
-//				nA, nM, nK);
-//	}
-//////	else if( sch == "StSt" ) {
+// if( sch == "StSt" ) {
 //////		return CryptoContextFactory<Element>::genCryptoContextStehleSteinfeld(parms, p, relinWindow, stdev, 98.4359);
 //////	}
 //	else if( sch == "BFVrns" ) {

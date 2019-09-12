@@ -1,7 +1,7 @@
 /*
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -28,9 +28,10 @@
   This code benchmarks functions of the src/lib/lattoce directory  of the PALISADE lattice encryption library.
  */
 
-#include "benchmark/benchmark_api.h"
+#define _USE_MATH_DEFINES
+#include "benchmark/benchmark.h"
 
-#include "AllBackends.h"
+#include "palisade.h"
 
 #include <iostream>
 #include <vector>
@@ -118,15 +119,19 @@ map<usint,shared_ptr<M2Params>> BE2parms;
 map<usint,shared_ptr<M2DCRTParams>> BE2dcrtparms;
 map<usint,shared_ptr<M4Params>> BE4parms;
 map<usint,shared_ptr<M4DCRTParams>> BE4dcrtparms;
+#ifdef WITH_NTL
 map<usint,shared_ptr<M6Params>> BE6parms;
 map<usint,shared_ptr<M6DCRTParams>> BE6dcrtparms;
+#endif
 map<usint,vector<NativePoly>> Nativepolys;
 map<usint,vector<M2Poly>> BE2polys;
 map<usint,vector<M2DCRTPoly>> BE2DCRTpolys;
 map<usint,vector<M4Poly>> BE4polys;
 map<usint,vector<M4DCRTPoly>> BE4DCRTpolys;
+#ifdef WITH_NTL
 map<usint,vector<M6Poly>> BE6polys;
 map<usint,vector<M6DCRTPoly>> BE6DCRTpolys;
+#endif
 
 class Setup {
 public:
@@ -136,15 +141,21 @@ public:
 		GenerateDCRTParms<M2DCRTParams>( BE2dcrtparms );
 		GenerateParms<M4Params>( BE4parms );
 		GenerateDCRTParms<M4DCRTParams>( BE4dcrtparms );
+#ifdef WITH_NTL
 		GenerateParms<M6Params>( BE6parms );
 		GenerateDCRTParms<M6DCRTParams>( BE6dcrtparms );
+#endif
 		GeneratePolys<ILNativeParams,NativePoly>(Nativeparms, Nativepolys);
 		GeneratePolys<M2Params,M2Poly>(BE2parms, BE2polys);
 		GeneratePolys<M4Params,M4Poly>(BE4parms, BE4polys);
+#ifdef WITH_NTL
 		GeneratePolys<M6Params,M6Poly>(BE6parms, BE6polys);
+#endif
 		GeneratePolys<M2DCRTParams,M2DCRTPoly>(BE2dcrtparms, BE2DCRTpolys);
 		GeneratePolys<M4DCRTParams,M4DCRTPoly>(BE4dcrtparms, BE4DCRTpolys);
+#ifdef WITH_NTL
 		GeneratePolys<M6DCRTParams,M6DCRTPoly>(BE6dcrtparms, BE6DCRTpolys);
+#endif
 	}
 
 	template<typename P>
@@ -169,19 +180,25 @@ shared_ptr<M4Params> Setup::GetParm(usint o) { return BE4parms[o]; }
 template<>
 shared_ptr<M4DCRTParams> Setup::GetParm(usint o) { return BE4dcrtparms[o]; }
 
+#ifdef WITH_NTL
 template<>
 shared_ptr<M6Params> Setup::GetParm(usint o) { return BE6parms[o]; }
 
 template<>
 shared_ptr<M6DCRTParams> Setup::GetParm(usint o) { return BE6dcrtparms[o]; }
+#endif
 
 template<> const NativePoly& Setup::GetPoly(usint o, int p) { return Nativepolys[o][p]; }
 template<> const M2Poly& Setup::GetPoly(usint o, int p) { return BE2polys[o][p]; }
 template<> const M4Poly& Setup::GetPoly(usint o, int p) { return BE4polys[o][p]; }
+#ifdef WITH_NTL
 template<> const M6Poly& Setup::GetPoly(usint o, int p) { return BE6polys[o][p]; }
+#endif
 template<> const M2DCRTPoly& Setup::GetPoly(usint o, int p) { return BE2DCRTpolys[o][p]; }
 template<> const M4DCRTPoly& Setup::GetPoly(usint o, int p) { return BE4DCRTpolys[o][p]; }
+#ifdef WITH_NTL
 template<> const M6DCRTPoly& Setup::GetPoly(usint o, int p) { return BE6DCRTpolys[o][p]; }
+#endif
 
 #define DO_NATIVEPOLY_BENCHMARK(X) \
 		BENCHMARK_TEMPLATE(X,NativePoly)->Unit(benchmark::kMicrosecond)->ArgName("parm_16")->Arg(16); \
@@ -217,10 +234,14 @@ void BM_LATTICE_empty(benchmark::State& state) { // benchmark
 DO_NATIVEPOLY_BENCHMARK(BM_LATTICE_empty)
 DO_POLY_BENCHMARK_TEMPLATE(BM_LATTICE_empty,M2Poly)
 DO_POLY_BENCHMARK_TEMPLATE(BM_LATTICE_empty,M4Poly)
+#ifdef WITH_NTL
 DO_POLY_BENCHMARK_TEMPLATE(BM_LATTICE_empty,M6Poly)
+#endif
 DO_POLY_BENCHMARK_TEMPLATE(BM_LATTICE_empty,M2DCRTPoly)
 DO_POLY_BENCHMARK_TEMPLATE(BM_LATTICE_empty,M4DCRTPoly)
+#ifdef WITH_NTL
 DO_POLY_BENCHMARK_TEMPLATE(BM_LATTICE_empty,M6DCRTPoly)
+#endif
 
 template <typename E>
 static void make_LATTICE_vector (benchmark::State& state, shared_ptr<typename E::Params> params) {	// function
@@ -241,10 +262,14 @@ void BM_LATTICE_makevector(benchmark::State& state) { // benchmark
 DO_NATIVEPOLY_BENCHMARK(BM_LATTICE_makevector)
 DO_POLY_BENCHMARK_TEMPLATE(BM_LATTICE_makevector,M2Poly)
 DO_POLY_BENCHMARK_TEMPLATE(BM_LATTICE_makevector,M4Poly)
+#ifdef WITH_NTL
 DO_POLY_BENCHMARK_TEMPLATE(BM_LATTICE_makevector,M6Poly)
+#endif
 DO_POLY_BENCHMARK_TEMPLATE(BM_LATTICE_makevector,M2DCRTPoly)
 DO_POLY_BENCHMARK_TEMPLATE(BM_LATTICE_makevector,M4DCRTPoly)
+#ifdef WITH_NTL
 DO_POLY_BENCHMARK_TEMPLATE(BM_LATTICE_makevector,M6DCRTPoly)
+#endif
 
 // plus
 template <typename E>
@@ -272,10 +297,14 @@ static void BM_add_LATTICE(benchmark::State& state) { // benchmark
 DO_NATIVEPOLY_BENCHMARK(BM_add_LATTICE)
 DO_POLY_BENCHMARK_TEMPLATE(BM_add_LATTICE,M2Poly)
 DO_POLY_BENCHMARK_TEMPLATE(BM_add_LATTICE,M4Poly)
+#ifdef WITH_NTL
 DO_POLY_BENCHMARK_TEMPLATE(BM_add_LATTICE,M6Poly)
+#endif
 DO_POLY_BENCHMARK_TEMPLATE(BM_add_LATTICE,M2DCRTPoly)
 DO_POLY_BENCHMARK_TEMPLATE(BM_add_LATTICE,M4DCRTPoly)
+#ifdef WITH_NTL
 DO_POLY_BENCHMARK_TEMPLATE(BM_add_LATTICE,M6DCRTPoly)
+#endif
 
 // plus=
 template <typename E>
@@ -291,10 +320,11 @@ static void BM_addeq_LATTICE(benchmark::State& state) { // benchmark
 
 	if( state.thread_index == 0 ) {
 		b = TestParameters.GetPoly<E>(state.range(0),1);
+		a = TestParameters.GetPoly<E>(state.range(0),0);
 	}
 
 	while (state.KeepRunning()) {
-		a = TestParameters.GetPoly<E>(state.range(0),0);
+		//a = TestParameters.GetPoly<E>(state.range(0),0);
 		addeq_LATTICE<E>(a,b);
 	}
 }
@@ -302,10 +332,14 @@ static void BM_addeq_LATTICE(benchmark::State& state) { // benchmark
 DO_NATIVEPOLY_BENCHMARK(BM_addeq_LATTICE)
 DO_POLY_BENCHMARK_TEMPLATE(BM_addeq_LATTICE,M2Poly)
 DO_POLY_BENCHMARK_TEMPLATE(BM_addeq_LATTICE,M4Poly)
+#ifdef WITH_NTL
 DO_POLY_BENCHMARK_TEMPLATE(BM_addeq_LATTICE,M6Poly)
+#endif
 DO_POLY_BENCHMARK_TEMPLATE(BM_addeq_LATTICE,M2DCRTPoly)
 DO_POLY_BENCHMARK_TEMPLATE(BM_addeq_LATTICE,M4DCRTPoly)
+#ifdef WITH_NTL
 DO_POLY_BENCHMARK_TEMPLATE(BM_addeq_LATTICE,M6DCRTPoly)
+#endif
 
 template <class E>
 static void mult_LATTICE(const E& a, const E& b) {	// function
@@ -331,10 +365,14 @@ static void BM_mult_LATTICE(benchmark::State& state) {
 DO_NATIVEPOLY_BENCHMARK(BM_mult_LATTICE)
 DO_POLY_BENCHMARK_TEMPLATE(BM_mult_LATTICE,M2Poly)
 DO_POLY_BENCHMARK_TEMPLATE(BM_mult_LATTICE,M4Poly)
+#ifdef WITH_NTL
 DO_POLY_BENCHMARK_TEMPLATE(BM_mult_LATTICE,M6Poly)
+#endif
 DO_POLY_BENCHMARK_TEMPLATE(BM_mult_LATTICE,M2DCRTPoly)
 DO_POLY_BENCHMARK_TEMPLATE(BM_mult_LATTICE,M4DCRTPoly)
+#ifdef WITH_NTL
 DO_POLY_BENCHMARK_TEMPLATE(BM_mult_LATTICE,M6DCRTPoly)
+#endif
 
 template <class E>
 static void multeq_LATTICE(E& a, const E& b) {	// function
@@ -348,10 +386,11 @@ static void BM_multeq_LATTICE(benchmark::State& state) { // benchmark
 
 	if( state.thread_index == 0 ) {
 		b = TestParameters.GetPoly<E>(state.range(0),1);
+		a = TestParameters.GetPoly<E>(state.range(0),0);
 	}
 
 	while (state.KeepRunning()) {
-		a = TestParameters.GetPoly<E>(state.range(0),0);
+		//a = TestParameters.GetPoly<E>(state.range(0),0);
 		multeq_LATTICE<E>(a, b);
 	}
 }
@@ -359,10 +398,14 @@ static void BM_multeq_LATTICE(benchmark::State& state) { // benchmark
 DO_NATIVEPOLY_BENCHMARK(BM_multeq_LATTICE)
 DO_POLY_BENCHMARK_TEMPLATE(BM_multeq_LATTICE,M2Poly)
 DO_POLY_BENCHMARK_TEMPLATE(BM_multeq_LATTICE,M4Poly)
+#ifdef WITH_NTL
 DO_POLY_BENCHMARK_TEMPLATE(BM_multeq_LATTICE,M6Poly)
+#endif
 DO_POLY_BENCHMARK_TEMPLATE(BM_multeq_LATTICE,M2DCRTPoly)
 DO_POLY_BENCHMARK_TEMPLATE(BM_multeq_LATTICE,M4DCRTPoly)
+#ifdef WITH_NTL
 DO_POLY_BENCHMARK_TEMPLATE(BM_multeq_LATTICE,M6DCRTPoly)
+#endif
 
 template <class E>
 static void switchformat_LATTICE(benchmark::State& state, shared_ptr<typename E::Params> params) {
@@ -384,10 +427,14 @@ static void BM_switchformat_LATTICE(benchmark::State& state) { // benchmark
 DO_NATIVEPOLY_BENCHMARK(BM_switchformat_LATTICE)
 DO_POLY_BENCHMARK_TEMPLATE(BM_switchformat_LATTICE,M2Poly)
 DO_POLY_BENCHMARK_TEMPLATE(BM_switchformat_LATTICE,M4Poly)
+#ifdef WITH_NTL
 DO_POLY_BENCHMARK_TEMPLATE(BM_switchformat_LATTICE,M6Poly)
+#endif
 DO_POLY_BENCHMARK_TEMPLATE(BM_switchformat_LATTICE,M2DCRTPoly)
 DO_POLY_BENCHMARK_TEMPLATE(BM_switchformat_LATTICE,M4DCRTPoly)
+#ifdef WITH_NTL
 DO_POLY_BENCHMARK_TEMPLATE(BM_switchformat_LATTICE,M6DCRTPoly)
+#endif
 
 template <class E>
 static void doubleswitchformat_LATTICE(benchmark::State& state, shared_ptr<typename E::Params> params) {
@@ -411,10 +458,14 @@ static void BM_doubleswitchformat_LATTICE(benchmark::State& state) { // benchmar
 DO_NATIVEPOLY_BENCHMARK(BM_doubleswitchformat_LATTICE)
 DO_POLY_BENCHMARK_TEMPLATE(BM_doubleswitchformat_LATTICE,M2Poly)
 DO_POLY_BENCHMARK_TEMPLATE(BM_doubleswitchformat_LATTICE,M4Poly)
+#ifdef WITH_NTL
 DO_POLY_BENCHMARK_TEMPLATE(BM_doubleswitchformat_LATTICE,M6Poly)
+#endif
 DO_POLY_BENCHMARK_TEMPLATE(BM_doubleswitchformat_LATTICE,M2DCRTPoly)
 DO_POLY_BENCHMARK_TEMPLATE(BM_doubleswitchformat_LATTICE,M4DCRTPoly)
+#ifdef WITH_NTL
 DO_POLY_BENCHMARK_TEMPLATE(BM_doubleswitchformat_LATTICE,M6DCRTPoly)
+#endif
 
 //execute the benchmarks
-BENCHMARK_MAIN()
+BENCHMARK_MAIN();

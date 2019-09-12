@@ -1,7 +1,9 @@
 /*
- * @author  TPOC: palisade@njit.edu
+ * Description:
+ * This code benchmarks functions of the number theory directory  of the PALISADE lattice encryption library.
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -22,38 +24,13 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-/*
-  Description:	
-  This code benchmarks functions of the number theory directory  of the PALISADE lattice encryption library.
-
-  License Information:
-
-  Copyright (c) 2015, New Jersey Institute of Technology (NJIT)
-  All rights reserved.
-  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-  1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-  2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
 
 #define _USE_MATH_DEFINES
-#include "benchmark/benchmark_api.h"
+#include "benchmark/benchmark.h"
 
 #include <iostream>
 
-#include "math/backend.h"
-#include "utils/inttypes.h"
-#include "math/nbtheory.h"
-#include "lattice/elemparams.h"
-#include "lattice/ilparams.h"
-#include "lattice/ildcrtparams.h"
-#include "lattice/ilelement.h"
-#include "math/distrgen.h"
-#include "lattice/backend.h"
-#include "lattice/poly.h"
-#include "lattice/dcrtpoly.h"
-#include "utils/utilities.h"
-
+#include "palisade.h"
 
 using namespace std;
 using namespace lbcrypto;
@@ -78,7 +55,7 @@ static void BM_GCD1(benchmark::State& state) { // benchmark
   // code out if we leave this out... )
   std::stringstream ss;
   ss << out;
-  state.SetLabel(ss.str());	// label attached to output
+  state.SetLabel(ss.str().c_str());	// label attached to output
 }
 
 BENCHMARK(BM_GCD1);		// register benchmark
@@ -101,7 +78,7 @@ static void BM_GCD2(benchmark::State& state) { // benchmark
   // Prevent compiler optimizations
   std::stringstream ss;
   ss << out;
-  state.SetLabel(ss.str());
+  state.SetLabel(ss.str().c_str());
 }
 
 BENCHMARK(BM_GCD2);		// register benchmark
@@ -124,7 +101,7 @@ static void BM_MRP1(benchmark::State& state) { // benchmark
   // Prevent compiler optimizations
   std::stringstream ss;
   ss << out;
-  state.SetLabel(ss.str());
+  state.SetLabel(ss.str().c_str());
 }
 
 BENCHMARK(BM_MRP1);		// register benchmark
@@ -144,7 +121,7 @@ static void BM_MRP2(benchmark::State& state) { // benchmark
   // Prevent compiler optimizations
   std::stringstream ss;
   ss << out;
-  state.SetLabel(ss.str());
+  state.SetLabel(ss.str().c_str());
 }
 
 BENCHMARK(BM_MRP2);		// register benchmark
@@ -164,7 +141,7 @@ static void BM_MRP3(benchmark::State& state) { // benchmark
   // Prevent compiler optimizations
   std::stringstream ss;
   ss << out;
-  state.SetLabel(ss.str());
+  state.SetLabel(ss.str().c_str());
 }
 
 BENCHMARK(BM_MRP3);		// register benchmark
@@ -184,7 +161,7 @@ static void BM_MRP4(benchmark::State& state) { // benchmark
   // Prevent compiler optimizations
   std::stringstream ss;
   ss << out;
-  state.SetLabel(ss.str());
+  state.SetLabel(ss.str().c_str());
 }
 
 BENCHMARK(BM_MRP4);		// register benchmark
@@ -229,7 +206,7 @@ static void BM_PM1(benchmark::State& state) { // benchmark
   // Prevent compiler optimizations
   std::stringstream ss;
   ss << out.ToString();
-  state.SetLabel(ss.str());
+  state.SetLabel(ss.str().c_str());
 }
 
 BENCHMARK(BM_PM1);		// register benchmark
@@ -256,7 +233,7 @@ static void BM_PM2(benchmark::State& state) {
   // Prevent compiler optimizations
   std::stringstream ss;
   ss << out.ToString();
-  state.SetLabel(ss.str());
+  state.SetLabel(ss.str().c_str());
 }
 
 BENCHMARK(BM_PM2);		// register benchmark
@@ -289,7 +266,7 @@ static void BM_PROU1(benchmark::State& state) {
   // Prevent compiler optimizations
   std::stringstream ss;
   ss << out;
-  state.SetLabel(ss.str());
+  state.SetLabel(ss.str().c_str());
 }
 BENCHMARK(BM_PROU1);		// register benchmark
 
@@ -334,7 +311,7 @@ static void BM_PROU2(benchmark::State& state) {
   // Prevent compiler optimizations
   std::stringstream ss;
   ss << out;
-  state.SetLabel(ss.str());
+  state.SetLabel(ss.str().c_str());
 }
 
 BENCHMARK(BM_PROU2);
@@ -405,7 +382,7 @@ static void BM_PROU3(benchmark::State& state) { // benchmark
   // Prevent compiler optimizations
   std::stringstream ss;
   ss << out;
-  state.SetLabel(ss.str());
+  state.SetLabel(ss.str().c_str());
 }
 
 
@@ -414,4 +391,4 @@ BENCHMARK(BM_PROU3);		// register benchmark
 
 
 //execute the benchmarks
-BENCHMARK_MAIN()
+BENCHMARK_MAIN();

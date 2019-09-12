@@ -3,10 +3,10 @@ PALISADE supports a number of different math backends
 The design goal is to have several math backends available at the same time, and to permit the programmer to choose,
 at runtime, which backend to use.
 
-The current implementation supports the availability of the several backends, but requires the programmer to make a
+The current implementation supports the availability of several backends, but requires the programmer to make a
 compile-time choice of which backend to use as the default type for BigInteger and BigVector in the library.
 
-Math backend selection is controlled by editing src/core/lib/math/backend.h
+Math backend selection is controlled by adding a CMAKE flag, e.g., -DMATHBACKEND=4, or editing src/core/lib/math/backend.h.
 
 The programmer should select a value for MATHBACKEND; the file contains several options. As indicated in the comments
 in this file:
@@ -22,7 +22,7 @@ restrictions and expand available options
 
 * MATHBACKEND 2
 If the programmer selects MATHBACKEND 2, the maximum size of BigInteger will be set to BigIntegerBitLength, which is defined in
-backend.h and which has a default value of 1500 bits. It's advisable to select a value for BigIntegerBitLength that is larger than the double bitwidth of the largest (ciphertext) modulus. This parameter can be decreased for runtime/space optimization when the largest modulus is under 700 bits.
+backend.h and which has a default value of 3000 bits. It's advisable to select a value for BigIntegerBitLength that is larger than the double bitwidth of the largest (ciphertext) modulus. This parameter can be decreased for runtime/space optimization when the largest modulus is under 1500 bits.
 
 The underlying implementation is a fixed-size array of native integers. The native integer used in MATHBACKEND 2, which is defined
 by the typedef integral_dtype, MUST be uint32_t; using other types is an open work item.
@@ -33,4 +33,4 @@ is constrained only by memory.  This implementation requires that UBINT_32 be de
 currently not functioning and is an open work item.
 
 * MATHBACKEND 6
-This is an integration of the NTL library with PALISADE.
+This is an integration of the NTL library with PALISADE, and is only available when NTL/GMP is enabled using CMAKE.

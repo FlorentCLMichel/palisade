@@ -1,8 +1,8 @@
 /*
 * @file cryptocontextparametersets-impl.cpp - cryptocontext parameter sets implementation
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -29,57 +29,6 @@
 namespace lbcrypto {
 
 map<string, map<string,string>> CryptoContextParameterSets = {
-
-		{ "LTV1" , {
-				{ "parameters", "LTV" },
-				{ "plaintextModulus", "2" },
-				{ "ring", "2048" },
-				{ "modulus", "268441601" },
-				{ "rootOfUnity", "16947867" },
-				{ "relinWindow", "1" },
-				{ "stDev", "4" }
-		} },
-
-		{ "LTV2", {
-				{ "parameters", "LTV" },
-				{ "plaintextModulus", "2" },
-				{ "ring",  "2048" },
-				{ "modulus", "536881153" },
-				{ "rootOfUnity", "267934765" },
-				{ "relinWindow", "2" },
-				{ "stDev", "4" }
-		} },
-
-		{ "LTV3", {
-				{ "parameters", "LTV" },
-				{ "plaintextModulus", "2" },
-				{ "ring",  "2048" },
-				{ "modulus", "1073750017" },
-				{ "rootOfUnity", "180790047" },
-				{ "relinWindow", "4" },
-				{ "stDev", "4" }
-		} },
-
-		{ "LTV4", {
-				{ "parameters", "LTV" },
-				{ "plaintextModulus", "2" },
-				{ "ring",  "2048" },
-				{ "modulus", "8589987841" },
-				{ "rootOfUnity", "2678760785" },
-				{ "relinWindow", "8" },
-				{ "stDev", "4" }
-		} },
-
-		{ "LTV5", {
-				{ "parameters", "LTV" },
-				{ "plaintextModulus", "2" },
-				{ "ring",  "4096" },
-				{ "modulus", "2199023288321" },
-				{ "rootOfUnity", "1858080237421" },
-				{ "relinWindow", "16" },
-				{ "stDev", "4" }
-		} },
-
 		{ "StSt1", {
 				{ "parameters", "StehleSteinfeld" },
 				{ "plaintextModulus", "2" },
@@ -249,15 +198,6 @@ map<string, map<string,string>> CryptoContextParameterSets = {
 				{ "ring", "32" },
 				{ "modulus", "256" },
 				{ "rootOfUnity", "322299632" }
-		} },
-		{ "LTV-PRE" ,{
-				{ "parameters", "LTV" },
-				{ "plaintextModulus", "2" },
-				{ "ring",  "2048" },
-				{ "modulus", "8589987841" },
-				{ "rootOfUnity", "2678760785" },
-				{ "relinWindow", "8" },
-				{ "stDev", "4" }
 		} },
 		{ "StSt-PRE",{
 				{ "parameters", "StehleSteinfeld" },

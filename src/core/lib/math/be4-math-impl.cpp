@@ -1,9 +1,9 @@
 /**
  * @file be4-math-impl.cpp This file contains template instantiations for all math classes & functions using math be4
  *
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -71,12 +71,13 @@ template class Matrix<M4Integer>;
 ONES_FOR_TYPE(M4Integer)
 IDENTITY_FOR_TYPE(M4Integer)
 GADGET_FOR_TYPE(M4Integer)
-MATRIX_NOT_SERIALIZABLE(M4Integer)
 
 template class Matrix<M4Vector>;
 ONES_FOR_TYPE(M4Vector)
 IDENTITY_FOR_TYPE(M4Vector)
 GADGET_FOR_TYPE(M4Vector)
-MATRIX_NOT_SERIALIZABLE(M4Vector)
 
 }
+
+CEREAL_CLASS_VERSION( M4Integer, M4Integer::SerializedVersion() );
+CEREAL_CLASS_VERSION( M4Vector, M4Vector::SerializedVersion() );

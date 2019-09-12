@@ -1,8 +1,8 @@
 /**
  * @file encodingparams.cpp Represents and defines parameters for plaintext encoding.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -26,87 +26,4 @@
 
 #include "encodingparams.h"
 
-/**
-* @namespace lbcrypto
-* The namespace of lbcrypto
-*/
-namespace lbcrypto
-{
-
-/**
-* Stores this object's attribute name value pairs to a map for serializing this object to a JSON file.
-*
-* @param serObj stores this object's serialized attribute name value pairs.
-* @return map updated with the attribute name value pairs required to serialize this object.
-*/
-bool EncodingParamsImpl::Serialize(Serialized* serObj) const
-{
-	if( !serObj->IsObject() ){
-		serObj->SetObject();
-	}
-
-	SerialItem ser(rapidjson::kObjectType);
-	ser.AddMember("PlaintextModulus", std::to_string(this->m_plaintextModulus), serObj->GetAllocator());
-	ser.AddMember("PlaintextRootOfUnity", this->m_plaintextRootOfUnity.ToString(), serObj->GetAllocator());
-	ser.AddMember("PlaintextBigModulus", this->m_plaintextBigModulus.ToString(), serObj->GetAllocator());
-	ser.AddMember("PlaintextBigRootOfUnity", this->m_plaintextBigRootOfUnity.ToString(), serObj->GetAllocator());
-	ser.AddMember("PlaintextGenerator", std::to_string(this->m_plaintextGenerator), serObj->GetAllocator());
-	ser.AddMember("BatchSize", std::to_string(this->m_batchSize), serObj->GetAllocator());
-
-	serObj->AddMember("EncodingParams", ser.Move(), serObj->GetAllocator());
-
-	return true;
-
-}
-
-/**
-* Sets this object's attribute name value pairs to deserialize this object from a JSON file.
-*
-* @param serObj stores this object's serialized attribute name value pairs.
-*/
-bool EncodingParamsImpl::Deserialize(const Serialized& serObj)
-{
-
-	Serialized::ConstMemberIterator mIter = serObj.FindMember("EncodingParams");
-	if (mIter == serObj.MemberEnd()) {
-		return false;
-	}
-
-	SerialItem::ConstMemberIterator oIt;
-
-	if ((oIt = mIter->value.FindMember("PlaintextModulus")) == mIter->value.MemberEnd())
-		return false;
-	PlaintextModulus plaintextModulus = atoi(oIt->value.GetString());
-
-	if ((oIt = mIter->value.FindMember("PlaintextRootOfUnity")) == mIter->value.MemberEnd())
-		return false;
-	NativeInteger plaintextRootOfUnity(atoi(oIt->value.GetString()));
-
-	if ((oIt = mIter->value.FindMember("PlaintextBigModulus")) == mIter->value.MemberEnd())
-		return false;
-	NativeInteger plaintextBigModulus(oIt->value.GetString());
-
-	if ((oIt = mIter->value.FindMember("PlaintextBigRootOfUnity")) == mIter->value.MemberEnd())
-		return false;
-	NativeInteger plaintextBigRootOfUnity(oIt->value.GetString());
-
-	if ((oIt = mIter->value.FindMember("PlaintextGenerator")) == mIter->value.MemberEnd())
-		return false;
-	usint plaintextGenerator = atoi(oIt->value.GetString());
-
-	if ((oIt = mIter->value.FindMember("BatchSize")) == mIter->value.MemberEnd())
-		return false;
-	usint batchSize = atoi(oIt->value.GetString());
-
-	this->m_plaintextModulus = plaintextModulus;
-	this->m_plaintextRootOfUnity = plaintextRootOfUnity;
-	this->m_plaintextBigModulus = plaintextBigModulus;
-	this->m_plaintextBigRootOfUnity = plaintextBigRootOfUnity;
-	this->m_plaintextGenerator = plaintextGenerator;
-	this->m_batchSize = batchSize;
-
-	return true;
-
-}
-
-} // namespace lbcrypto ends
+CEREAL_CLASS_VERSION( lbcrypto::EncodingParamsImpl, lbcrypto::EncodingParamsImpl::SerializedVersion() );

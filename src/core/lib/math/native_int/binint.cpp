@@ -1,8 +1,8 @@
 /**
  * @file binint.cpp This file contains the main class for native integers.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -23,11 +23,10 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include "../native_int/binint.h"
+#include "math/backend.h"
 
 namespace native_int
 {
-template class NativeInteger<uint64_t>;
 
 //helper template to stream vector contents provided T has an stream operator<< 
 template < typename T >

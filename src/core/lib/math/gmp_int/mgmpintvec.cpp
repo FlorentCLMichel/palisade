@@ -1,9 +1,9 @@
 /*
  * @file mgmpintvec.cpp This file contains mgmpintvec, a <vector> of gmpint, with associated
  * math operators
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -29,6 +29,9 @@
  * This file contains the cpp implementation of  mgmpintvec, a <vector> of gmpint, with associated math operators.
  *
  */
+
+#ifdef WITH_NTL
+
 #define FASTNLOOSE
 #define FORCE_NORMALIZATION
 
@@ -53,7 +56,7 @@ template<class myT>
 myVecP<myT>::myVecP(const myVecP<myT> &a) : Vec<myT>(INIT_SIZE, a.length())
 //note use .length() here to return long which Vec expects
 {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("in myVecP(myVecP&) length "<<a.length());
 	DEBUG("input vector "<<a);
 	DEBUG("input modulus "<<a.GetModulus());
@@ -75,7 +78,7 @@ template<class myT>
 myVecP<myT>::myVecP(myVecP<myT> &&a) : Vec<myT>(INIT_SIZE, a.length())
 //note use .length() here to return long which Vec expects
 {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("in myVecP copymove, myvecP<myT> alength "<<a.length());
 	int rv = this->CopyModulus(a);
 	if (rv==-1) {
@@ -91,7 +94,7 @@ myVecP<myT>::myVecP(myVecP<myT> &&a) : Vec<myT>(INIT_SIZE, a.length())
 template<class myT>
 myVecP<myT>::myVecP(const long n, const myT &q): Vec<myT>(INIT_SIZE,n)
 {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("myVecP(n,ZZ) n:"<<n);
 	DEBUG("q:"<<q);
 	this->SetModulus(q);
@@ -103,7 +106,7 @@ myVecP<myT>::myVecP(const long n, const myT &q): Vec<myT>(INIT_SIZE,n)
 template<class myT>
 myVecP<myT>::myVecP(const long n, const myT &q, std::initializer_list<uint64_t> rhs): Vec<myT>(INIT_SIZE,n)
 {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("myVecP(n,ZZ) n:"<<n);
 	DEBUG("q:"<<q);
 	this->SetModulus(q);
@@ -121,7 +124,7 @@ myVecP<myT>::myVecP(const long n, const myT &q, std::initializer_list<uint64_t> 
 template<class myT>
 myVecP<myT>::myVecP(const long n, const myT &q, std::initializer_list<std::string> rhs): Vec<myT>(INIT_SIZE,n)
 {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("myVecP(n,ZZ) n:"<<n);
 	DEBUG("q:"<<q);
 	this->SetModulus(q);
@@ -226,7 +229,7 @@ myVecP<myT>::myVecP(std::vector<std::string> &s, const uint64_t q){
 
 template<class myT>
 const myVecP<myT>& myVecP<myT>::operator=(std::initializer_list<uint64_t> rhs){
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("in op=initializerlist <uint64_t>");
 
 	size_t len = rhs.size();
@@ -255,7 +258,7 @@ const myVecP<myT>& myVecP<myT>::operator=(std::initializer_list<uint64_t> rhs){
 //for some dumb reason they coded this., it is dangerous
 template<class myT>
 const myVecP<myT>& myVecP<myT>::operator=(std::initializer_list<int32_t> rhs){
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("in op=initializerlist <uint64_t>");
 
 	size_t len = rhs.size();
@@ -288,7 +291,7 @@ const myVecP<myT>& myVecP<myT>::operator=(std::initializer_list<int32_t> rhs){
 //keeps current modulus
 template<class myT>
 const myVecP<myT>& myVecP<myT>::operator=(std::initializer_list<std::string> rhs){
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("in op=initializerlist <string>");
 	size_t len = rhs.size();
 	if (this->GetLength()< len){
@@ -317,7 +320,7 @@ const myVecP<myT>& myVecP<myT>::operator=(std::initializer_list<std::string> rhs
 template<class myT>
 const myVecP<myT>& myVecP<myT>::operator=(uint64_t val)
 {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("in op=uint64_t");
 
 	(*this)[0] = myT(val);
@@ -336,7 +339,7 @@ const myVecP<myT>& myVecP<myT>::operator=(uint64_t val)
 template<class myT>
 const myVecP<myT>& myVecP<myT>::operator=(const myVecP<myT> &rhs)
 {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("in op=const myVecP<myT>&");
 	DEBUG("setting size "<<rhs.GetLength());
 	this->resize(rhs.GetLength());
@@ -357,7 +360,7 @@ const myVecP<myT>& myVecP<myT>::operator=(const myVecP<myT> &rhs)
 template<class myT>
 const myVecP<myT>& myVecP<myT>::operator=( myVecP<myT> &&rhs)
 {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 
 	if (this != &rhs) {
 		DEBUG("in op=const myVecP<myT>&");
@@ -380,7 +383,7 @@ template<class myT>
 void myVecP<myT>::clear(myVecP<myT>& x)
 {
 	//sets all elements to zero, but does not change size
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("in clear myVec");
 	//using NTL_NAMESPACE::clear;
 	size_t n = x.GetLength();
@@ -407,7 +410,7 @@ template<class myT>
 void myVecP<myT>::SwitchModulus(const myT& newModulus)
 {
 
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Switch modulus old mod :"<<this->m_modulus);
 	DEBUG("Switch modulus old this :"<<*this);
 
@@ -450,7 +453,7 @@ void myVecP<myT>::SwitchModulus(const myT& newModulus)
 template<class myT>
 myVecP<myT> myVecP<myT>::Mod(const myT& modulus) const
 {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("mgmpintvec" <<*this);
 	DEBUG("MOD("<<modulus<<")");
 	if (modulus == myT(2)) {
@@ -480,7 +483,7 @@ myVecP<myT> myVecP<myT>::Mod(const myT& modulus) const
 template<class myT>
 const myVecP<myT>& myVecP<myT>::ModEq(const myT& modulus)
 {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("mgmpintvec" <<*this);
 	DEBUG("MOD("<<modulus<<")");
 	if (modulus == myT(2)) {
@@ -574,7 +577,7 @@ myVecP<myT> myVecP<myT>::ModAddAtIndex(size_t i, const myT &b) const{
 //template<class myT>
 //myVecP<myT> myVecP<myT>::operator-(const myVecP<myT> &b) const
 //{
-//	bool dbg_flag = false;
+//	DEBUG_FLAG(false);
 //	DEBUG("in myVecP::operator-");
 //	ArgCheckVector(b, "myVecP::op-");
 //	myVecP<myT> res(b.GetLength());
@@ -593,7 +596,7 @@ myVecP<myT> myVecP<myT>::ModAddAtIndex(size_t i, const myT &b) const{
 //template<class myT>
 //myVecP<myT> myVecP<myT>::operator-(void)
 //{
-//	bool dbg_flag = false;
+//	DEBUG_FLAG(false);
 //	DEBUG("in myVecP::operator-negate");
 //	myVecP<myT> tmp (this->GetLength());
 //	myVecP<myT>::clear(tmp);
@@ -632,7 +635,7 @@ myVecP<myT> myVecP<myT>::ModAddAtIndex(size_t i, const myT &b) const{
 //template<class myT>
 //myVecP<myT> myVecP<myT>::operator*(myVecP<myT> const& b) const
 //{
-//	bool dbg_flag = false;
+//	DEBUG_FLAG(false);
 //	DEBUG("in myVecP::operator*");
 //	ArgCheckVector(b, "myVecP::operator*");
 //	myVecP<myT> res;
@@ -717,7 +720,7 @@ myVecP<myT> myVecP<myT>::ModInverse(void) const
 template<class myT>
 myVecP<myT> myVecP<myT>::GetDigitAtIndexForBase(size_t index, usint base) const
 {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("myVecP::GetDigitAtIndexForBase:  index = " << index << ", base = " << base);
 	myVecP ans(*this);
 	for(size_t i=0; i < this->GetLength(); i++){
@@ -728,141 +731,11 @@ myVecP<myT> myVecP<myT>::GetDigitAtIndexForBase(size_t index, usint base) const
 	return ans;
 }
 
-  // serialize and deserialise operations
-  template<class myT>
-  bool myVecP<myT>::Serialize(lbcrypto::Serialized* serObj) const {
-    bool dbg_flag = false;
-    if( !serObj->IsObject() ){
-            serObj->SetObject();
-    }
-    //serialize the modulus or mark as unknown
-    std::string modstring ="";
-    DEBUG("in vector Serialize");
-    if (this->isModulusSet()){
-      modstring = this->GetModulus().ToString();
-    }else{
-      modstring = "undefined";
-    }
-    DEBUG("modstring "<<modstring);
-
-	//build the map for the serialization
-	lbcrypto::SerialItem bbvMap(rapidjson::kObjectType);
-	//add modulus
-	bbvMap.AddMember("Modulus", modstring, serObj->GetAllocator());
-	//add Integer type
-	DEBUG("IntegerType "<<myT::IntegerTypeName());
-	bbvMap.AddMember("IntegerType", myT::IntegerTypeName(),
-			serObj->GetAllocator());
-
-	//determine vector size
-	size_t pkVectorLength = this->GetLength();
-	DEBUG ("size "<<pkVectorLength);
-	bbvMap.AddMember("Length", std::to_string(pkVectorLength),
-			serObj->GetAllocator());
-
-	//build a string containing all vector elements concatenated
-	if( pkVectorLength > 0 ) {
-		std::string pkBufferString = "";
-		for (size_t i = 0; i < pkVectorLength; i++) {
-			DEBUG("element "<<i<<" "<<(*this)[i]);
-			std::string tmp = (*this)[i].SerializeToString(this->GetModulus());
-			pkBufferString += tmp;
-		}
-		DEBUG("add VectorValues");
-		bbvMap.AddMember("VectorValues", pkBufferString, serObj->GetAllocator());
-	}
-	//store the map.
-	DEBUG("add BigVectorImpl");
-	serObj->AddMember("BigVectorImpl", bbvMap, serObj->GetAllocator());
-
-	DEBUG("serialize done");
-	return true;
-}
-
-// Deserialize
-template<class myT>
-bool myVecP<myT>::Deserialize(const lbcrypto::Serialized& serObj) {
-	bool dbg_flag = false;
-	DEBUG("in deserialize");
-
-	//decode in reverse order from Serialize above
-	lbcrypto::Serialized::ConstMemberIterator mIter = serObj.FindMember("BigVectorImpl");
-	if( mIter == serObj.MemberEnd() ){
-		std::cerr<<"myVecP::Deserialize() failed"
-				<<" BigVectorImpl not found"<<std::endl;
-		return false;
-	}
-
-	lbcrypto::SerialItem::ConstMemberIterator vIt; //iterator over serial items
-	//look for IntegerType
-	if( (vIt = mIter->value.FindMember("IntegerType"))
-			== mIter->value.MemberEnd() ){
-		std::cerr<<"myVecP::Deserialize() failed IntegerType not found"
-				<<std::endl;
-		return false;
-	}
-	if( myT::IntegerTypeName() != vIt->value.GetString() ){
-		std::cerr<<"myVecP::Deserialize() failed IntegerType transltion"
-				<<std::endl;
-		return false;
-	}
-	//look for Modulus
-	if( (vIt = mIter->value.FindMember("Modulus"))
-			== mIter->value.MemberEnd() ){
-		std::cerr<<"myVecP::Deserialize() failed Modulus not found"<<std::endl;
-		return false;
-	}
-	//decode modulus
-	std::string strval(vIt->value.GetString());
-	DEBUG("getting modulus string "<<strval);
-	myT bbiModulus;
-	if (strval !="undefined"){
-		bbiModulus =  myT(strval);
-	}
-	DEBUG("bbiModulus "<<bbiModulus);
-
-	//find length of vector
-	if( (vIt = mIter->value.FindMember("Length"))
-			== mIter->value.MemberEnd() ){
-		std::cerr<<"myVecP::Deserialize() failed Length not found"<<std::endl;
-		return false;
-	}
-	usint vectorLength = std::stoi(vIt->value.GetString());
-	DEBUG("vectorLength "<<vectorLength);
-
-	if( (vIt = mIter->value.FindMember("VectorValues")) ==
-			mIter->value.MemberEnd() ){
-		std::cerr<<"myVecP::Deserialize() failed VectorValues not found"
-				<<std::endl;
-		return false;
-	}
-
-	myVecP<myT> newVec(vectorLength, bbiModulus); //build new vector
-	myT vectorElem; //element to store decode
-
-	const char *vp = vIt->value.GetString(); //concatenated str of coded values
-	DEBUG("vp is size "<<strlen(vp));
-
-	for( size_t ePos = 0; ePos < vectorLength; ePos++ ) {
-		if( *vp == '\0' ) {
-			std::cerr<<"myVecP::Deserialize() premature end of vector"<<std::endl;
-			std::cerr<<"at position "<<ePos<<std::endl;
-			return false; // premature end of vector
-		}
-		DEBUG("loop "<<ePos<<" vp before is size "<<strlen(vp));
-		vp = vectorElem.DeserializeFromString(vp, bbiModulus); //decode element
-		DEBUG("vp after is size "<<strlen(vp));
-		newVec[ePos] = vectorElem;//store it
-	}
-	*this = std::move(newVec);//save the overall vectol
-	return true;
-}
-
 //procedural addition
 template<class myT>
 inline  void  myVecP<myT>::modadd_p(myVecP<myT>& x, myVecP<myT> const& a, myVecP<myT> const& b) const
 {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	a.ArgCheckVector(b, "myVecP::modadd()");
 	size_t n = a.GetLength();
 	if (b.GetLength() != n) LogicError("myVecP<>vector add: dimension mismatch");
@@ -888,7 +761,7 @@ inline  void  myVecP<myT>::modadd_p(myVecP<myT>& x, myVecP<myT> const& a, myVecP
 template<class myT>
 void  myVecP<myT>::modsub_p(myVecP<myT>& x, myVecP<myT> const& a, myVecP<myT> const& b) const
 {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 
 	a.ArgCheckVector(b, "myVecP::sub()");
 	size_t n = a.GetLength();
@@ -916,7 +789,7 @@ void  myVecP<myT>::modsub_p(myVecP<myT>& x, myVecP<myT> const& a, myVecP<myT> co
 template<class myT>
 inline void  myVecP<myT>::modmul_p(myVecP<myT>& x, myVecP<myT> const& a, myVecP<myT> const& b) const
 {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	a.ArgCheckVector(b, "myVecP::mul()");
 	unsigned int n = a.GetLength();
 	if (b.GetLength() != n) LogicError("myVecP<>vector sub: dimension mismatch");
@@ -945,3 +818,5 @@ inline void  myVecP<myT>::modmul_p(myVecP<myT>& x, myVecP<myT> const& a, myVecP<
 } // namespace NTL ends
 
 template class NTL::myVecP<NTL::myZZ>;
+
+#endif

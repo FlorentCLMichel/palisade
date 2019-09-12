@@ -1,8 +1,8 @@
 /*
  * @file 
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -27,7 +27,7 @@
   This code exercises the block allocator utility of the PALISADE lattice encryption library.
 */
 
-//#define PROFILE    //define this is we want profiling output
+//#define PROFILE    //define this is we want profiling output and statistics
 #include "include/gtest/gtest.h"
 #include <iostream>
 
@@ -89,7 +89,11 @@ Allocator allocatorStaticPool(BLOCKSIZE, 20, staticMemoryPool);
 AllocatorPool<MyClass, 20> allocatorStaticPool2;
 
 // Benchmark allocators
-static const int MAX_BLOCKS = 10000;
+#ifdef __ANDROID__
+static const int MAX_BLOCKS = 512; //reduce size of pool for limited memory
+#else
+static const int MAX_BLOCKS = 4096;
+#endif
 static const int MAX_BLOCK_SIZE = 8196;
 char* memoryPtrs[MAX_BLOCKS];
 char* memoryPtrs2[MAX_BLOCKS];

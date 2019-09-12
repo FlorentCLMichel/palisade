@@ -1,8 +1,8 @@
 /*
  * @file 
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -51,7 +51,7 @@ using namespace lbcrypto;
 
 template<typename Element>
 void rounding_ops(const string& msg) {
-        bool dbg_flag = false;
+        DEBUG_FLAG(false);
 	using VecType = typename Element::Vector;
 	using ParmType = typename Element::Params;
 
@@ -145,7 +145,7 @@ TEST(UTDCRTPoly, rounding_ops) {
 //template for set_get_values()
 template<typename Element>
 void set_get_values(const string& msg) {
-        bool dbg_flag = false;
+        DEBUG_FLAG(false);
 	using VecType = typename Element::Vector;
 	using ParmType = typename Element::Params;
 
@@ -219,7 +219,7 @@ TEST(UTDCRTPoly, set_get_values) {
 //template for at()
 template<typename Element>
 void at(const string& msg) {
-        bool dbg_flag = false;
+        DEBUG_FLAG(false);
 	using VecType = typename Element::Vector;
 	using ParmType = typename Element::Params;
 
@@ -278,7 +278,7 @@ TEST(UTDCRTPoly, at) {
 
 template<typename Element>
 void switch_modulus(const string& msg) {
-        bool dbg_flag = false;
+        DEBUG_FLAG(false);
 	using VecType = typename Element::Vector;
 	using ParmType = typename Element::Params;
 	//using IntType = typename Element::Vector::Integer;
@@ -342,7 +342,7 @@ void rn_generators(const string& msg) {
 	using VecType = typename Element::Vector;
 	using ParmType = typename Element::Params;
 
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	usint m = 8;
 	typename VecType::Integer primeModulus("73");
 	typename VecType::Integer primitiveRootOfUnity("22");
@@ -405,7 +405,7 @@ void poly_other_methods(const string& msg) {
 	using VecType = typename Element::Vector;
 	using ParmType = typename Element::Params;
 
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	usint m = 8;
 	typename VecType::Integer primeModulus("73");
 	typename VecType::Integer primitiveRootOfUnity("22");
@@ -564,7 +564,7 @@ void automorphismTransform(const string& msg) {
 	using VecType = typename Element::Vector;
 	using ParmType = typename Element::Params;
 
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	usint m = 8;
 	typename VecType::Integer primeModulus("73");
 	typename VecType::Integer primitiveRootOfUnity("22");
@@ -609,7 +609,7 @@ void transposition(const string& msg) {
 	using VecType = typename Element::Vector;
 	using ParmType = typename Element::Params;
 
-        bool dbg_flag = false;
+        DEBUG_FLAG(false);
 	usint m = 8;
 
 	typename VecType::Integer q("73");

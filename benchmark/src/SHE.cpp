@@ -1,8 +1,8 @@
 /*
  * SHE.cpp
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -27,8 +27,7 @@
 #define PROFILE
 
 #define _USE_MATH_DEFINES
-#include "benchmark/benchmark_api.h"
-
+#include "benchmark/benchmark.h"
 
 #include <iostream>
 #include <fstream>
@@ -78,18 +77,15 @@ void BM_evalAdd_SHE(benchmark::State& state) { // benchmark
 	CryptoContext<Poly> cc;
 	Ciphertext<Poly> ct1, ct2;
 
-	if( state.thread_index == 0 ) {
-		try {
-			cc = CryptoContextHelper::getNewContext(parms[state.range(0)]);
-			cc->Enable(ENCRYPTION);
-			cc->Enable(SHE);
+	try {
+		cc = CryptoContextHelper::getNewContext(parms[state.range(0)]);
+		cc->Enable(ENCRYPTION);
+		cc->Enable(SHE);
 
-			setup_SHE(cc, ct1, ct2);
-		} catch( std::exception& e ) {
+		setup_SHE(cc, ct1, ct2);
+	} catch( std::exception& e ) {
 		state.SkipWithError( e.what() );
-		return;
 	}
-}
 
 	while (state.KeepRunning()) {
 		Ciphertext<Poly> ctP = cc->EvalAdd(ct1, ct2);
@@ -103,22 +99,18 @@ void BM_evalMult_SHE(benchmark::State& state) { // benchmark
 	Ciphertext<Poly> ct1, ct2;
 	bool isSetup = false;
 
-	if( state.thread_index == 0 ) {
-		try {
-			cc = CryptoContextHelper::getNewContext(parms[state.range(0)]);
-			cc->Enable(ENCRYPTION);
-			cc->Enable(SHE);
+	try {
+		cc = CryptoContextHelper::getNewContext(parms[state.range(0)]);
+		cc->Enable(ENCRYPTION);
+		cc->Enable(SHE);
 
-			isSetup = setup_SHE(cc, ct1, ct2);
-		} catch( std::exception& e ) {
-			state.SkipWithError( e.what() );
-			return;
-		}
+		isSetup = setup_SHE(cc, ct1, ct2);
+	} catch( std::exception& e ) {
+		state.SkipWithError( e.what() );
+	}
 
-		if( !isSetup ) {
-			state.SkipWithError("Setup failed: EvalMultKeyGen not supported?");
-			return;
-		}
+	if( !isSetup ) {
+		state.SkipWithError("Setup failed: EvalMultKeyGen not supported?");
 	}
 
 	while (state.KeepRunning()) {
@@ -132,17 +124,14 @@ void BM_baseDecompose_SHE(benchmark::State& state) { // benchmark
 	CryptoContext<Poly> cc;
 	Ciphertext<Poly> ct1, ct2;
 
-	if( state.thread_index == 0 ) {
-		try {
-			cc = CryptoContextHelper::getNewContext(parms[state.range(0)]);
-			cc->Enable(ENCRYPTION);
-			cc->Enable(SHE);
+	try {
+		cc = CryptoContextHelper::getNewContext(parms[state.range(0)]);
+		cc->Enable(ENCRYPTION);
+		cc->Enable(SHE);
 
-			setup_SHE(cc, ct1, ct2);
-		} catch( std::exception& e ) {
-			state.SkipWithError( e.what() );
-			return;
-		}
+		setup_SHE(cc, ct1, ct2);
+	} catch( std::exception& e ) {
+		state.SkipWithError( e.what() );
 	}
 
 	while (state.KeepRunning()) {
@@ -158,5 +147,5 @@ void BM_baseDecompose_SHE(benchmark::State& state) { // benchmark
 BENCHMARK_PARMS(BM_baseDecompose_SHE)
 
 //execute the benchmarks
-BENCHMARK_MAIN()
+BENCHMARK_MAIN();
 

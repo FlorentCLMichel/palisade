@@ -4,9 +4,9 @@
  * native integer type is supplied as a template parameter.  Currently
  * implementation based on uint32_t and uint64_t is
  * supported. a native double the base integer size is also needed.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -81,7 +81,7 @@ ubint<limb_t>::ubint()
 {
 	// builds a ubint that defaults to zero
 
-	bool dbg_flag = false;		// if true then print dbg output
+	DEBUG_FLAG(false);		// if true then print dbg output
 	DEBUG("ubint() ctor");
 	// BBI bare ctor() generates a valid zero. mimic that activity
 	m_MSB = 0;
@@ -94,7 +94,7 @@ ubint<limb_t>::ubint()
 
 template<typename limb_t>
 ubint<limb_t>::ubint(const uint64_t initval){
-	bool dbg_flag = false;		// if true then print dbg output
+	DEBUG_FLAG(false);		// if true then print dbg output
 	uint64_t init = initval; //non const var
 	//setting the MSB
 	usint msb = 0;
@@ -136,7 +136,7 @@ ubint<limb_t>::ubint(const uint64_t initval){
 // ctor(string)
 template<typename limb_t>
 ubint<limb_t>::ubint(const std::string& str){
-	bool dbg_flag = false;		// if true then print dbg output
+	DEBUG_FLAG(false);		// if true then print dbg output
 
 	DEBUG("ctor(str "<<str<<")");
 	//memory allocation step
@@ -149,10 +149,17 @@ ubint<limb_t>::ubint(const std::string& str){
 	DEBUG("final msb ="<<this->m_MSB);
 }
 
+/**
+ * Construct from a NativeInteger
+ * @param n
+ */
+template<typename limb_t>
+ubint<limb_t>::ubint(const NativeInteger& n) : ubint(n.ConvertToInt()) {}
+
 //copy constructor
 template<typename limb_t>
 ubint<limb_t>::ubint(const ubint& rhs){
-	bool dbg_flag = false;		// if true then print dbg output
+	DEBUG_FLAG(false);		// if true then print dbg output
 	if (rhs.m_state == GARBAGE)
 		std::cout<<"copy garbage"<<std::endl;
 
@@ -174,7 +181,7 @@ ubint<limb_t>::ubint(const ubint& rhs){
 //move copy cconstructor
 template<typename limb_t>
 ubint<limb_t>::ubint(ubint &&rhs){
-	bool dbg_flag = false;		// if true then print dbg output
+	DEBUG_FLAG(false);		// if true then print dbg output
 	DEBUG("move copy ctor(&bint)");
 
 	//copy MSB
@@ -190,7 +197,7 @@ ubint<limb_t>::ubint(ubint &&rhs){
 template<typename limb_t>
 ubint<limb_t>::~ubint()
 {
-	bool dbg_flag = false;		// if true then print dbg output
+	DEBUG_FLAG(false);		// if true then print dbg output
 
 	DEBUG("dtor() m_value.size is "<<m_value.size());
 	//vector is cleaned up by stl when it goes out of scope
@@ -261,7 +268,7 @@ uint32_t ubint<limb_t>::ConvertToUint32() const{
 //Converts the ubint to uint64_t using the std library functions.
 template<typename limb_t>
 uint64_t ubint<limb_t>::ConvertToUint64() const{
-	bool dbg_flag = false;		// if true then print dbg output
+	DEBUG_FLAG(false);		// if true then print dbg output
 	uint64_t result = 0;
 	if (m_value.size()==0)
 		throw std::logic_error("ConvertToUint64() on uninitialized bint");
@@ -361,7 +368,7 @@ const ubint<limb_t>&  ubint<limb_t>::operator=(const ubint &rhs){
  */
 template<typename limb_t>
 ubint<limb_t>  ubint<limb_t>::LShift(usshort shift) const{
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	//garbage check
 	if(m_state==State::GARBAGE)
 		throw std::logic_error("<< on uninitialized bint");
@@ -448,7 +455,7 @@ ubint<limb_t>  ubint<limb_t>::LShift(usshort shift) const{
  */
 template<typename limb_t>
 const ubint<limb_t>&  ubint<limb_t>::LShiftEq(usshort shift) {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	if(m_state==State::GARBAGE)
 		throw std::logic_error("<<= on uninitialized bint");
 	if(this->m_MSB==0) {
@@ -531,7 +538,7 @@ const ubint<limb_t>&  ubint<limb_t>::LShiftEq(usshort shift) {
  */
 template<typename limb_t>
 ubint<limb_t>  ubint<limb_t>::RShift(usshort shift) const{
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	//garbage check
 	if(m_state==State::GARBAGE)
 		throw std::logic_error("Value not initialized");
@@ -623,7 +630,7 @@ ubint<limb_t>  ubint<limb_t>::RShift(usshort shift) const{
  */
 template<typename limb_t>
 const ubint<limb_t>&  ubint<limb_t>::RShiftEq(usshort shift){
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 
 	//garbage check
 	if(m_state==State::GARBAGE)
@@ -740,7 +747,7 @@ const std::string ubint<limb_t>::GetState()const{
  */
 template<typename limb_t>
 ubint<limb_t> ubint<limb_t>::Plus(const ubint& b) const{
-	bool dbg_flag = false;		// if true then print dbg output
+	DEBUG_FLAG(false);		// if true then print dbg output
 	//two operands A and B for addition, A is the greater one, B is the smaller one
 	DEBUG("Plus");
 	const ubint* A = NULL;
@@ -838,7 +845,7 @@ ubint<limb_t> ubint<limb_t>::Plus(const ubint& b) const{
  */
 template<typename limb_t>
 ubint<limb_t> ubint<limb_t>::Minus(const ubint& b) const{
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Sub");
 	//check for garbage initialization
 	if(this->m_state==GARBAGE){
@@ -859,10 +866,12 @@ ubint<limb_t> ubint<limb_t>::Minus(const ubint& b) const{
 	DEBUG ("result starts out");
 	DEBUGEXP(result.GetInternalRepresentation());
 
+#if!defined(NDEBUG)
 	//array position in A to end substraction (a is always larger than b now)
 	int endValA = ceilIntByUInt(this->m_MSB);
 	//array position in B to end substraction
 	int endValB = ceilIntByUInt(b.m_MSB);
+#endif
 
 	DEBUG("a ");
 	DEBUGEXP(this->GetInternalRepresentation());
@@ -916,7 +925,7 @@ ubint<limb_t> ubint<limb_t>::Minus(const ubint& b) const{
  */
 template<typename limb_t>
 const ubint<limb_t>& ubint<limb_t>::MinusEq(const ubint& b) {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Sub");
 	//check for garbage initialization
 	if(this->m_state==GARBAGE){
@@ -936,10 +945,12 @@ const ubint<limb_t>& ubint<limb_t>::MinusEq(const ubint& b) {
 	DEBUG ("result starts out");
 	DEBUGEXP(this->GetInternalRepresentation());
 
+#if!defined(NDEBUG)
 	//array position in A to end subtraction (a is always larger than b now)
 	int endValA = ceilIntByUInt(this->m_MSB);
 	//array position in B to end subtraction
 	int endValB = ceilIntByUInt(b.m_MSB);
+#endif
 
 	DEBUG("a ");
 	DEBUGEXP(this->GetInternalRepresentation());
@@ -993,7 +1004,7 @@ const ubint<limb_t>& ubint<limb_t>::MinusEq(const ubint& b) {
  */
 template<typename limb_t>
 ubint<limb_t> ubint<limb_t>::Times(const ubint& b) const{
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("Times");
 
 	ubint ans(0);
@@ -1096,7 +1107,7 @@ const ubint<limb_t>& ubint<limb_t>::TimesEq(const ubint& b) {
 
 template<typename limb_t>
 const ubint<limb_t>& ubint<limb_t>::PlusEq(const ubint& b) {
-	bool dbg_flag = false;		// if true then print dbg output
+	DEBUG_FLAG(false);		// if true then print dbg output
 	DEBUG("in +=");
 	//check for garbage initializations
 	if(this->m_state==GARBAGE){
@@ -1200,7 +1211,7 @@ const ubint<limb_t>& ubint<limb_t>::PlusEq(const ubint& b) {
  */
 template<typename limb_t>
 inline ubint<limb_t> ubint<limb_t>::MulIntegerByLimb(limb_t b) const{
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("MulIntegerByLimb");
 	if(this->m_state==GARBAGE)
 		throw std::logic_error("MulIntegerByLimb() of uninitialized bint");
@@ -1709,7 +1720,7 @@ template<typename limb_t>
 void ubint<limb_t>::AssignVal(const std::string& vin){
 	//Todo: eliminate m_limbBitLength, make dynamic instead
 
-	bool dbg_flag = false;	// if true then print dbg output
+	DEBUG_FLAG(false);	// if true then print dbg output
 	DEBUG("AssignVal ");
 	DEBUG("vin: "<< vin);
 
@@ -1736,12 +1747,14 @@ void ubint<limb_t>::AssignVal(const std::string& vin){
 	for(size_t i=0;i<arrSize;i++)//store the string to decimal array
 		DecValue[i] = (uschar) stoi(v.substr(i,1));
 
+#if!defined(NDEBUG)
 	if (dbg_flag) {
 		std::cout << "decval1 ";
 		for(size_t i=0;i<arrSize;i++)
 			std::cout <<(usint)DecValue[i] << " ";//for debug purpose
 		std::cout << std::endl;
 	}
+#endif
 
 	//clear the current value of m_value;
 	m_value.clear();
@@ -1786,6 +1799,7 @@ void ubint<limb_t>::AssignVal(const std::string& vin){
 	delete []bitArr;
 	delete[] DecValue;//deallocate memory
 
+#if!defined(NDEBUG)
 	if (dbg_flag) {
 		std::cout << "in AssignVal m_value ";
 		for(size_t i=0;i<m_value.size();i++)
@@ -1801,6 +1815,7 @@ void ubint<limb_t>::AssignVal(const std::string& vin){
 			std::cout << std::hex <<m_value[i] <<  " ";//for debug purpose
 		std::cout <<std::dec << std::endl;
 	}
+#endif
 	DEBUG("in AssignVal msb now "<< m_MSB );
 	DEBUG("in AssignVal msb now "<< m_MSB );
 
@@ -1834,7 +1849,7 @@ void ubint<limb_t>::SetValue(const std::string& str){
 //Algorithm used: optimized division algorithm
 template<typename limb_t>
 ubint<limb_t> ubint<limb_t>::Mod(const ubint& modulus) const{
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 
 	//check for garbage initialisation
 	if(this->m_state==GARBAGE)
@@ -1869,10 +1884,12 @@ ubint<limb_t> ubint<limb_t>::Mod(const ubint& modulus) const{
 
 	// return the remainder of the divided by operation
 	ubint ans(0);
+#if!defined(NDEBUG)
 	if (dbg_flag){
 		DEBUG("modulus ");
 		DEBUGEXP(modulus.GetInternalRepresentation());
 	}
+#endif
 
 	int f;
 #ifndef OLD_DIV
@@ -1935,7 +1952,7 @@ ubint<limb_t> ubint<limb_t>::Mod(const ubint& modulus) const{
 
 template<typename limb_t>
 const ubint<limb_t>& ubint<limb_t>::ModEq(const ubint& modulus) {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 
 	//check for garbage initialisation
 	if(this->m_state==GARBAGE)
@@ -1971,10 +1988,12 @@ const ubint<limb_t>& ubint<limb_t>::ModEq(const ubint& modulus) {
 	// FIXME do this in place!
 	// return the remainder of the divided by operation
 	ubint ans(0);
+#if!defined(NDEBUG)
 	if (dbg_flag){
 		DEBUG("modulus ");
 		DEBUGEXP(modulus.GetInternalRepresentation());
 	}
+#endif
 
 	int f;
 #ifndef OLD_DIV
@@ -2076,7 +2095,7 @@ void  ubint<limb_t>::ModBarrettInPlace(const ubint& modulus, const ubint& mu) {
 template<typename limb_t>
 ubint<limb_t> ubint<limb_t>::ModInverse(const ubint& modulus) const{
 
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 
 	if(m_state==GARBAGE || modulus.m_state==GARBAGE)
 		throw std::logic_error("ModInverse of uninitialized bint");
@@ -2114,8 +2133,9 @@ ubint<limb_t> ubint<limb_t>::ModInverse(const ubint& modulus) const{
 		throw std::logic_error("ZERO HAS NO INVERSE");
 	}
 
-
+#if!defined(NDEBUG)
 	usint ncycle = 0;
+#endif
 	while(true){
 		//DEBUG("**north cycle");
 		DEBUG("first "<<first.ToString());
@@ -2148,7 +2168,9 @@ ubint<limb_t> ubint<limb_t>::ModInverse(const ubint& modulus) const{
 		DEBUG("first "<<first.ToString());
 		DEBUG("second "<<second.ToString());
 
+#if!defined(NDEBUG)
 		if (dbg_flag) ncycle++;
+#endif
 		//if (ncycle >100) break; // for debug only
 	}
 	//DEBUG("MI ncycle "<<ncycle);
@@ -2281,7 +2303,7 @@ template<typename limb_t>
 ubint<limb_t> ubint<limb_t>::ModMul(const ubint& b, const ubint& modulus) const{
 
 	ubint a(*this);
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("ModMul");
 
 	ubint ans(0);
@@ -2493,7 +2515,7 @@ ubint<limb_t> ubint<limb_t>::ModBarrett(const ubint& modulus, const ubint mu_arr
 //reference:http://guan.cse.nsysu.edu.tw/note/expn.pdf
 template<typename limb_t>
 ubint<limb_t> ubint<limb_t>::ModExp(const ubint& b, const ubint& modulus) const{
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	TimeVar t;
 	DEBUG("ModExp() ==================");
 	TIC(t);
@@ -2630,7 +2652,7 @@ const std::string ubint<limb_t>::ToString() const{
 template<typename limb_t>
 inline int ubint<limb_t>::Compare(const ubint& a) const
 {
-	bool dbg_flag = false;		// if true then print dbg output
+	DEBUG_FLAG(false);		// if true then print dbg output
 	if(this->m_state==GARBAGE || a.m_state==GARBAGE)
 		throw std::logic_error("ERROR Compare() against uninitialized bint\n");
 
@@ -2677,7 +2699,7 @@ ubint<limb_t> ubint<limb_t>::MultiplyAndRound(const ubint &p, const ubint &q) co
 
 template<typename limb_t>
 ubint<limb_t> ubint<limb_t>::DivideAndRound(const ubint &q) const {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 
 	//check for garbage initialization and 0 condition
 	//check for garbage initialization and 0 condition
@@ -2736,141 +2758,6 @@ ubint<limb_t> ubint<limb_t>::DivideAndRound(const ubint &q) const {
 
 }
 
-// helper functions convert a ubint in and out of a string of
-// characters the encoding is Base64-like: the first 6 or 11 6-bit
-// groupings are Base64 encoded
-
-// precomputed shift amounts for each 6 bit chunk
-static const usint b64_shifts[] = { 0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60};
-static const usint B64MASK = 0x3F;
-
-// this for encoding...mapping 0.. 2^6-1 to an ascii char
-static char to_base64_char[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-// and this for decoding...
-template<typename limb_t>
-inline limb_t ubint<limb_t>::base64_to_value(const char &b64) {
-	if( isupper(b64) )
-		return b64 - 'A';
-	else if( islower(b64) )
-		return b64 - 'a' + 26;
-	else if( isdigit(b64) )
-		return b64 - '0' + 52;
-	else if( b64 == '+' )
-		return 62;
-	else
-		return 63;
-}
-
-//Serialize ubint by concatnating 6bits converted to an ascii character together, and terminating with '|'
-//note modulus is ignored
-template<typename limb_t>
-const std::string ubint<limb_t>::SerializeToString(const ubint<limb_t>& modulus) const {
-	bool dbg_flag = false;
-
-	std::string ans = "";
-
-	for (auto fromP = m_value.begin(); fromP!=m_value.end(); fromP++){
-		DEBUG(" ser "<<std::hex<<" "<<*fromP<<std::dec);
-
-		ans += to_base64_char[((*fromP) >> b64_shifts[0]) & B64MASK];
-		ans += to_base64_char[((*fromP) >> b64_shifts[1]) & B64MASK];
-		ans += to_base64_char[((*fromP) >> b64_shifts[2]) & B64MASK];
-		ans += to_base64_char[((*fromP) >> b64_shifts[3]) & B64MASK];
-		ans += to_base64_char[((*fromP) >> b64_shifts[4]) & B64MASK];
-		ans += to_base64_char[((*fromP) >> b64_shifts[5]) & B64MASK];
-#ifdef UBINT_64
-		ans += to_base64_char[((*fromP) >> b64_shifts[6]) & B64MASK];
-		ans += to_base64_char[((*fromP) >> b64_shifts[7]) & B64MASK];
-		ans += to_base64_char[((*fromP) >> b64_shifts[8]) & B64MASK];
-		ans += to_base64_char[((*fromP) >> b64_shifts[9]) & B64MASK];
-		ans += to_base64_char[((*fromP) >> b64_shifts[10]) & B64MASK];
-		DEBUG("UBINT_64");
-#endif
-	}
-	ans += "|"; //mark end of word.
-	DEBUG("ans ser "<<ans);
-	return ans;
-}
-
-//Deserialize ubint by building limbs 6 bits at a time
-//returns input cp with stripped chars for decoded myZZ
-//note modulus is ignored
-template<typename limb_t>
-const char * ubint<limb_t>::DeserializeFromString(const char *cp, const ubint<limb_t>& modulus){
-	bool dbg_flag = false;
-
-	m_value.clear();
-	while( *cp != '\0' && *cp != '|' ) {
-		limb_t converted =  base64_to_value(*cp++) << b64_shifts[0];
-		converted |= base64_to_value(*cp++) << b64_shifts[1];
-		converted |= base64_to_value(*cp++) << b64_shifts[2];
-		converted |= base64_to_value(*cp++) << b64_shifts[3];
-		converted |= base64_to_value(*cp++) << b64_shifts[4];
-		converted |= base64_to_value(*cp++) << b64_shifts[5];
-#ifdef UBINT_64
-		converted |= base64_to_value(*cp++) << b64_shifts[6];
-		converted |= base64_to_value(*cp++) << b64_shifts[7];
-		converted |= base64_to_value(*cp++) << b64_shifts[8];
-		converted |= base64_to_value(*cp++) << b64_shifts[9];
-		converted |= base64_to_value(*cp++) << b64_shifts[10];
-#endif
-		DEBUG(" deser "<<converted);
-		DEBUG(" deser "<<std::hex<<" "<<converted<<std::dec);
-		m_value.push_back(converted);
-
-	}
-
-	SetMSB();
-	m_state = INITIALIZED;
-
-	if (*cp == '|') {		// if end of ubint strip of separator
-		cp++;
-	}
-	return cp;
-}
-
-template<typename limb_t>
-bool ubint<limb_t>::Serialize(lbcrypto::Serialized* serObj) const{
-
-	if( !serObj->IsObject() ){
-	 serObj->SetObject();
-    	}
-
-
-	lbcrypto::SerialItem bbiMap(rapidjson::kObjectType);
-
-	bbiMap.AddMember("IntegerType", IntegerTypeName(), serObj->GetAllocator());
-	bbiMap.AddMember("Value", this->ToString(), serObj->GetAllocator());
-	serObj->AddMember("BigIntegerImpl", bbiMap, serObj->GetAllocator());
-	return true;
-}
-
-template<typename limb_t>
-bool ubint<limb_t>::Deserialize(const lbcrypto::Serialized& serObj){
-	//find the outer name
-	lbcrypto::Serialized::ConstMemberIterator mIter = serObj.FindMember("BigIntegerImpl");
-	if( mIter == serObj.MemberEnd() )//not found, so fail
-		return false;
-
-	lbcrypto::SerialItem::ConstMemberIterator vIt; //interator within name
-
-    //is this the correct integer type?
-    if( (vIt = mIter->value.FindMember("IntegerType")) == mIter->value.MemberEnd() )
-      return false;
-    if( IntegerTypeName() != vIt->value.GetString() )
-      return false;
-
-	//find the value
-	if( (vIt = mIter->value.FindMember("Value")) == mIter->value.MemberEnd() )
-		return false;
-	//assign the value found
-	AssignVal(vIt->value.GetString());
-	return true;
-}
-
-
-
 //helper functions
 template<typename limb_t>
 bool ubint<limb_t>::isPowerOfTwo(const ubint& m_numToCheck){
@@ -2902,7 +2789,7 @@ usint ubint<limb_t>::GetDigitAtIndexForBase(usint index, usint base) const{
 //Splits the binary string to equi sized chunks and then populates the internal array values.
 template<typename limb_t>
 ubint<limb_t> ubint<limb_t>::BinaryStringToUbint(const std::string& vin){
-	bool dbg_flag = false;		// if true then print dbg output
+	DEBUG_FLAG(false);		// if true then print dbg output
 	DEBUG("BinaryStringToUbint ");
 	std::string v = vin;
 	// strip off leading spaces from the input string

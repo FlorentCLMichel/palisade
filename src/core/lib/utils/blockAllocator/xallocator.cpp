@@ -196,7 +196,7 @@ static inline void *get_block_ptr(void* block)
 /// if no allocator exists. 
 static inline Allocator* find_allocator(size_t size)
 {
-  bool dbg_flag = false;
+  DEBUG_FLAG(false);
   for (usint i=0; i<MAX_ALLOCATORS; i++)
 	{
 	  DEBUG("allocator "<<i<<" "<< _allocators[i]);
@@ -312,7 +312,7 @@ extern "C" Allocator* xallocator_get_allocator(size_t size)
 	// within the block memory region. Most blocks are powers of two,
 	// however some common allocator block sizes can be explicitly defined
 	// to minimize wasted storage. This offers application specific tuning.
-  bool dbg_flag = false;
+  DEBUG_FLAG(false);
 	size_t blockSize = size + sizeof(Allocator*);
 	if (blockSize > 256 && blockSize <= 396)
 		blockSize = 396;
@@ -351,7 +351,7 @@ extern "C" Allocator* xallocator_get_allocator(size_t size)
 /// @return	A pointer to the client's memory block.
 extern "C" void *xmalloc(size_t size)
 {
-  bool dbg_flag = false;
+  DEBUG_FLAG(false);
 
   Allocator* allocator;
   void* blockMemoryPtr;
@@ -374,7 +374,7 @@ extern "C" void *xmalloc(size_t size)
 ///	@param[in] ptr - a pointer to a block created with xalloc.
 extern "C" void xfree(void* ptr)
 {
-  bool dbg_flag = false;
+  DEBUG_FLAG(false);
   DEBUG("xfree ");
   if (ptr == 0)
 		return;

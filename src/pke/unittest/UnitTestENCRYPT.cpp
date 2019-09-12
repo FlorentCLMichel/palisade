@@ -1,8 +1,8 @@
 /*
  * @file 
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -55,7 +55,6 @@ protected:
 
 #define GENERATE_TEST_CASES_FUNC(x,y,ORD,PTM) \
 GENERATE_PKE_TEST_CASE(x, y, Poly, Null, ORD, PTM) \
-GENERATE_PKE_TEST_CASE(x, y, Poly, LTV, ORD, PTM) \
 GENERATE_PKE_TEST_CASE(x, y, Poly, StSt, ORD, PTM) \
 GENERATE_PKE_TEST_CASE(x, y, Poly, BGV_rlwe, ORD, PTM) \
 GENERATE_PKE_TEST_CASE(x, y, Poly, BGV_opt, ORD, PTM) \
@@ -66,7 +65,6 @@ GENERATE_PKE_TEST_CASE(x, y, Poly, BFVrns_opt, ORD, PTM) \
 GENERATE_PKE_TEST_CASE(x, y, Poly, BFVrnsB_rlwe, ORD, PTM) \
 GENERATE_PKE_TEST_CASE(x, y, Poly, BFVrnsB_opt, ORD, PTM) \
 GENERATE_PKE_TEST_CASE(x, y, NativePoly, Null, ORD, PTM) \
-GENERATE_PKE_TEST_CASE(x, y, NativePoly, LTV, ORD, PTM) \
 GENERATE_PKE_TEST_CASE(x, y, NativePoly, StSt, ORD, PTM) \
 GENERATE_PKE_TEST_CASE(x, y, NativePoly, BGV_rlwe, ORD, PTM) \
 GENERATE_PKE_TEST_CASE(x, y, NativePoly, BGV_opt, ORD, PTM) \
@@ -77,7 +75,6 @@ GENERATE_PKE_TEST_CASE(x, y, NativePoly, BFVrns_opt, ORD, PTM) \
 GENERATE_PKE_TEST_CASE(x, y, NativePoly, BFVrnsB_rlwe, ORD, PTM) \
 GENERATE_PKE_TEST_CASE(x, y, NativePoly, BFVrnsB_opt, ORD, PTM) \
 GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, Null, ORD, PTM) \
-GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, LTV, ORD, PTM) \
 GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, StSt, ORD, PTM) \
 GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGV_rlwe, ORD, PTM) \
 GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGV_opt, ORD, PTM) \

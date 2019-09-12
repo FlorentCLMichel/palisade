@@ -1,8 +1,8 @@
 /*
 * @file bfv.cpp - implementation of the BFV scheme.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -159,65 +159,6 @@ LPCryptoParametersBFV<Element>::LPCryptoParametersBFV(shared_ptr<typename Elemen
 	m_bigRootOfUnity = bigRootOfUnity;
 	m_bigModulusArb = bigModulusArb;
 	m_bigRootOfUnityArb = bigRootOfUnityArb;
-}
-
-template <class Element>
-bool LPCryptoParametersBFV<Element>::Serialize(Serialized* serObj) const {
-	if (!serObj->IsObject())
-		return false;
-
-	SerialItem cryptoParamsMap(rapidjson::kObjectType);
-	if (this->SerializeRLWE(serObj, cryptoParamsMap) == false)
-		return false;
-
-	cryptoParamsMap.AddMember("delta", m_delta.ToString(), serObj->GetAllocator());
-	cryptoParamsMap.AddMember("bigmodulus", m_bigModulus.ToString(), serObj->GetAllocator());
-	cryptoParamsMap.AddMember("bigrootofunity", m_bigRootOfUnity.ToString(), serObj->GetAllocator());
-	cryptoParamsMap.AddMember("bigmodulusarb", m_bigModulusArb.ToString(), serObj->GetAllocator());
-	cryptoParamsMap.AddMember("bigrootofunityarb", m_bigRootOfUnityArb.ToString(), serObj->GetAllocator());
-
-	serObj->AddMember("LPCryptoParametersBFV", cryptoParamsMap.Move(), serObj->GetAllocator());
-	serObj->AddMember("LPCryptoParametersType", "LPCryptoParametersBFV", serObj->GetAllocator());
-
-	return true;
-}
-
-template <class Element>
-bool LPCryptoParametersBFV<Element>::Deserialize(const Serialized& serObj) {
-	Serialized::ConstMemberIterator mIter = serObj.FindMember("LPCryptoParametersBFV");
-	if (mIter == serObj.MemberEnd()) return false;
-
-	if (this->DeserializeRLWE(mIter) == false)
-		return false;
-
-	SerialItem::ConstMemberIterator pIt;
-	if ((pIt = mIter->value.FindMember("delta")) == mIter->value.MemberEnd())
-		return false;
-	typename Element::Integer delta(pIt->value.GetString());
-
-	if ((pIt = mIter->value.FindMember("bigmodulus")) == mIter->value.MemberEnd())
-		return false;
-	typename Element::Integer bigmodulus(pIt->value.GetString());
-
-	if ((pIt = mIter->value.FindMember("bigrootofunity")) == mIter->value.MemberEnd())
-		return false;
-	typename Element::Integer bigrootofunity(pIt->value.GetString());
-
-	if ((pIt = mIter->value.FindMember("bigmodulusarb")) == mIter->value.MemberEnd())
-		return false;
-	typename Element::Integer bigmodulusarb(pIt->value.GetString());
-
-	if ((pIt = mIter->value.FindMember("bigrootofunityarb")) == mIter->value.MemberEnd())
-		return false;
-	typename Element::Integer bigrootofunityarb(pIt->value.GetString());
-
-	this->SetBigModulus(bigmodulus);
-	this->SetBigRootOfUnity(bigrootofunity);
-	this->SetBigModulusArb(bigmodulusarb);
-	this->SetBigRootOfUnityArb(bigrootofunityarb);
-	this->SetDelta(delta);
-
-	return true;
 }
 
 template <class Element>
@@ -990,7 +931,7 @@ template <class Element>
 LPEvalKey<Element> LPAlgorithmSHEBFV<Element>::KeySwitchGen(const LPPrivateKey<Element> originalPrivateKey,
 	const LPPrivateKey<Element> newPrivateKey) const {
 
-	LPEvalKeyRelin<Element> ek(new LPEvalKeyRelinImpl<Element>(newPrivateKey->GetCryptoContext()));
+	LPEvalKey<Element> ek(new LPEvalKeyRelinImpl<Element>(newPrivateKey->GetCryptoContext()));
 
 	const shared_ptr<LPCryptoParametersBFV<Element>> cryptoParamsLWE = std::dynamic_pointer_cast<LPCryptoParametersBFV<Element>>(newPrivateKey->GetCryptoParameters());
 	const shared_ptr<typename Element::Params> elementParams = cryptoParamsLWE->GetElementParams();
@@ -1463,31 +1404,31 @@ void LPPublicKeyEncryptionSchemeBFV<Element>::Enable(PKESchemeFeature feature) {
 	{
 	case ENCRYPTION:
 		if (this->m_algorithmEncryption == NULL)
-			this->m_algorithmEncryption = new LPAlgorithmBFV<Element>();
+			this->m_algorithmEncryption.reset( new LPAlgorithmBFV<Element>() );
 		break;
 	case SHE:
 		if (this->m_algorithmEncryption == NULL)
-			this->m_algorithmEncryption = new LPAlgorithmBFV<Element>();
+			this->m_algorithmEncryption.reset( new LPAlgorithmBFV<Element>() );
 		if (this->m_algorithmSHE == NULL)
-			this->m_algorithmSHE = new LPAlgorithmSHEBFV<Element>();
+			this->m_algorithmSHE.reset( new LPAlgorithmSHEBFV<Element>() );
 		break;
 	case PRE:
 		if (this->m_algorithmEncryption == NULL)
-			this->m_algorithmEncryption = new LPAlgorithmBFV<Element>();
+			this->m_algorithmEncryption.reset( new LPAlgorithmBFV<Element>() );
 		if (this->m_algorithmSHE == NULL)
-			this->m_algorithmSHE = new LPAlgorithmSHEBFV<Element>();
+			this->m_algorithmSHE.reset( new LPAlgorithmSHEBFV<Element>() );
 		if (this->m_algorithmPRE == NULL)
-			this->m_algorithmPRE = new LPAlgorithmPREBFV<Element>();
+			this->m_algorithmPRE.reset( new LPAlgorithmPREBFV<Element>() );
 		break; 
 	case MULTIPARTY:
 		if (this->m_algorithmEncryption == NULL)
-			this->m_algorithmEncryption = new LPAlgorithmBFV<Element>();
+			this->m_algorithmEncryption.reset( new LPAlgorithmBFV<Element>() );
 		if (this->m_algorithmPRE == NULL)
-			this->m_algorithmPRE = new LPAlgorithmPREBFV<Element>();
+			this->m_algorithmPRE.reset( new LPAlgorithmPREBFV<Element>() );
 		if (this->m_algorithmSHE == NULL)
-			this->m_algorithmSHE = new LPAlgorithmSHEBFV<Element>();
+			this->m_algorithmSHE.reset( new LPAlgorithmSHEBFV<Element>() );
 		if (this->m_algorithmMultiparty == NULL)
-			this->m_algorithmMultiparty = new LPAlgorithmMultipartyBFV<Element>();
+			this->m_algorithmMultiparty.reset( new LPAlgorithmMultipartyBFV<Element>() );
 		break; 
 	case FHE:
 		throw std::logic_error("FHE feature not supported for BFV scheme");

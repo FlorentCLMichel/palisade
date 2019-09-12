@@ -1,10 +1,10 @@
 /*
  * @file demo_pke.cpp - PALISADE library.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
  * @section LICENSE
  *
- * Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT))
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -38,7 +38,6 @@
 #include "palisade.h"
 #include "cryptocontexthelper.h"
 #include "utils/debug.h"
-#include "utils/serializablehelper.h"
 
 using namespace std;
 using namespace lbcrypto;
@@ -53,9 +52,8 @@ int main(int argc, char *argv[]) {
 	double diff, start, finish;
 
 
-	std::cout << "\nThis code demonstrates the use of the BFV, BGV, StSt, Null and LTV schemes for basic public-key encryption. " << std::endl;
+	std::cout << "\nThis code demonstrates the use of the BFV, BGV, StSt, and Null schemes for basic public-key encryption. " << std::endl;
 	std::cout << "This code shows how to use schemes and pre-computed parameters for those schemes can be selected during run-time. " << std::endl;
-	std::cout << "We do not generally recommend the use of the LTV scheme due to security concerns. " << std::endl;
 	
 	std::cout << "Choose parameter set: ";
 	CryptoContextHelper::printParmSetNamesByExcludeFilter(std::cout,"BFVrns");

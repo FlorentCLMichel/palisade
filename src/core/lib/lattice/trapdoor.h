@@ -1,9 +1,9 @@
 /**
  * @file trapdoor.h Provides the utility for sampling trapdoor lattices as described in https://eprint.iacr.org/2017/844.pdf
  * https://eprint.iacr.org/2018/946, and "Implementing Token-Based Obfuscation under (Ring) LWE" (not publicly available yet)
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -45,10 +45,24 @@ public:
 	// matrix
 	Matrix<Element> m_e;
 	//CTOR with empty trapdoor pair for deserialization
-        RLWETrapdoorPair(): m_r(Matrix<Element> ([](){ return Element(); }, 0,0)),
-        		m_e(Matrix<Element> ([](){ return Element(); }, 0,0)) {};
+	RLWETrapdoorPair(): m_r(Matrix<Element> ([](){ return Element(); }, 0,0)),
+			m_e(Matrix<Element> ([](){ return Element(); }, 0,0)) {};
 
-        RLWETrapdoorPair(const Matrix<Element> &r, const Matrix<Element> &e): m_r(r), m_e(e) {};
+	RLWETrapdoorPair(const Matrix<Element> &r, const Matrix<Element> &e): m_r(r), m_e(e) {};
+
+	template <class Archive>
+	void save( Archive & ar, std::uint32_t const version ) const
+	{
+		ar( CEREAL_NVP(m_r) );
+		ar( CEREAL_NVP(m_e) );
+	}
+
+	template <class Archive>
+	void load( Archive & ar, std::uint32_t const version )
+	{
+		ar( CEREAL_NVP(m_r) );
+		ar( CEREAL_NVP(m_e) );
+	}
 };
 
 /**
@@ -164,7 +178,7 @@ public:
 			const RLWETrapdoorPair<Element> &Tprime,
 			const typename Element::DggType& dgg, const typename Element::DggType& dggLargeSigma,
 			shared_ptr<Matrix<Element>> perturbationVector){
-		bool dbg_flag = false;
+		DEBUG_FLAG(false);
 				TimeVar t1, t2, t3, t1_tot, t2_tot, t3_tot;
 
 				TIC(t1);

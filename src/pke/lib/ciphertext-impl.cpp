@@ -1,8 +1,8 @@
 /*
 * @file ciphertext-poly-impl.cpp - ciphertext poly implementation
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -27,20 +27,9 @@
 #include "../../core/lib/lattice/dcrtpoly.cpp"
 #include "../../core/lib/lattice/poly.cpp"
 #include "cryptocontext.h"
-#include "ciphertext.cpp"
 
 namespace lbcrypto {
-extern template class CryptoContextImpl<Poly>;
-
 template class CiphertextImpl<Poly>;
-
-extern template class CryptoContextImpl<NativePoly>;
-
 template class CiphertextImpl<NativePoly>;
-
-extern template class CryptoContextImpl<DCRTPoly>;
-
 template class CiphertextImpl<DCRTPoly>;
 }
-
-

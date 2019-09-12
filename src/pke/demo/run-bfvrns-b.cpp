@@ -1,8 +1,8 @@
 /*
  * @file 
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -26,6 +26,8 @@
  /*
 BFV RNS testing programs
 */
+
+#define PROFILE
 
 #include <iostream>
 #include <fstream>
@@ -62,8 +64,6 @@ int main() {
 	//cin.get();
 	return 0;
 }
-
-#define PROFILE
 
 void SHERun() {
 
@@ -102,7 +102,7 @@ void SHERun() {
 
 	//Set Crypto Parameters
 	CryptoContext<DCRTPoly> cryptoContext = CryptoContextFactory<DCRTPoly>::genCryptoContextBFVrnsB(
-			ptm, rootHermiteFactor, sigma, 0, 5, 0, OPTIMIZED,3,0,60);
+			ptm, rootHermiteFactor, sigma, 0, 5, 0, OPTIMIZED,3,0,55);
 
 	// enable features that you wish to use
 	cryptoContext->Enable(ENCRYPTION);
@@ -110,7 +110,7 @@ void SHERun() {
 
 	std::cout << "p = " << cryptoContext->GetCryptoParameters()->GetPlaintextModulus() << std::endl;
 	std::cout << "n = " << cryptoContext->GetCryptoParameters()->GetElementParams()->GetCyclotomicOrder() / 2 << std::endl;
-	std::cout << "log2 q = " << log2(cryptoContext->GetCryptoParameters()->GetElementParams()->GetModulus().ConvertToDouble()) << std::endl;
+	std::cout << "log2 q = " << cryptoContext->GetCryptoParameters()->GetElementParams()->GetModulus().GetMSB() << std::endl;
 
 	// Initialize Public Key Containers
 	LPKeyPair<DCRTPoly> keyPair;

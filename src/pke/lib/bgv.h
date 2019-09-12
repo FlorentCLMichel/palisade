@@ -1,8 +1,8 @@
 ﻿/**
  * @file bgv.h -- Operations for the BGV cryptoscheme.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -158,20 +158,6 @@ namespace lbcrypto {
 			virtual ~LPCryptoParametersBGV() {}
 
 			/**
-			* Serialize the object into a Serialized
-			* @param serObj is used to store the serialized result. It MUST be a rapidjson Object (SetObject());
-			* @return true if successfully serialized
-			*/
-			bool Serialize(Serialized* serObj) const;
-
-			/**
-			* Populate the object from the deserialization of the Serialized
-			* @param serObj contains the serialized object
-			* @return true on success
-			*/
-			bool Deserialize(const Serialized& serObj);
-
-			/**
 			* == operator to compare to this instance of LPCryptoParametersBGV object.
 			*
 			* @param &rhs LPCryptoParameters to check equality against.
@@ -188,6 +174,23 @@ namespace lbcrypto {
 				LPCryptoParametersRLWE<Element>::PrintParameters(os);
 			}
 
+			template <class Archive>
+			void save ( Archive & ar, std::uint32_t const version ) const
+			{
+			    ar( ::cereal::base_class<LPCryptoParametersRLWE<Element>>( this ) );
+			}
+
+			template <class Archive>
+			void load( Archive & ar, std::uint32_t const version )
+			{
+				if( version > SerializedVersion() ) {
+					PALISADE_THROW(deserialize_error, "serialized object version " + std::to_string(version) + " is from a later version of the library");
+				}
+			    ar( ::cereal::base_class<LPCryptoParametersRLWE<Element>>( this ) );
+			}
+
+			std::string SerializedObjectName() const { return "BGVSchemeParameters"; }
+			static uint32_t SerializedVersion() { return 1; }
 	};
 
 
@@ -256,7 +259,6 @@ namespace lbcrypto {
 		* @return KeyPair containting private key and public key.
 		*/
 		LPKeyPair<Element> KeyGen(CryptoContext<Element> cc, bool makeSparse=false);
-
 	};
 
 	/**
@@ -482,7 +484,6 @@ namespace lbcrypto {
 			std::string errMsg = "LPAlgorithmSHEBGV::EvalAutomorphismKeyGen is not implemented for BGV SHE Scheme.";
 			throw std::runtime_error(errMsg);
 		}
-
 	};
 
 	/**
@@ -572,7 +573,6 @@ namespace lbcrypto {
 		Ciphertext<Element> ReEncrypt(const LPEvalKey<Element> evalKey,
 			ConstCiphertext<Element> ciphertext,
 			const LPPublicKey<Element> publicKey = nullptr) const;
-
 	};
 
 	/**
@@ -759,7 +759,22 @@ namespace lbcrypto {
 		}
 
 		void Enable(PKESchemeFeature feature);
+
+		template <class Archive>
+		void save( Archive & ar, std::uint32_t const version ) const
+		{
+		    ar( ::cereal::base_class<LPPublicKeyEncryptionScheme<Element>>( this ) );
+		}
+
+		template <class Archive>
+		void load( Archive & ar, std::uint32_t const version )
+		{
+		    ar( ::cereal::base_class<LPPublicKeyEncryptionScheme<Element>>( this ) );
+		}
+
+		std::string SerializedObjectName() const { return "BGVScheme"; }
 	};
 
 } // namespace lbcrypto ends
+
 #endif

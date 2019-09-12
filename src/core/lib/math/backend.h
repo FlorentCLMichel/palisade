@@ -1,9 +1,9 @@
 /**
  * @file backend.h This file contains the functionality to switch between math backends
  *
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -30,23 +30,34 @@
 
 #include "version.h"
 
-#include "utils/inttypes.h"
-#include "utils/parallel.h"
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <type_traits>
+#include <typeinfo>
+#include <limits>
+#include <stdexcept>
+#include <functional>
+#include <cstdlib>
+#include <memory>
 
+#include "interface.h"
+#include "utils/inttypes.h"
+#include "utils/serializable.h"
+#include "utils/memory.h"
+#include "utils/palisadebase64.h"
+#include "utils/exception.h"
+#include "utils/parallel.h"
+#include "utils/debug.h"
  
 // use of MS VC is not permitted because of various incompatibilities
 #ifdef _MSC_VER
 #error "MSVC COMPILER IS NOT SUPPORTED"
 #endif
 
-////////// definitions for native integer and native vector
-#include "native_int/binint.h"
-#include "native_int/binvect.h"
-#include <initializer_list>
-
-typedef native_int::NativeInteger<uint64_t>			NativeInteger;
-typedef native_int::NativeVector<NativeInteger>		NativeVector;
-typedef unsigned __int128 DoubleNativeInteger;
+#define MAX_MODULUS_SIZE 60
 
 /*! Define the underlying default math implementation being used by defining MATHBACKEND */
 
@@ -79,10 +90,15 @@ typedef unsigned __int128 DoubleNativeInteger;
 //To select backend, please UNCOMMENT the appropriate line rather than changing the number on the
 //uncommented line (and breaking the documentation of the line)
 
+namespace native_int
+{
+	class NativeInteger;
+}
+
 #ifndef MATHBACKEND
-//#define MATHBACKEND 2
+#define MATHBACKEND 2
 //#define MATHBACKEND 4
-#define MATHBACKEND 6
+//#define MATHBACKEND 6
 #endif
 
 #if MATHBACKEND != 2 && MATHBACKEND != 4 && MATHBACKEND != 6
@@ -99,7 +115,7 @@ typedef uint32_t integral_dtype;
 	**/
 
 #ifndef BigIntegerBitLength
-#define BigIntegerBitLength 1500 //for documentation on tests
+#define BigIntegerBitLength 3000 //for documentation on tests
 #endif
 
 #if BigIntegerBitLength < 600
@@ -143,6 +159,8 @@ typedef ubint<expdtype> xubint;
 typedef mubintvec<xubint> xmubintvec;
 }
 
+#ifdef WITH_NTL
+
 #include "gmp_int/gmpint.h" //experimental gmp unsigned big ints
 #include "gmp_int/mgmpintvec.h" //rings of such
 
@@ -150,13 +168,17 @@ namespace gmp_int {
 typedef NTL::myZZ ubint;
 }
 
+using M6Integer = NTL::myZZ;
+using M6Vector = NTL::myVecP<M6Integer>;
+
+#endif
+
 // typedefs for the known math backends
 using M2Integer = cpu_int::BigInteger<integral_dtype,BigIntegerBitLength>;
 using M2Vector = cpu_int::BigVectorImpl<M2Integer>;
 using M4Integer = exp_int::xubint;
 using M4Vector = exp_int::xmubintvec;
-using M6Integer = NTL::myZZ;
-using M6Vector = NTL::myVecP<M6Integer>;
+
 
 /**
  * @namespace lbcrypto
@@ -188,32 +210,68 @@ namespace lbcrypto {
 	using BigVector = M6Vector;
 
 #endif
+
+typedef unsigned __int128 DoubleNativeInt;
+
+// it would be better, instead of the line above, to use the
+// commented lines, but (a) the HAVE_INTRINSIC define's broken,
+// for some compilers, and (b) some code doesn't work nicely
+// when you plonk in BigInteger...
+/********************************************************
+// if we do not have an int128 built in,
+// then we must use a multiprecision type
+#if ABSL_HAVE_INTRINSIC_INT128
+typedef unsigned __int128 DoubleNativeInt;
+#else
+typedef BigInteger DoubleNativeInt;
+#endif
+********************************************************/
+
 }
 
-#endif
+////////// definitions for native integer and native vector
+#include "native_int/binint.h"
+#include "native_int/binvect.h"
+#include <initializer_list>
+
+typedef native_int::NativeInteger NativeInteger;
+typedef native_int::NativeVector<NativeInteger>		NativeVector;
 
 // COMMON TESTING DEFINITIONS
 extern bool TestB2;
 extern bool TestB4;
+#ifdef WITH_NTL
 extern bool TestB6;
+#endif
 extern bool TestNative;
 
+
 // macros for unit testing
+#ifdef WITH_NTL
 #define RUN_BIG_BACKENDS_INT(FUNCTION, MESSAGE) { \
 	if( TestB2 ) { using T = M2Integer; FUNCTION<T>("BE2 " MESSAGE); } \
 	if( TestB4 ) { using T = M4Integer; FUNCTION<T>("BE4 " MESSAGE); } \
 	if( TestB6 ) { using T = M6Integer; FUNCTION<T>("BE6 " MESSAGE); } \
 }
-
-#define RUN_ALL_BACKENDS_INT(FUNCTION, MESSAGE) { \
-	RUN_BIG_BACKENDS_INT(FUNCTION,MESSAGE) \
-	if( TestNative ) { using T = NativeInteger; FUNCTION<T>("Native " MESSAGE); } \
-}
-
 #define RUN_BIG_BACKENDS(FUNCTION, MESSAGE) { \
 	if( TestB2 ) { using V = M2Vector; FUNCTION<V>("BE2 " MESSAGE); } \
 	if( TestB4 ) { using V = M4Vector; FUNCTION<V>("BE4 " MESSAGE); } \
 	if( TestB6 ) { using V = M6Vector; FUNCTION<V>("BE6 " MESSAGE); } \
+}
+#else
+#define RUN_BIG_BACKENDS_INT(FUNCTION, MESSAGE) { \
+	if( TestB2 ) { using T = M2Integer; FUNCTION<T>("BE2 " MESSAGE); } \
+	if( TestB4 ) { using T = M4Integer; FUNCTION<T>("BE4 " MESSAGE); } \
+}
+#define RUN_BIG_BACKENDS(FUNCTION, MESSAGE) { \
+	if( TestB2 ) { using V = M2Vector; FUNCTION<V>("BE2 " MESSAGE); } \
+	if( TestB4 ) { using V = M4Vector; FUNCTION<V>("BE4 " MESSAGE); } \
+}
+#endif
+
+#define RUN_ALL_BACKENDS_INT(FUNCTION, MESSAGE) { \
+	RUN_BIG_BACKENDS_INT(FUNCTION,MESSAGE) \
+	if( TestNative ) { using T = NativeInteger; FUNCTION<T>("Native " MESSAGE); } \
 }
 
 #define RUN_ALL_BACKENDS(FUNCTION, MESSAGE) { \
@@ -221,4 +279,5 @@ extern bool TestNative;
 	if( TestNative ) { using V = NativeVector; FUNCTION<V>("Native " MESSAGE); } \
 }
 
+#endif
 

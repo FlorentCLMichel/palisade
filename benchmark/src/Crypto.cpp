@@ -1,7 +1,7 @@
 ﻿/*
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -40,11 +40,11 @@ Description:
 #define PROFILE
 
 #define _USE_MATH_DEFINES
-#include "benchmark/benchmark_api.h"
-
+#include "benchmark/benchmark.h"
 
 #include <iostream>
 #include <fstream>
+
 #include "palisade.h"
 
 #include "cryptocontexthelper.h"
@@ -61,21 +61,16 @@ using namespace lbcrypto;
 void BM_keygen(benchmark::State& state) { // benchmark
 	CryptoContext<Poly> cc;
 
-	if( state.thread_index == 0 ) {
-		try {
-			cc = CryptoContextHelper::getNewContext(parms[state.range(0)]);
-			cc->Enable(ENCRYPTION);
-			cc->Enable(PRE);
-		} catch( std::exception& e ) {
-			state.SkipWithError( e.what() );
-			return;
-		}
+	try {
+		cc = CryptoContextHelper::getNewContext(parms[state.range(0)]);
+		cc->Enable(ENCRYPTION);
+		cc->Enable(PRE);
 
-		try {
-			ChineseRemainderTransformFTT<BigVector>::PreCompute(cc->GetRootOfUnity(),
-					cc->GetCyclotomicOrder(),
-					cc->GetModulus());
-		} catch( ... ) {}
+		ChineseRemainderTransformFTT<BigVector>::PreCompute(cc->GetRootOfUnity(),
+				cc->GetCyclotomicOrder(),
+				cc->GetModulus());
+	} catch( std::exception& e ) {
+		state.SkipWithError( e.what() );
 	}
 
 	while (state.KeepRunning()) {
@@ -97,26 +92,24 @@ void BM_encrypt(benchmark::State& state) { // benchmark
 	Ciphertext<Poly> ciphertext;
 	Plaintext plaintext;
 
-	if( state.thread_index == 0 ) {
-		try {
-			cc = CryptoContextHelper::getNewContext(parms[state.range(0)]);
-			cc->Enable(ENCRYPTION);
-			cc->Enable(PRE);
-		} catch( std::exception& e ) {
-			state.SkipWithError( e.what() );
-			return;
-		}
+	try {
+		cc = CryptoContextHelper::getNewContext(parms[state.range(0)]);
+		cc->Enable(ENCRYPTION);
+		cc->Enable(PRE);
 
-		try {
 		ChineseRemainderTransformFTT<BigVector>::PreCompute(cc->GetRootOfUnity(),
 				cc->GetCyclotomicOrder(),
 				cc->GetModulus());
-		} catch( ... ) {}
-
-		vector<int64_t> input(cc->GetRingDimension(),0);
-		fillrandint(input, cc->GetEncodingParams()->GetPlaintextModulus());
-		plaintext = cc->MakeCoefPackedPlaintext(input);
+	} catch( std::exception& e ) {
+		state.SkipWithError( e.what() );
 	}
+
+	if( !state.KeepRunning() )
+		return;
+
+	vector<int64_t> input(cc->GetRingDimension(),0);
+	fillrandint(input, cc->GetEncodingParams()->GetPlaintextModulus());
+	plaintext = cc->MakeCoefPackedPlaintext(input);
 
 	while (state.KeepRunning()) {
 		state.PauseTiming();
@@ -136,26 +129,24 @@ void BM_decrypt(benchmark::State& state) { // benchmark
 	Plaintext plaintext;
 	Plaintext plaintextNew;
 
-	if( state.thread_index == 0 ) {
-		try {
-			cc = CryptoContextHelper::getNewContext(parms[state.range(0)]);
-			cc->Enable(ENCRYPTION);
-			cc->Enable(PRE);
-		} catch( std::exception& e ) {
-			state.SkipWithError( e.what() );
-			return;
-		}
+	try {
+		cc = CryptoContextHelper::getNewContext(parms[state.range(0)]);
+		cc->Enable(ENCRYPTION);
+		cc->Enable(PRE);
 
-		try {
 		ChineseRemainderTransformFTT<BigVector>::PreCompute(cc->GetRootOfUnity(),
 				cc->GetCyclotomicOrder(),
 				cc->GetModulus());
-		} catch( ... ) {}
-
-		vector<int64_t> input(cc->GetRingDimension(),0);
-		fillrandint(input, cc->GetEncodingParams()->GetPlaintextModulus());
-		plaintext = cc->MakeCoefPackedPlaintext(input);
+	} catch( std::exception& e ) {
+		state.SkipWithError( e.what() );
 	}
+
+	if( !state.KeepRunning() )
+		return;
+
+	vector<int64_t> input(cc->GetRingDimension(),0);
+	fillrandint(input, cc->GetEncodingParams()->GetPlaintextModulus());
+	plaintext = cc->MakeCoefPackedPlaintext(input);
 
 	while (state.KeepRunning()) {
 		state.PauseTiming();
@@ -173,23 +164,17 @@ void BM_rekeygen(benchmark::State& state) { // benchmark
 	CryptoContext<Poly> cc;
 	LPKeyPair<Poly> kp;
 
-	if( state.thread_index == 0 ) {
-		try {
-			cc = CryptoContextHelper::getNewContext(parms[state.range(0)]);
-			cc->Enable(ENCRYPTION);
-			cc->Enable(PRE);
-			cc->Enable(SHE);
-		} catch( std::exception& e ) {
-			state.SkipWithError( e.what() );
-			return;
-		}
+	try {
+		cc = CryptoContextHelper::getNewContext(parms[state.range(0)]);
+		cc->Enable(ENCRYPTION);
+		cc->Enable(PRE);
+		cc->Enable(SHE);
 
-		try {
 		ChineseRemainderTransformFTT<BigVector>::PreCompute(cc->GetRootOfUnity(),
 				cc->GetCyclotomicOrder(),
 				cc->GetModulus());
-		} catch( ... ) {
-		}
+	} catch( std::exception& e ) {
+		state.SkipWithError( e.what() );
 	}
 
 	while (state.KeepRunning()) {
@@ -218,26 +203,24 @@ void BM_reencrypt(benchmark::State& state) { // benchmark
 	Plaintext plaintext;
 	Plaintext plaintextNew;
 
-	if( state.thread_index == 0 ) {
-		try {
-			cc = CryptoContextHelper::getNewContext(parms[state.range(0)]);
-			cc->Enable(ENCRYPTION);
-			cc->Enable(PRE);
-		} catch( std::exception& e ) {
-			state.SkipWithError( e.what() );
-			return;
-		}
+	try {
+		cc = CryptoContextHelper::getNewContext(parms[state.range(0)]);
+		cc->Enable(ENCRYPTION);
+		cc->Enable(PRE);
 
-		try {
 		ChineseRemainderTransformFTT<BigVector>::PreCompute(cc->GetRootOfUnity(),
 				cc->GetCyclotomicOrder(),
 				cc->GetModulus());
-		} catch( ... ) {}
-
-		vector<int64_t> input(cc->GetRingDimension(),0);
-		fillrandint(input, cc->GetEncodingParams()->GetPlaintextModulus());
-		plaintext = cc->MakeCoefPackedPlaintext(input);
+	} catch( std::exception& e ) {
+		state.SkipWithError( e.what() );
 	}
+
+	if( !state.KeepRunning() )
+		return;
+
+	vector<int64_t> input(cc->GetRingDimension(),0);
+	fillrandint(input, cc->GetEncodingParams()->GetPlaintextModulus());
+	plaintext = cc->MakeCoefPackedPlaintext(input);
 
 	LPEvalKey<Poly> evalKey;
 
@@ -249,7 +232,7 @@ void BM_reencrypt(benchmark::State& state) { // benchmark
 			evalKey = cc->ReKeyGen(kp2.publicKey, kp.secretKey);
 		} catch( std::exception& e ) {
 			state.SkipWithError( e.what() );
-			continue;
+			break;
 		}
 
 		ciphertext = cc->Encrypt(kp.publicKey, plaintext);
@@ -262,5 +245,5 @@ void BM_reencrypt(benchmark::State& state) { // benchmark
 
 BENCHMARK_PARMS(BM_reencrypt)
 
-BENCHMARK_MAIN()
+BENCHMARK_MAIN();
 

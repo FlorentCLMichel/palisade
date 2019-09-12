@@ -1,8 +1,8 @@
 /*
  * @file 
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -332,7 +332,7 @@ void method_primitive_root_of_unity_VERY_LONG(const string& msg) {
 
   //Exception handling
   {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	int m = 32;
 	T modulus1("67108913"), modulus2("17729"), modulus3("2097169"), modulus4("8353"), modulus5("8369");
 

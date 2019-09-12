@@ -3,10 +3,6 @@ PALISADE Lattice Cryptography Library
 
 [License Information](License.md)
 
-[Contact Information](Contact.md)
-
-[Library Contributors](Contributors.md)
-
 Document Description
 ===================
 This document is intended to describe the overall design, design considerations and structure of the lattice directory in the PALISADE lattice crypto library.
@@ -64,11 +60,11 @@ FORMAT
 ------
 The coefficients of the polynomial ring, in their initial form, are just coefficients.
 Translated into one of Poly or DCRTPoly, can be simply seen
-as vector's representing polynomial rings.
+as vector's representing polynomial ring elements.
 
 We internally represent polynomial ring elements as being either in coefficient or evaluation format.  The initial or raw format, is noted as COEFFICIENT throughout the code. By applying the Chinese-Remainder-Transform (CRT), which is a Number Theoretic Transform (NTT)  and variant of the Discrete Fourier Transform (DFT), we convert the ring elements into the EVALUATION format. The EVALUATION format, with respect to multiplying two or more ring polynomials, allows us to do element-wise multiplication on the vectors.
 
-Note that it is generally computationally less expensive to carry on all operations in the evaluation former.  However, the CRT and inverse CRT operations take O(nlogn) time using current best known algorithms, where n is the ring dimension.
+Note that it is generally computationally less expensive to carry on all operations in the evaluation form.  However, the CRT and inverse CRT operations take O(nlogn) time using current best known algorithms, where n is the ring dimension.
 
 ASSUMPTIONS
 ===========

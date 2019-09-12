@@ -1,8 +1,8 @@
 /**
  * @file stst.h -- definitions for StehleSteinfeld Crypto Params
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -41,19 +41,6 @@
 #include "palisade.h"
 
 namespace lbcrypto {
-
-	//forward declarations
-	template <class Element>
-	class LPAlgorithmLTV;
-
-	template <class Element>
-	class LPPublicKeyEncryptionSchemeLTV;
-
-	template <class Element>
-	class LPAlgorithmPRELTV;
-
-	template <class Element>
-	class LPAlgorithmSHELTV;
 
 /**
  * @brief This is the parameters class for the Stehle-Stenfeld encryption scheme.
@@ -96,7 +83,7 @@ public:
 	 * @param &plaintextModulus Plaintext modulus, typically denoted as p in most publications.
 	 * @param distributionParameter Noise distribution parameter, typically denoted as /sigma in most publications.  Community standards typically call for a value of 3 to 6. Lower values provide more room for computation while larger values provide more security.
 	 * @param assuranceMeasure Assurance level, typically denoted as w in most applications.  This is oftern perceived as a fudge factor in the literature, with a typical value of 9.
-	 * @param securityLevel Security level as Root Hermite Factor.  We use the Root Hermite Factor representation of the security level to better conform with US ITAR and EAR export regulations.  This is typically represented as /delta in the literature.  Typically a Root Hermite Factor of 1.006 or less provides reasonable security for RLWE crypto schemes, although extra care is need for the LTV scheme because LTV makes an additional security assumption that make it suceptible to subfield lattice attacks.
+	 * @param securityLevel Security level as Root Hermite Factor.  We use the Root Hermite Factor representation of the security level to better conform with US ITAR and EAR export regulations.  This is typically represented as /delta in the literature.  Typically a Root Hermite Factor of 1.006 or less provides reasonable security for RLWE crypto schemes.
 	 * @param relinWindow The size of the relinearization window.  This is relevant when using this scheme for proxy re-encryption, and the value is denoted as r in the literature.
 	 * @param depth of supported computation circuit (not used; for future use)
 	 */
@@ -132,7 +119,7 @@ public:
 	* @param &encodingParams Plaintext space parameters.
 	* @param distributionParameter Noise distribution parameter, typically denoted as /sigma in most publications.  Community standards typically call for a value of 3 to 6. Lower values provide more room for computation while larger values provide more security.
 	* @param assuranceMeasure Assurance level, typically denoted as w in most applications.  This is oftern perceived as a fudge factor in the literature, with a typical value of 9.
-	* @param securityLevel Security level as Root Hermite Factor.  We use the Root Hermite Factor representation of the security level to better conform with US ITAR and EAR export regulations.  This is typically represented as /delta in the literature.  Typically a Root Hermite Factor of 1.006 or less provides reasonable security for RLWE crypto schemes, although extra care is need for the LTV scheme because LTV makes an additional security assumption that make it suceptible to subfield lattice attacks.
+	* @param securityLevel Security level as Root Hermite Factor.  We use the Root Hermite Factor representation of the security level to better conform with US ITAR and EAR export regulations.  This is typically represented as /delta in the literature.  Typically a Root Hermite Factor of 1.006 or less provides reasonable security for RLWE crypto schemes.
 	* @param relinWindow The size of the relinearization window.  This is relevant when using this scheme for proxy re-encryption, and the value is denoted as r in the literature.
 	* @param depth of supported computation circuit (not used; for future use)
 	*/
@@ -183,47 +170,6 @@ public:
 	}
 
 	/**
-	 * Serialize the object into a Serialized
-	 * @param serObj is used to store the serialized result. It MUST be a rapidjson Object (SetObject());
-	 * @return true if successfully serialized
-	 */
-	bool Serialize(Serialized* serObj) const {
-		if( !serObj->IsObject() )
-			return false;
-
-		SerialItem cryptoParamsMap(rapidjson::kObjectType);
-		if( this->SerializeRLWE(serObj, cryptoParamsMap) == false )
-			return false;
-
-		cryptoParamsMap.AddMember("DistributionParameterStSt", std::to_string(this->GetDistributionParameterStSt()), serObj->GetAllocator());
-
-		serObj->AddMember("LPCryptoParametersStehleSteinfeld", cryptoParamsMap.Move(), serObj->GetAllocator());
-		serObj->AddMember("LPCryptoParametersType", "LPCryptoParametersStehleSteinfeld", serObj->GetAllocator());
-
-		return true;
-	}
-
-	/**
-	 * Populate the object from the deserialization of the Setialized
-	 * @param serObj contains the serialized object
-	 * @return true on success
-	 */
-	bool Deserialize(const Serialized& serObj) {
-		Serialized::ConstMemberIterator mIter = serObj.FindMember("LPCryptoParametersStehleSteinfeld");
-		if( mIter == serObj.MemberEnd() ) return false;
-
-		if( this->DeserializeRLWE(mIter) == false )
-			return false;
-
-		SerialItem::ConstMemberIterator pIt;
-		if( (pIt = mIter->value.FindMember("DistributionParameterStSt")) == mIter->value.MemberEnd() )
-			return false;
-		float distributionParameterStSt = atof(pIt->value.GetString());
-		this->SetDistributionParameterStSt(distributionParameterStSt);
-		return true;
-	}
-
-	/**
 	 * == operator to compare to this instance of LPCryptoParametersStehleSteinfeld object.
 	 *
 	 * @param &rhs LPCryptoParameters to check equality against.
@@ -242,6 +188,23 @@ public:
 
 		os << " StSt distribution parm: " << m_distributionParameterStSt;
 	}
+
+	template <class Archive>
+	void save ( Archive & ar ) const
+	{
+	    ar( ::cereal::base_class<LPCryptoParametersRLWE<Element>>( this ) );
+	    ar( ::cereal::make_nvp("dp", m_distributionParameterStSt) );
+	}
+
+	template <class Archive>
+	void load ( Archive & ar )
+	{
+	    ar( ::cereal::base_class<LPCryptoParametersRLWE<Element>>( this ) );
+	    ar( ::cereal::make_nvp("dp", m_distributionParameterStSt) );
+		this->SetDistributionParameterStSt(m_distributionParameterStSt);
+	}
+
+	std::string SerializedObjectName() const { return "StStSchemeParameters"; }
 
 private:
 	//standard deviation in Discrete Gaussian Distribution used for Key Generation
@@ -262,145 +225,334 @@ private:
 * @tparam Element a ring element.
 */
 template <class Element>
-class LPAlgorithmStSt : public LPAlgorithmLTV<Element> {
+class LPAlgorithmStSt : public LPEncryptionAlgorithm<Element> {
 public:
 
 	/**
 	* Default constructor
 	*/
-	LPAlgorithmStSt() : LPAlgorithmLTV<Element>() {};
+	LPAlgorithmStSt() {};
+
+	/**
+	 * Encrypt method for the StSt Scheme.  See the class description for citations on where the algorithms were
+	 * taken from.
+	 *
+	 * @param publicKey The encryption key.
+	 * @param plaintext copy of Plaintext to be encrypted.
+	 * @param doEncryption encrypts if true, embeds (encodes) the plaintext into cryptocontext if false
+	 * @return A shared pointer to the encrypted Ciphertext.
+	 */
+	Ciphertext<Element> Encrypt(const LPPublicKey<Element> publicKey, Element plaintext) const;
+
+	/**
+	 * Encrypt method for the StSt Scheme.  See the class description for citations on where the algorithms were
+	 * taken from.
+	 *
+	 * @param privateKey The encryption key.
+	 * @param plaintext Plaintext to be encrypted.
+	 * @param doEncryption encrypts if true, embeds (encodes) the plaintext into cryptocontext if false
+	 * @return A shared pointer to the encrypted Ciphertext.
+	 */
+	Ciphertext<Element> Encrypt(const LPPrivateKey<Element> privateKey, Element plaintext) const;
+
+	/**
+	 * Decrypt method for the StSt Scheme.  See the class description for citations on where the algorithms were
+	 * taken from.
+	 *
+	 * @param privateKey Decryption key.
+	 * @param ciphertext Diphertext to be decrypted.
+	 * @param plaintext Plaintext result of Decrypt operation.
+	 * @return DecryptResult indicating success or failure and number of bytes decrypted.
+	 */
+	DecryptResult Decrypt(const LPPrivateKey<Element> privateKey,
+		ConstCiphertext<Element> ciphertext,
+		NativePoly *plaintext) const;
 
 	/**
 	 * Key Generation method for the StehleSteinfeld scheme.
-	 * This method provides a "sparse" mode where all even indices are non-zero
-	 * and odd indices are set to zero.  This sparse mode can be used to generate keys used for the LTV ring
-	 * switching method.  We do not current support the generation of odd indices with even indices set to zero.
-	 * See the class description for citations on where the algorithms were taken from.
 	 *
 	 * @param cc Drypto context in which to generate a key pair.
-	 * @param makeSparse True to generate a saprse key pair.
+	 * @param makeSparse set to true if ring reduce by a factor of 2 is to be used.  Generally this should always be false.
 	 * @return Public and private key pair.
 	 */
-	LPKeyPair<Element> KeyGen(CryptoContext<Element> cc, bool makeSparse=false) { 		//makeSparse is not used
+	LPKeyPair<Element> KeyGen(CryptoContext<Element> cc, bool makeSparse=false);
 
-		LPKeyPair<Element>	kp(new LPPublicKeyImpl<Element>(cc), new LPPrivateKeyImpl<Element>(cc));
-
-		const shared_ptr<LPCryptoParametersStehleSteinfeld<Element>> cryptoParams = std::dynamic_pointer_cast<LPCryptoParametersStehleSteinfeld<Element>>(cc->GetCryptoParameters());
-
-		const auto &p = cryptoParams->GetPlaintextModulus();
-
-		const typename Element::DggType &dgg = cryptoParams->GetDiscreteGaussianGeneratorStSt();
-
-		Element f(dgg, cryptoParams->GetElementParams(), Format::COEFFICIENT);
-
-		f = p*f;
-
-		f = f + 1;
-
-		f.SwitchFormat();
-
-		//check if inverse does not exist
-		while (!f.InverseExists())
-		{
-			//std::cout << "inverse does not exist" << std::endl;
-			Element temp(dgg, cryptoParams->GetElementParams(), Format::COEFFICIENT);
-			f = temp;
-			f = p*f;
-			f = f + 1;
-			f.SwitchFormat();
-		}
-
-		kp.secretKey->SetPrivateElement(f);
-
-		Element g(dgg, cryptoParams->GetElementParams(), Format::COEFFICIENT);
-
-		g.SwitchFormat();
-
-		//public key is generated
-		kp.publicKey->SetPublicElementAtIndex(0, cryptoParams->GetPlaintextModulus()*g*kp.secretKey->GetPrivateElement().MultiplicativeInverse());
-
-		return kp;
-	}
 };
 
 template <class Element>
-class LPAlgorithmSHEStSt : public LPAlgorithmSHELTV<Element> {
+class LPAlgorithmSHEStSt : public LPSHEAlgorithm<Element> {
+public:
+
+		/**
+		* Default constructor
+		*/
+		LPAlgorithmSHEStSt() {};
+
+		/**
+		* Function for evaluation addition on ciphertext.
+		* See the class description for citations on where the algorithms were taken from.
+		*
+		* @param ciphertext1 The first input ciphertext.
+		* @param ciphertext2 The second input ciphertext.
+		* @return A shared pointer to the ciphertext which is the EvalAdd of the two inputs.
+		*/
+		Ciphertext<Element> EvalAdd(ConstCiphertext<Element> ciphertext1,
+				ConstCiphertext<Element> ciphertext2) const;
+
+		/**
+		* Function for evaluation addition on ciphertext.
+		* See the class description for citations on where the algorithms were taken from.
+		*
+		* @param ciphertext The input ciphertext.
+		* @param plaintext The input plaintext.
+		* @return A shared pointer to the ciphertext which is the EvalAdd of the two inputs.
+		*/
+		Ciphertext<Element> EvalAdd(ConstCiphertext<Element> ciphertext,
+				ConstPlaintext plaintext) const;
+
+		/**
+		* Function for homomorphic subtraction of ciphertexts.
+		* See the class description for citations on where the algorithms were taken from.
+		*
+		* @param ciphertext1 The first input ciphertext.
+		* @param ciphertext2 The second input ciphertext.
+		* @return A shared pointer to the ciphertext which is the EvalAdd of the two inputs.
+		*/
+		Ciphertext<Element> EvalSub(ConstCiphertext<Element> ciphertext1,
+			ConstCiphertext<Element> ciphertext2) const;
+
+		/**
+		* Function for homomorphic subtraction of ciphertexts.
+		* See the class description for citations on where the algorithms were taken from.
+		*
+		* @param ciphertext The input ciphertext.
+		* @param plaintext The input plaintext.
+		* @return A shared pointer to the ciphertext which is the EvalAdd of the two inputs.
+		*/
+		Ciphertext<Element> EvalSub(ConstCiphertext<Element> ciphertext,
+				ConstPlaintext plaintext) const;
+
+		/**
+		* Function for evaluating multiplication on ciphertext.
+		* See the class description for citations on where the algorithms were taken from.
+		*
+		* @param ciphertext1 The first input ciphertext.
+		* @param ciphertext2 The second input ciphertext.
+		* @return A shared pointer to the ciphertext which is the EvalMult of the two inputs.
+		*/
+		Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext1,
+			ConstCiphertext<Element> ciphertext2) const {
+			std::string errMsg = "LPAlgorithmSHEStSt::EvalMult is not implemented for StSt SHE Scheme.";
+			throw std::runtime_error(errMsg);
+		}
+
+		/**
+		* Function for multiplying a ciphertext by plaintext.
+		* See the class description for citations on where the algorithms were taken from.
+		*
+		* @param ciphertext Input ciphertext.
+		* @param plaintext input plaintext.
+		* @return A shared pointer to the ciphertext which is the EvalMult of the two inputs.
+		*/
+		Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext,
+			ConstPlaintext plaintext) const;
+
+
+		/**
+		* Function for evaluating multiplication on ciphertext, but with a key switch performed after the
+		* EvalMult using the Evaluation Key input.
+		* See the class description for citations on where the algorithms were taken from.
+		*
+		* @param ciphertext1 The first input ciphertext.
+		* @param ciphertext2 The second input ciphertext.
+		* @param evalKey The evaluation key input.
+		* @return A shared pointer to the ciphertext which is the EvalMult of the two inputs.
+		*/
+		Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext1,
+			ConstCiphertext<Element> ciphertext2,
+			const LPEvalKey<Element> evalKey) const {
+			std::string errMsg = "LPAlgorithmSHEStSt::EvalMult is not implemented for StSt SHE Scheme.";
+			throw std::runtime_error(errMsg);
+		}
+
+		/**
+		* Unimplemented function to support  a multiplication with depth larger than 2 for the Stehle-Steinfeld scheme.
+		*
+		* @param ciphertext1 The first input ciphertext.
+		* @param ciphertext2 The second input ciphertext.
+		* @param evalKey The evaluation key input.
+		* @return A shared pointer to the ciphertext which is the EvalMult of the two inputs.
+		*/
+		Ciphertext<Element> EvalMultAndRelinearize(ConstCiphertext<Element> ciphertext1,
+			ConstCiphertext<Element> ciphertext2,
+			const vector<LPEvalKey<Element>> &ek) const {
+			std::string errMsg = "LPAlgorithmStSt::EvalMultAndRelinearize is not implemented for the Stehle-Steinfeld Scheme.";
+			throw std::runtime_error(errMsg);
+		}
+
+		/**
+		* Function for homomorphic negation of ciphertexts.
+		* At a high level, this operation substracts the plaintext value encrypted in the ciphertext from the
+		* plaintext modulus p.
+		* See the class description for citations on where the algorithms were taken from.
+		*
+		* @param ct The input ciphertext.
+		* @return A shared pointer to a new ciphertext which is the negation of the input.
+		*/
+		Ciphertext<Element> EvalNegate(ConstCiphertext<Element> ct) const;
+
+		/**
+		* Unimplemented function to generate an evaluation key for the Stehle-Steinfeld scheme.
+		* EvalMult is currently unsopported in the Stehle-Steinfeld scheme and there is no currently known method to
+		* support EvalMult in the Stehle-Steinfeld scheme.
+		*
+		* @param &k1 Original private key used for encryption.
+		* @param &k2 New private key to generate the keyswitch hint.
+		* @result A shared point to the resulting key switch hint.
+		*/
+		LPEvalKey<Element> KeySwitchGen(
+			const LPPrivateKey<Element> k1,
+			const LPPrivateKey<Element> k2) const {
+			std::string errMsg = "LPAlgorithmStSt::KeySwitchGen is not implemented for the Stehle-Steinfeld Scheme.";
+			throw std::runtime_error(errMsg);
+		}
+
+		/**
+		* Method for KeySwitching based on a KeySwitchHint.
+		* See the class description for citations on where the algorithms were taken from.
+		* This method uses a key switch hint which is not secure, even without the subfield lattice attacks.
+		* We recommend that one uses key switch hints only for scenarios where security is not of critical
+		* importance.
+		*
+		* @param keySwitchHint Hint required to perform the ciphertext switching.
+		* @param cipherText Original ciphertext to perform switching on.
+		* @result A shared pointer to the resulting ciphertext.
+		*/
+		Ciphertext<Element> KeySwitch(
+			const LPEvalKey<Element> keySwitchHint,
+			ConstCiphertext<Element> cipherText) const {
+			std::string errMsg = "LPAlgorithmStSt::KeySwitch is not implemented for the Stehle-Steinfeld Scheme.";
+			throw std::runtime_error(errMsg);
+		}
+
+		/**
+		* Method for KeySwitching based on RLWE relinearization.
+		* Function to generate 1..log(q) encryptions for each bit of the original private key
+		*
+		* @param &newPublicKey encryption key for the new ciphertext.
+		* @param origPrivateKey original private key used for decryption.
+		*/
+		LPEvalKey<Element> KeySwitchRelinGen(const LPPublicKey<Element> newPublicKey,
+			const LPPrivateKey<Element> origPrivateKey) const;
+
+		/**
+		* Method for KeySwitching based on RLWE relinearization
+		*
+		* @param evalKey the evaluation key.
+		* @param ciphertext the input ciphertext.
+		* @return the resulting Ciphertext
+		*/
+		Ciphertext<Element> KeySwitchRelin(const LPEvalKey<Element> evalKey,
+			ConstCiphertext<Element> ciphertext) const;
+
+		/**
+		* Unimplemented function to generate an evaluation key for the Stehle-Steinfeld scheme.
+		* EvalMult is currently unsopported in the Stehle-Steinfeld scheme and there is no currently known method to
+		* support EvalMult in the Stehle-Steinfeld scheme.
+		*
+		* @param originalPrivateKey private key to start from when key switching.
+		* @return resulting evalkeyswitch hint
+		*/
+		LPEvalKey<Element> EvalMultKeyGen(const LPPrivateKey<Element> originalPrivateKey) const {
+			std::string errMsg = "LPAlgorithmStSt::EvalMultKeyGen is not implemented for the Stehle-Steinfeld Scheme.";
+			throw std::runtime_error(errMsg);
+		}
+
+		/**
+		* Unimplemented function to generate an evaluation key for the Stehle-Steinfeld scheme.
+		*
+		* @param originalPrivateKey private key to start from when key switching.
+		* @return resulting evalkeyswitch hint
+		*/
+		vector<LPEvalKey<Element>> EvalMultKeysGen(const LPPrivateKey<Element> originalPrivateKey) const {
+			std::string errMsg = "LPAlgorithmStSt::EvalMultKeysGen is not implemented for the Stehle-Steinfeld Scheme.";
+			throw std::runtime_error(errMsg);
+		}
+
+		/**
+		* Function for evaluating automorphism of ciphertext at index i
+		*
+		* @param ciphertext the input ciphertext.
+		* @param i automorphism index
+		* @param &evalKeys - reference to the map of evaluation keys generated by EvalAutomorphismKeyGen.
+		* @return resulting ciphertext
+		*/
+		Ciphertext<Element> EvalAutomorphism(ConstCiphertext<Element> ciphertext, usint i,
+			const std::map<usint, LPEvalKey<Element>> &evalKeys) const {
+			throw std::runtime_error("LPAlgorithmSHEStSt::EvalAutomorphism is not implemented for Stehle-Steinfeld SHE Scheme.");
+		}
+
+		/**
+		* Generate automophism keys for a given private key.  Thess methods are not currently supported.
+		*/
+		shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAutomorphismKeyGen(const LPPublicKey<Element> publicKey,
+			const LPPrivateKey<Element> origPrivateKey, const std::vector<usint> &indexList) const {
+			throw std::runtime_error("LPAlgorithmSHEStSt::EvalAutomorphismKeyGen is not implemented for Stehle-Steinfeld SHE Scheme.");
+		}
+
+		shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAutomorphismKeyGen(const LPPrivateKey<Element> privateKey,
+			const std::vector<usint> &indexList) const {
+			throw std::runtime_error("LPAlgorithmSHEStSt::EvalAutomorphismKeyGen is not implemented for Stehle-Steinfeld SHE Scheme.");
+		}
+
+
+};
+
+/**
+ * @brief This is the algorithms class for the Proxy Re-Encryption methods Re-Encryption Key Generation (ReKeyGen) and Re-Encryption (ReEncrypt) for the StSt encryption scheme.
+ *
+ * This basic public key scheme is defined here:
+ *   - López-Alt, Adriana, Eran Tromer, and Vinod Vaikuntanathan. "On-the-fly multiparty computation on the cloud via multikey fully homomorphic encryption." Proceedings of the forty-fourth annual ACM symposium on Theory of computing. ACM, 2012.
+ *
+ * Our PRE design and algorithms are informed by the design here:
+ *   - Polyakov, Yuriy, Kurt Rohloff, Gyana Sahu and Vinod Vaikuntanathan. Fast Proxy Re-Encryption for Publish/Subscribe Systems. Under Review in ACM Transactions on Privacy and Security (ACM TOPS).
+*
+* @tparam Element a ring element.
+*/
+template <class Element>
+class LPAlgorithmPREStSt : public LPPREAlgorithm<Element> {
 public:
 
 	/**
 	* Default constructor
 	*/
-	LPAlgorithmSHEStSt() : LPAlgorithmSHELTV<Element>() {};
+	LPAlgorithmPREStSt() {}
+
 	/**
-	* Unimplemented function to generate an evaluation key for the Stehle-Steinfeld scheme. 
-	* EvalMult is currently unsopported in the Stehle-Steinfeld scheme and there is no currently known method to 
-	* support EvalMult in the Stehle-Steinfeld scheme.
+	* Function to generate a re-encryption key as 1..log(q) encryptions for each bit of the original private key
+	* This variant that uses the new public key with the original secret key.
 	*
-	* @param originalPrivateKey private key to start from when key switching.
-	* @return resulting evalkeyswitch hint
+	* @param newKey new private key for the new ciphertext.
+	* @param origPrivateKey original private key used for decryption.
+	* @return evalKey the evaluation key for switching the ciphertext to be decryptable by new private key.
 	*/
-	LPEvalKey<Element> EvalMultKeyGen(const LPPrivateKey<Element> originalPrivateKey) const {
-		std::string errMsg = "LPAlgorithmStSt::EvalMultKeyGen is not implemented for the Stehle-Steinfeld Scheme.";
-		throw std::runtime_error(errMsg);
-	}
+	LPEvalKey<Element> ReKeyGen(const LPPublicKey<Element> newKey,
+		const LPPrivateKey<Element> origPrivateKey) const;
 
 	/**
-	* Unimplemented function to generate an evaluation key for the Stehle-Steinfeld scheme.
+	* Function to define the interface for re-encypting ciphertext using the array generated by ProxyGen.
+	* See the class description for citations on where the algorithms were taken from.
 	*
-	* @param originalPrivateKey private key to start from when key switching.
-	* @return resulting evalkeyswitch hint
+	* @param evalKey the evaluation key.
+	* @param ciphertext the input ciphertext.
+	* @param publicKey the public key of the recipient of the re-encrypted ciphertext.
+	* @return A shared pointer to the resulting ciphertext.
 	*/
-	vector<LPEvalKey<Element>> EvalMultKeysGen(const LPPrivateKey<Element> originalPrivateKey) const {
-		std::string errMsg = "LPAlgorithmStSt::EvalMultKeysGen is not implemented for the Stehle-Steinfeld Scheme.";
-		throw std::runtime_error(errMsg);
-	}
-
-	/**
-	* Unimplemented function to support  a multiplication with depth larger than 2 for the Stehle-Steinfeld scheme.
-	*
-	* @param ciphertext1 The first input ciphertext.
-	* @param ciphertext2 The second input ciphertext.
-	* @param evalKey The evaluation key input.
-	* @return A shared pointer to the ciphertext which is the EvalMult of the two inputs.
-	*/
-	Ciphertext<Element> EvalMultAndRelinearize(ConstCiphertext<Element> ciphertext1,
-		ConstCiphertext<Element> ciphertext2,
-		const vector<LPEvalKey<Element>> &ek) const {
-		std::string errMsg = "LPAlgorithmStSt::EvalMultAndRelinearize is not implemented for the Stehle-Steinfeld Scheme.";
-		throw std::runtime_error(errMsg);
-	}
-
-	/**
-	* Unimplemented function to generate an evaluation key for the Stehle-Steinfeld scheme. 
-	* EvalMult is currently unsopported in the Stehle-Steinfeld scheme and there is no currently known method to 
-	* support EvalMult in the Stehle-Steinfeld scheme.
-	*
-	* @param &k1 Original private key used for encryption.
-	* @param &k2 New private key to generate the keyswitch hint.
-	* @result A shared point to the resulting key switch hint.
-	*/
-	LPEvalKey<Element> KeySwitchGen(
-		const LPPrivateKey<Element> k1,
-		const LPPrivateKey<Element> k2) const {
-		std::string errMsg = "LPAlgorithmStSt::KeySwitchGen is not implemented for the Stehle-Steinfeld Scheme.";
-		throw std::runtime_error(errMsg);
-	}
-
-
-	/**
-	* Generate automophism keys for a given private key.  Thess methods are not currently supported.
-	*/
-	shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAutomorphismKeyGen(const LPPublicKey<Element> publicKey,
-		const LPPrivateKey<Element> origPrivateKey, const std::vector<usint> &indexList) const {
-		throw std::runtime_error("LPAlgorithmSHELTV::EvalAutomorphismKeyGen is not implemented for Stehle-Steinfeld SHE Scheme.");
-	}
-
-	shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAutomorphismKeyGen(const LPPrivateKey<Element> privateKey,
-		const std::vector<usint> &indexList) const {
-		throw std::runtime_error("LPAlgorithmSHELTV::EvalAutomorphismKeyGen is not implemented for Stehle-Steinfeld SHE Scheme.");
-	}
-
+	Ciphertext<Element> ReEncrypt(const LPEvalKey<Element> evalKey,
+		ConstCiphertext<Element> ciphertext,
+		const LPPublicKey<Element> publicKey = nullptr) const;
 };
+
 
 /**
 * @brief Main public key encryption scheme for Stehle-Stenfeld scheme implementation,
@@ -418,12 +570,12 @@ public:
 * @tparam Element a ring element.
 */
 template <class Element>
-class LPPublicKeyEncryptionSchemeStehleSteinfeld : public LPPublicKeyEncryptionSchemeLTV<Element> {
+class LPPublicKeyEncryptionSchemeStehleSteinfeld : public LPPublicKeyEncryptionScheme<Element> {
 public:
 	/**
 	* Inherited constructor
 	*/
-	LPPublicKeyEncryptionSchemeStehleSteinfeld() : LPPublicKeyEncryptionSchemeLTV<Element>() {}
+	LPPublicKeyEncryptionSchemeStehleSteinfeld() : LPPublicKeyEncryptionScheme<Element>() {}
 
 	bool operator==(const LPPublicKeyEncryptionScheme<Element>& sch) const {
 		if( dynamic_cast<const LPPublicKeyEncryptionSchemeStehleSteinfeld<Element> *>(&sch) == 0 )
@@ -441,19 +593,19 @@ public:
 		{
 		case ENCRYPTION:
 			if (this->m_algorithmEncryption == NULL)
-				this->m_algorithmEncryption = new LPAlgorithmStSt<Element>();
+				this->m_algorithmEncryption.reset( new LPAlgorithmStSt<Element>() );
 			break;
 		case PRE:
 			if (this->m_algorithmEncryption == NULL)
-				this->m_algorithmEncryption = new LPAlgorithmStSt<Element>();
+				this->m_algorithmEncryption.reset( new LPAlgorithmStSt<Element>() );
 			if (this->m_algorithmPRE == NULL)
-				this->m_algorithmPRE = new LPAlgorithmPRELTV<Element>();
+				this->m_algorithmPRE.reset( new LPAlgorithmPREStSt<Element>() );
 			break;
 		case SHE:
 			if (this->m_algorithmEncryption == NULL)
-				this->m_algorithmEncryption = new LPAlgorithmStSt<Element>();
+				this->m_algorithmEncryption.reset( new LPAlgorithmStSt<Element>() );
 			if (this->m_algorithmSHE == NULL)
-				this->m_algorithmSHE = new LPAlgorithmSHEStSt<Element>();
+				this->m_algorithmSHE.reset( new LPAlgorithmSHEStSt<Element>() );
 			break;
 		case MULTIPARTY:
 			throw std::logic_error("MULTIPARTY feature not supported for StehleSteinfeld scheme");
@@ -463,6 +615,20 @@ public:
 			throw std::logic_error("LEVELEDSHE feature not supported for StehleSteinfeld scheme");
 		}
 	}
+
+	template <class Archive>
+	void save( Archive & ar, std::uint32_t const version ) const
+	{
+	    ar( ::cereal::base_class<LPPublicKeyEncryptionScheme<Element>>( this ) );
+	}
+
+	template <class Archive>
+	void load( Archive & ar, std::uint32_t const version )
+	{
+	    ar( ::cereal::base_class<LPPublicKeyEncryptionScheme<Element>>( this ) );
+	}
+
+	std::string SerializedObjectName() const { return "StStScheme"; }
 };
 
 

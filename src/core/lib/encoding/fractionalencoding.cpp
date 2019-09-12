@@ -1,9 +1,9 @@
 /**
  * @file fractionalencoding.cpp EXPERIMENTAL FEATURE: Represents and defines a limited version of the fractional encoder.
  * Currently it is simply an extended version of integer encoding with division supported.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:

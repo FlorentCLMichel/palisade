@@ -1,8 +1,8 @@
 /**
  * @file encodingparams.h Represents and defines parameters for plaintext encoding.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -41,7 +41,7 @@ typedef uint64_t							PlaintextModulus;
  * @class EncodingParamsImpl
  * @brief All parameters for plaintext encodings into ciphertext space.
  */
-class EncodingParamsImpl : public Serializable
+class EncodingParamsImpl : public lbcrypto::Serializable
 {
 public:
 
@@ -58,9 +58,9 @@ public:
 		PlaintextModulus plaintextModulus = 0,
 		uint32_t batchSize = 0,
 		uint32_t plaintextGenerator = 0,
-		const NativeInteger& plaintextRootOfUnity = NativeInteger(0),
-		const NativeInteger& plaintextBigModulus = NativeInteger(0),
-		const NativeInteger& plaintextBigRootOfUnity = NativeInteger(0)) {
+		NativeInteger plaintextRootOfUnity = 0,
+		NativeInteger plaintextBigModulus = 0,
+		NativeInteger plaintextBigRootOfUnity = 0) {
 			m_plaintextModulus = plaintextModulus;
 			m_plaintextRootOfUnity = plaintextRootOfUnity;
 			m_plaintextBigModulus = plaintextBigModulus;
@@ -267,21 +267,46 @@ private:
 	uint32_t			m_batchSize;
 
 public:
-	/**
-	 * Serialize the object into a Serialized
-	 * @param serObj is used to store the serialized result. It MUST be a rapidjson Object (SetObject());
-	 * @return true if successfully serialized
-	 */
-	bool Serialize(Serialized* serObj) const;
+	template <class Archive>
+	void save( Archive & ar, std::uint32_t const version ) const
+	{
+		ar( ::cereal::make_nvp("m", m_plaintextModulus) );
+		ar( ::cereal::make_nvp("ru", m_plaintextRootOfUnity) );
+		ar( ::cereal::make_nvp("bm", m_plaintextBigModulus) );
+		ar( ::cereal::make_nvp("bru", m_plaintextBigRootOfUnity) );
+		ar( ::cereal::make_nvp("g", m_plaintextGenerator) );
+		ar( ::cereal::make_nvp("bs", m_batchSize) );
+	}
 
-	/**
-	 * Populate the object from the deserialization of the Setialized
-	 * @param serObj contains the serialized object
-	 * @return true on success
-	 */
-	bool Deserialize(const Serialized& serObj);
+	template <class Archive>
+	void load( Archive & ar, std::uint32_t const version )
+	{
+		if( version > SerializedVersion() ) {
+			PALISADE_THROW(deserialize_error, "serialized object version " + std::to_string(version) + " is from a later version of the library");
+		}
+		ar( ::cereal::make_nvp("m", m_plaintextModulus) );
+		ar( ::cereal::make_nvp("ru", m_plaintextRootOfUnity) );
+		ar( ::cereal::make_nvp("bm", m_plaintextBigModulus) );
+		ar( ::cereal::make_nvp("bru", m_plaintextBigRootOfUnity) );
+		ar( ::cereal::make_nvp("g", m_plaintextGenerator) );
+		ar( ::cereal::make_nvp("bs", m_batchSize) );
+	}
+
+	std::string SerializedObjectName() const { return "EncodingParms"; }
+	static uint32_t	SerializedVersion() { return 1; }
 };
 
+inline std::ostream& operator<<(std::ostream& out, std::shared_ptr<EncodingParamsImpl> o) {
+	if( o ) out << *o;
+	return out;
+}
+inline bool operator==(std::shared_ptr<EncodingParamsImpl> o1, std::shared_ptr<EncodingParamsImpl> o2) {
+	if( o1 && o2 )
+		return *o1 == *o2;
+	if( !o1 && !o2 )
+		return true;
+	return false;
+}
 
 } // namespace lbcrypto ends
 

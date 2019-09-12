@@ -1,7 +1,7 @@
 /*
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -25,9 +25,10 @@
 /*
   This code benchmarks functions of the math directory  of the PALISADE lattice encryption library.
  */
-#include "benchmark/benchmark_api.h"
+#define _USE_MATH_DEFINES
+#include "benchmark/benchmark.h"
 
-#include "AllBackends.h"
+#include "palisade.h"
 
 #include <iostream>
 
@@ -83,7 +84,9 @@ static void BM_BigVec_Add(benchmark::State& state) { // benchmark
 DO_NATIVEVECTOR_BENCHMARK(BM_BigVec_Add)
 DO_VECTOR_BENCHMARK_TEMPLATE(BM_BigVec_Add, M2Vector)
 DO_VECTOR_BENCHMARK_TEMPLATE(BM_BigVec_Add, M4Vector)
+#ifdef WITH_NTL
 DO_VECTOR_BENCHMARK_TEMPLATE(BM_BigVec_Add, M6Vector)
+#endif
 
 // +=
 template <typename V>
@@ -97,9 +100,10 @@ static void BM_BigVec_Addeq(benchmark::State& state) { // benchmark
 	size_t idx = ElemParamFactory::GetNearestIndex(p);
 	typename V::Integer q( ElemParamFactory::DefaultSet[idx].q);
 	V b = makeVector<V>(p, q);
+	V a = makeVector<V>(p, q);
 
 	while (state.KeepRunning()) {
-		V a = makeVector<V>(p, q);
+		//V a = makeVector<V>(p, q);
 		addeq_BigVec<V>(a,b);
 	}
 }
@@ -107,7 +111,9 @@ static void BM_BigVec_Addeq(benchmark::State& state) { // benchmark
 DO_NATIVEVECTOR_BENCHMARK(BM_BigVec_Addeq)
 DO_VECTOR_BENCHMARK_TEMPLATE(BM_BigVec_Addeq, M2Vector)
 DO_VECTOR_BENCHMARK_TEMPLATE(BM_BigVec_Addeq, M4Vector)
+#ifdef WITH_NTL
 DO_VECTOR_BENCHMARK_TEMPLATE(BM_BigVec_Addeq, M6Vector)
+#endif
 
 // mult
 template <typename V>
@@ -131,7 +137,9 @@ static void BM_BigVec_Mult(benchmark::State& state) { // benchmark
 DO_NATIVEVECTOR_BENCHMARK(BM_BigVec_Mult)
 DO_VECTOR_BENCHMARK_TEMPLATE(BM_BigVec_Mult, M2Vector)
 DO_VECTOR_BENCHMARK_TEMPLATE(BM_BigVec_Mult, M4Vector)
+#ifdef WITH_NTL
 DO_VECTOR_BENCHMARK_TEMPLATE(BM_BigVec_Mult, M6Vector)
+#endif
 
 // mult
 template <typename V>
@@ -145,9 +153,10 @@ static void BM_BigVec_Multeq(benchmark::State& state) { // benchmark
 	size_t idx = ElemParamFactory::GetNearestIndex(p);
 	typename V::Integer q( ElemParamFactory::DefaultSet[idx].q);
 	V b = makeVector<V>(p, q);
+	V a = makeVector<V>(p, q);
 
 	while (state.KeepRunning()) {
-		V a = makeVector<V>(p, q);
+		//V a = makeVector<V>(p, q);
 		multeq_BigVec<V>(a,b);
 	}
 }
@@ -155,7 +164,9 @@ static void BM_BigVec_Multeq(benchmark::State& state) { // benchmark
 DO_NATIVEVECTOR_BENCHMARK(BM_BigVec_Multeq)
 DO_VECTOR_BENCHMARK_TEMPLATE(BM_BigVec_Multeq, M2Vector)
 DO_VECTOR_BENCHMARK_TEMPLATE(BM_BigVec_Multeq, M4Vector)
+#ifdef WITH_NTL
 DO_VECTOR_BENCHMARK_TEMPLATE(BM_BigVec_Multeq, M6Vector)
+#endif
 
 //execute the benchmarks
-BENCHMARK_MAIN()
+BENCHMARK_MAIN();

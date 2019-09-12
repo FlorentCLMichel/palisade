@@ -1,8 +1,8 @@
 /*
  * @file 
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -274,7 +274,7 @@ TEST(UTTrapdoor,TrapDoorMultTestSquareMat){
 }
 
 TEST(UTTrapdoor,TrapDoorGaussGqSampTest) {
-  bool dbg_flag = false;
+  DEBUG_FLAG(false);
   DEBUG("start tests");
 	usint m = 16;
     usint n = m/2;
@@ -397,7 +397,7 @@ TEST(UTTrapdoor,TrapDoorGaussSampTestDCRT) {
 
 
 TEST(UTTrapdoor, TrapDoorGaussGqSampTestBase1024) {
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("start tests");
 	
 	usint m = 1024;
@@ -475,7 +475,7 @@ TEST(UTTrapdoor, TrapDoorGaussGqSampTestBase1024) {
 
 // Test of Gaussian Sampling using the UCSD integer perturbation sampling algorithm
 TEST(UTTrapdoor, TrapDoorGaussSampTest) {
-        bool dbg_flag = false;
+        DEBUG_FLAG(false);
 	DEBUG("in test");
 	usint m = 16;
 	usint n = m / 2;
@@ -548,7 +548,7 @@ TEST(UTTrapdoor, TrapDoorGaussSampTest) {
 
 // Test of Gaussian Sampling for matrices from 2x2 to 5x5
 TEST(UTTrapdoor, TrapDoorGaussSampTestSquareMatrices) {
-        bool dbg_flag = false;
+        DEBUG_FLAG(false);
 	DEBUG("in test");
 	usint m = 16;
 	usint n = m / 2;

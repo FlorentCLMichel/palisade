@@ -1,8 +1,8 @@
 /*
  * @file binvect.cpp This file contains the vector manipulation functionality.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -33,7 +33,6 @@
 #include "../native_int/binvect.h"
 #include "../nbtheory.h"
 #include "../../utils/debug.h"
-#include "../../utils/serializablehelper.h"
 
 
 namespace native_int {
@@ -132,7 +131,7 @@ const NativeVector<IntegerType>& NativeVector<IntegerType>::operator=(std::initi
 
 template<class IntegerType>
 const NativeVector<IntegerType>& NativeVector<IntegerType>::operator=(std::initializer_list<std::string> rhs){
-        bool dbg_flag = false;
+        DEBUG_FLAG(false);
 	usint len = rhs.size();
 	for(usint i=0;i<m_data.size();i++){ // this loops over each tower
 		if(i<len) {
@@ -182,7 +181,7 @@ void NativeVector<IntegerType>::SetModulus(const IntegerType& value){
 */
 template<class IntegerType>
 void NativeVector<IntegerType>::SwitchModulus(const IntegerType& newModulus) {
-    bool dbg_flag = false;
+    DEBUG_FLAG(false);
     DEBUG("Switch modulus old mod :"<<this->m_modulus);
     DEBUG("Switch modulus old this :"<<*this);
 	
@@ -284,7 +283,7 @@ NativeVector<IntegerType> NativeVector<IntegerType>::ModAdd(const IntegerType &b
 	IntegerType bLocal = b;
 
 	NativeVector ans(*this);
-	if (this->m_modulus.GetMSB() < NTL_SP_NBITS + 1)
+	if (this->m_modulus.GetMSB() <= MAX_MODULUS_SIZE)
 	{
 		if (bLocal > m_modulus)
 			bLocal.ModEq(modulus);
@@ -306,7 +305,7 @@ const NativeVector<IntegerType>& NativeVector<IntegerType>::ModAddEq(const Integ
 	IntegerType modulus = this->m_modulus;
 	IntegerType bLocal = b;
 
-	if (this->m_modulus.GetMSB() < NTL_SP_NBITS + 1)
+	if (this->m_modulus.GetMSB() <= MAX_MODULUS_SIZE)
 	{
 		if (bLocal > m_modulus)
 			bLocal.ModEq(modulus);
@@ -383,19 +382,22 @@ NativeVector<IntegerType> NativeVector<IntegerType>::ModMul(const IntegerType &b
 	IntegerType modulus = this->m_modulus;
 	IntegerType bLocal = b;
 
-	if (modulus.GetMSB() < NTL_SP_NBITS + 1)
+	if (modulus.GetMSB() <= MAX_MODULUS_SIZE)
 	{
 		if (bLocal > modulus)
 			bLocal.ModEq(modulus);
+		IntegerType mu = modulus.ComputeMu();
 		for(usint i=0;i<this->m_data.size();i++)
-			 ans.m_data[i].ModMulFastEqOptimized(bLocal,modulus);
+			ans.m_data[i].ModMulFastEqOptimized(bLocal,modulus,mu);
 	}
-	else{
+	else
+	{
 		for(usint i=0;i<this->m_data.size();i++)
 			ans.m_data[i].ModMulFastEq(bLocal,modulus);
 	}
 
 	return ans;
+
 }
 
 template<class IntegerType>
@@ -404,19 +406,18 @@ const NativeVector<IntegerType>& NativeVector<IntegerType>::ModMulEq(const Integ
 	IntegerType modulus = this->m_modulus;
 	IntegerType bLocal = b;
 
-	if (modulus.GetMSB() < NTL_SP_NBITS + 1)
+	if (modulus.GetMSB() <= MAX_MODULUS_SIZE)
 	{
 		if (bLocal > modulus)
 			bLocal.ModEq(modulus);
-		for(usint i=0;i<this->m_data.size();i++){
-			this->m_data[i].ModMulFastEqOptimized(bLocal,modulus);
-		}
+		IntegerType mu = modulus.ComputeMu();
+		for(usint i=0;i<this->m_data.size();i++)
+			this->m_data[i].ModMulFastEqOptimized(bLocal,modulus,mu);
 	}
 	else
 	{
-		for(usint i=0;i<this->m_data.size();i++){
+		for(usint i=0;i<this->m_data.size();i++)
 			this->m_data[i].ModMulFastEq(bLocal,modulus);
-		}
 	}
 
 	return *this;
@@ -455,7 +456,7 @@ NativeVector<IntegerType> NativeVector<IntegerType>::ModAdd(const NativeVector &
 
 	IntegerType modulus = this->m_modulus;
 
-	if (modulus.GetMSB() < NTL_SP_NBITS + 1)
+	if (modulus.GetMSB() <= MAX_MODULUS_SIZE)
 	{
 		for(usint i=0;i<ans.m_data.size();i++)
 			ans.m_data[i].ModAddFastOptimizedEq(b[i],modulus);
@@ -479,7 +480,7 @@ const NativeVector<IntegerType>& NativeVector<IntegerType>::ModAddEq(const Nativ
 
 	IntegerType modulus = this->m_modulus;
 
-	if (modulus.GetMSB() < NTL_SP_NBITS + 1)
+	if (modulus.GetMSB() <= MAX_MODULUS_SIZE)
 	{
 		for(usint i=0;i<this->m_data.size();i++)
 			this->m_data[i].ModAddFastOptimizedEq(b[i],modulus);
@@ -564,10 +565,11 @@ NativeVector<IntegerType> NativeVector<IntegerType>::ModMul(const NativeVector &
 	NativeVector ans(*this);
 	IntegerType modulus = this->m_modulus;
 
-	if (modulus.GetMSB() < NTL_SP_NBITS + 1)
+	if (modulus.GetMSB() <= MAX_MODULUS_SIZE)
 	{
+		IntegerType mu = modulus.ComputeMu();
 		for(usint i=0;i<this->m_data.size();i++)
-			ans.m_data[i].ModMulFastEqOptimized(b[i],modulus);
+			ans.m_data[i].ModMulFastEqOptimized(b[i],modulus,mu);
 	}
 	else
 	{
@@ -588,10 +590,11 @@ const NativeVector<IntegerType>& NativeVector<IntegerType>::ModMulEq(const Nativ
 
 	IntegerType modulus = this->m_modulus;
 
-	if (modulus.GetMSB() < NTL_SP_NBITS + 1)
+	if (modulus.GetMSB() <= MAX_MODULUS_SIZE)
 	{
+		IntegerType mu = modulus.ComputeMu();
 		for(usint i=0;i<this->m_data.size();i++)
-			this->m_data[i].ModMulFastEqOptimized(b[i],modulus);
+			this->m_data[i].ModMulFastEqOptimized(b[i],modulus,mu);
 	}
 	else
 	{
@@ -620,7 +623,7 @@ NativeVector<IntegerType> NativeVector<IntegerType>::MultWithOutMod(const Native
 //Gets the ind
 template<class IntegerType>
 NativeVector<IntegerType> NativeVector<IntegerType>::GetDigitAtIndexForBase(usint index, usint base) const{
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("NativeVector::GetDigitAtIndexForBase:  index = " << index << ", base = " << base);
 	NativeVector ans(*this);
 	for(usint i=0;i<this->m_data.size();i++){
@@ -631,74 +634,6 @@ NativeVector<IntegerType> NativeVector<IntegerType>::GetDigitAtIndexForBase(usin
 	return ans;
 }
 
-// Serialize Operation
-template<class IntegerType>
-bool NativeVector<IntegerType>::Serialize(lbcrypto::Serialized* serObj) const {
-
-        if( !serObj->IsObject() ){
-	  serObj->SetObject();
-	}
-
-
-	lbcrypto::SerialItem bbvMap(rapidjson::kObjectType);
-
-	bbvMap.AddMember("Modulus", this->GetModulus().ToString(), serObj->GetAllocator());
-	bbvMap.AddMember("IntegerType", IntegerType::IntegerTypeName(), serObj->GetAllocator());
-
-	size_t pkVectorLength = this->GetLength();
-
-	if( pkVectorLength > 0 ) {
-		std::string pkBufferString = "";
-		for (size_t i = 0; i < pkVectorLength; i++) {
-			pkBufferString += at(i).SerializeToString(this->GetModulus());
-		}
-		bbvMap.AddMember("VectorValues", pkBufferString, serObj->GetAllocator());
-	}
-
-	serObj->AddMember("BigVectorImpl", bbvMap, serObj->GetAllocator());
-
-	return true;
-}
-  
-// Deserialize Operation
-template<class IntegerType>
-bool NativeVector<IntegerType>::Deserialize(const lbcrypto::Serialized& serObj) {
-
-	lbcrypto::Serialized::ConstMemberIterator mIter = serObj.FindMember("BigVectorImpl");
-	if( mIter == serObj.MemberEnd() )
-		return false;
-
-	lbcrypto::SerialItem::ConstMemberIterator vIt;
-
-	if( (vIt = mIter->value.FindMember("IntegerType")) == mIter->value.MemberEnd() )
-		return false;
-	if( IntegerType::IntegerTypeName() != vIt->value.GetString() )
-		return false;
-
-	if( (vIt = mIter->value.FindMember("Modulus")) == mIter->value.MemberEnd() )
-		return false;
-	IntegerType bbiModulus(vIt->value.GetString());
-
-	if( (vIt = mIter->value.FindMember("VectorValues")) == mIter->value.MemberEnd() )
-		return false;
-
- 	NativeVector<IntegerType> newVec;
- 	newVec.SetModulus(bbiModulus);
-
-	IntegerType vectorElem;
-	const char *vp = vIt->value.GetString();
-	while( *vp != '\0' ) {
-		vp = vectorElem.DeserializeFromString(vp, bbiModulus);
-		newVec.m_data.push_back(vectorElem);
-	}
-
-	*this = std::move(newVec);
-
-	return true;
-
-}
-
-
-template class NativeVector<NativeInteger<uint64_t>>;
+template class NativeVector<NativeInteger>;
  
 } // namespace lbcrypto ends

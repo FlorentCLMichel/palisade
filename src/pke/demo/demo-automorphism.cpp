@@ -1,8 +1,8 @@
 /*
  * @file 
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -53,9 +53,6 @@ using namespace lbcrypto;
 #include <iterator>
 
 //Poly tests
-//void LTVAutomorphismIntArray();
-void LTVAutomorphismPackedArray(usint i);
-void ArbLTVAutomorphismPackedArray(usint i);
 void BGVAutomorphismPackedArray(usint i);
 void ArbBGVAutomorphismPackedArray(usint i);
 void BFVAutomorphismPackedArray(usint i);
@@ -72,22 +69,8 @@ int main() {
 
 	std::cout << "\nThis code shows how the automorphism operation works for different plaintext encodings and cyclotomic rings (both power-of-two and cyclic).\n" << std::endl;
 
-	//LTVAutomorphismIntArray();
 	usint m = 22;
 	std::vector<usint> totientList = GetTotientList(m);
-
-	std::cout << "\n===========LTV TESTS (EVALAUTOMORPHISM)===============: " << std::endl;
-
-	PackedEncoding::Destroy();
-	for (usint index = 3; index < 16; index = index + 2)
-		LTVAutomorphismPackedArray(index);
-
-	std::cout << "\n===========LTV TESTS (EVALAUTOMORPHISM-ARBITRARY)===============: " << std::endl;
-
-	PackedEncoding::Destroy();
-	for (usint index = 1; index < 10; index++) {
-		ArbLTVAutomorphismPackedArray(totientList[index]);
-	}
 
 	std::cout << "\n===========BGV TESTS (EVALAUTOMORPHISM)===============: " << std::endl;
 
@@ -169,46 +152,6 @@ int main() {
 	//cin.get();
 	return 0;
 }
-
-void LTVAutomorphismPackedArray(usint i) {
-
-	usint m = 16;
-	BigInteger q("67108913");
-	BigInteger rootOfUnity("61564");
-	usint plaintextModulus = 17;
-
-	float stdDev = 4;
-
-	shared_ptr<ILParams> params( new ILParams(m, q, rootOfUnity) );
-
-	CryptoContext<Poly> cc = CryptoContextFactory<Poly>::genCryptoContextLTV(params, plaintextModulus, 1, stdDev);
-	cc->Enable(ENCRYPTION);
-	cc->Enable(SHE);
-
-	// Initialize the public key containers.
-	LPKeyPair<Poly> kp = cc->KeyGen();
-
-	std::vector<int64_t> vectorOfInts = { 1,2,3,4,5,6,7,8 };
-	Plaintext intArray = cc->MakePackedPlaintext(vectorOfInts);
-
-	if (i == 3)
-		std::cout << "Input array\n\t" << *intArray << std::endl;
-
-	auto ciphertext = cc->Encrypt(kp.publicKey, intArray);
-
-	std::vector<usint> indexList = {3,5,7,9,11,13,15};
-
-	auto evalKeys = cc->EvalAutomorphismKeyGen(kp.publicKey, kp.secretKey, indexList);
-
-	auto permutedCiphertext = cc->EvalAutomorphism(ciphertext, i, *evalKeys);
-
-	Plaintext intArrayNew;
-
-	cc->Decrypt(kp.secretKey, permutedCiphertext, &intArrayNew);
-
-	std::cout << "Automorphed array - at index " << i << " (using only odd coefficients)\n\t" << *intArrayNew << std::endl;
-}
-
 
 void BGVAutomorphismPackedArray(usint i) {
 
@@ -337,59 +280,6 @@ void ArbBGVAutomorphismPackedArray(usint i) {
 	indexList.erase(indexList.begin());
 
 	auto evalKeys = cc->EvalAutomorphismKeyGen(kp.secretKey, indexList);
-
-	auto permutedCiphertext = cc->EvalAutomorphism(ciphertext, i, *evalKeys);
-
-	Plaintext intArrayNew;
-
-	cc->Decrypt(kp.secretKey, permutedCiphertext, &intArrayNew);
-
-	std::cout << "Automorphed array - at index " << i << " (using only odd coefficients)\n\t" << *intArrayNew << std::endl;
-}
-
-
-void ArbLTVAutomorphismPackedArray(usint i) {
-
-	usint m = 22;
-	usint p = 89;
-	BigInteger modulusP(p);
-	/*BigInteger modulusQ("577325471560727734926295560417311036005875689");
-	BigInteger squareRootOfRoot("576597741275581172514290864170674379520285921");*/
-	BigInteger modulusQ("955263939794561");
-	BigInteger squareRootOfRoot("941018665059848");
-	//BigInteger squareRootOfRoot = RootOfUnity(2*m,modulusQ);
-	//std::cout << squareRootOfRoot << std::endl;
-	BigInteger bigmodulus("80899135611688102162227204937217");
-	BigInteger bigroot("77936753846653065954043047918387");
-	//std::cout << bigroot << std::endl;
-
-	auto cycloPoly = GetCyclotomicPolynomial<BigVector>(m, modulusQ);
-	ChineseRemainderTransformArb<BigVector>::SetCylotomicPolynomial(cycloPoly, modulusQ);
-
-
-	float stdDev = 4;
-
-	shared_ptr<ILParams> params(new ILParams(m, modulusQ, squareRootOfRoot, bigmodulus, bigroot));
-
-	CryptoContext<Poly> cc = CryptoContextFactory<Poly>::genCryptoContextLTV(params, p, 8, stdDev);
-	cc->Enable(ENCRYPTION);
-	cc->Enable(SHE);
-
-	// Initialize the public key containers.
-	LPKeyPair<Poly> kp = cc->KeyGen();
-
-	std::vector<int64_t> vectorOfInts = { 1,2,3,4,5,6,7,8,9,10 };
-	Plaintext intArray = cc->MakePackedPlaintext(vectorOfInts);
-
-	if (i == 3)
-		std::cout << "Input array\n\t" << *intArray << std::endl;
-
-	auto ciphertext = cc->Encrypt(kp.publicKey, intArray);
-
-	std::vector<usint> indexList = GetTotientList(m);
-	indexList.erase(indexList.begin());
-
-	auto evalKeys = cc->EvalAutomorphismKeyGen(kp.publicKey, kp.secretKey, indexList);
 
 	auto permutedCiphertext = cc->EvalAutomorphism(ciphertext, i, *evalKeys);
 

@@ -1,8 +1,8 @@
 /*
  * @file 
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -27,7 +27,7 @@
   This code exercises the block allocator utility of the PALISADE lattice encryption library.
 */
 
-//#define PROFILE  //define if we want elapsed time output
+//#define PROFILE  //define if we want elapsed time output and pool statistics
 #include "include/gtest/gtest.h"
 #include <iostream>
 
@@ -95,7 +95,11 @@ static void out_of_memory()
 
 static const int MAX_BLOCK_SIZE = 4000;
 //static const int MAX_ALLOCATIONS = 10000;
+#ifdef __ANDROID__
+static const int MAX_ALLOCATIONS = 512; //reduce size of pool for limited memory
+#else
 static const int MAX_ALLOCATIONS = 2048;
+#endif
 static void* memoryPtrs[MAX_ALLOCATIONS];
 static void* memoryPtrs2[MAX_ALLOCATIONS];
 

@@ -1,9 +1,9 @@
 /**
  * @file be2-math-impl.cpp This file contains template instantiations for all math classes & functions using math be2
  *
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -75,14 +75,13 @@ template class Matrix<M2Integer>;
 ONES_FOR_TYPE(M2Integer)
 IDENTITY_FOR_TYPE(M2Integer)
 GADGET_FOR_TYPE(M2Integer)
-MATRIX_NOT_SERIALIZABLE(M2Integer)
-//NOT_AN_ELEMENT_MATRIX(M2Integer)
 
 template class Matrix<M2Vector>;
 ONES_FOR_TYPE(M2Vector)
 IDENTITY_FOR_TYPE(M2Vector)
 GADGET_FOR_TYPE(M2Vector)
-MATRIX_NOT_SERIALIZABLE(M2Vector)
-//NOT_AN_ELEMENT_MATRIX(M2Vector)
 
 }
+
+CEREAL_CLASS_VERSION( M2Integer, M2Integer::SerializedVersion() );
+CEREAL_CLASS_VERSION( M2Vector, M2Vector::SerializedVersion() );

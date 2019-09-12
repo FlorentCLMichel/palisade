@@ -1,9 +1,9 @@
 /**
  * @file trapdoor-poly-impl.cpp Provides the utility for sampling trapdoor lattices as described in https://eprint.iacr.org/2017/844.pdf
  * https://eprint.iacr.org/2018/946, and "Implementing Token-Based Obfuscation under (Ring) LWE" (not publicly available yet)
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -230,7 +230,7 @@ namespace lbcrypto {
 		Matrix<Poly> RLWETrapdoorUtility<Poly>::GaussSamp(size_t n, size_t k, const Matrix<Poly>& A,
 			const RLWETrapdoorPair<Poly>& T, const Poly &u,
 			typename Poly::DggType &dgg, typename Poly::DggType &dggLargeSigma, int64_t base){
-	                bool dbg_flag = false;
+	                DEBUG_FLAG(false);
 			TimeVar t1, t1_tot, t2, t2_tot, t3, t3_tot;
 			TIC(t1);
 			TIC(t1_tot);
@@ -299,7 +299,7 @@ namespace lbcrypto {
 		Matrix<NativePoly> RLWETrapdoorUtility<NativePoly>::GaussSamp(size_t n, size_t k, const Matrix<NativePoly>& A,
 			const RLWETrapdoorPair<NativePoly>& T, const NativePoly &u,
 			typename NativePoly::DggType &dgg, typename NativePoly::DggType &dggLargeSigma, int64_t base){
-					bool dbg_flag = false;
+					DEBUG_FLAG(false);
 			TimeVar t1, t1_tot, t2, t2_tot, t3, t3_tot;
 			TIC(t1);
 			TIC(t1_tot);

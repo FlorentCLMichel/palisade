@@ -1,9 +1,9 @@
 /**
  * @file be2-poly-impl.cpp This file contains template instantiations for all classes using math be2
  *
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -46,7 +46,6 @@ ONES_FOR_TYPE(M2Poly)
 IDENTITY_FOR_TYPE(M2Poly)
 GADGET_FOR_TYPE(M2Poly)
 NORM_FOR_TYPE(M2Poly)
-MATRIX_NOT_SERIALIZABLE(M2Poly)
 SPLIT64_FOR_TYPE(M2Poly)
 SPLIT64ALT_FOR_TYPE(M2Poly)
 SPLIT32ALT_FOR_TYPE(M2Poly)
@@ -58,10 +57,12 @@ ONES_FOR_TYPE(M2DCRTPoly)
 IDENTITY_FOR_TYPE(M2DCRTPoly)
 GADGET_FOR_TYPE_DCRT(M2DCRTPoly)
 NORM_FOR_TYPE(M2DCRTPoly)
-MATRIX_NOT_SERIALIZABLE(M2DCRTPoly)
 SPLIT64_FOR_TYPE(M2DCRTPoly)
 SPLIT64ALT_FOR_TYPE(M2DCRTPoly)
 SPLIT32ALT_FOR_TYPE(M2DCRTPoly)
 template Matrix<M2Vector> RotateVecResult(Matrix<M2DCRTPoly> const& inMat);
 template Matrix<M2Integer> Rotate(Matrix<M2DCRTPoly> const& inMat);
 }  // namespace lbcrypto
+
+CEREAL_CLASS_VERSION( lbcrypto::M2Poly, lbcrypto::M2Poly::SerializedVersion() );
+CEREAL_CLASS_VERSION( lbcrypto::M2DCRTPoly, lbcrypto::M2DCRTPoly::SerializedVersion() );

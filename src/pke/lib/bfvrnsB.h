@@ -1,8 +1,8 @@
 ﻿/**
  * @file bfvrnsB.h -- Operations for the BEHZ variant of BFV.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -76,7 +76,7 @@ namespace lbcrypto {
 			 * @param &plaintextModulus Plaintext modulus, typically denoted as p in most publications.
 			 * @param distributionParameter Noise distribution parameter, typically denoted as /sigma in most publications.  Community standards typically call for a value of 3 to 6. Lower values provide more room for computation while larger values provide more security.
 			 * @param assuranceMeasure Assurance level, typically denoted as w in most applications.  This is oftern perceived as a fudge factor in the literature, with a typical value of 9.
-			 * @param securityLevel Security level as Root Hermite Factor.  We use the Root Hermite Factor representation of the security level to better conform with US ITAR and EAR export regulations.  This is typically represented as /delta in the literature.  Typically a Root Hermite Factor of 1.006 or less provides reasonable security for RLWE crypto schemes, although extra care is need for the LTV scheme because LTV makes an additional security assumption that make it suceptible to subfield lattice attacks.
+			 * @param securityLevel Security level as Root Hermite Factor.  We use the Root Hermite Factor representation of the security level to better conform with US ITAR and EAR export regulations.  This is typically represented as /delta in the literature.  Typically a Root Hermite Factor of 1.006 or less provides reasonable security for RLWE crypto schemes.
 			 * @param relinWindow The size of the relinearization window.  This is relevant when using this scheme for proxy re-encryption, and the value is denoted as r in the literature.
 			 * @param mode optimization setting (RLWE vs OPTIMIZED)
 			 * @param depth is the depth of computation circuit supported for these parameters (not used now; for future use).
@@ -144,20 +144,6 @@ namespace lbcrypto {
 			virtual ~LPCryptoParametersBFVrnsB() {}
 			
 			/**
-			* Serialize the object
-			* @param serObj is used to store the serialized result. It MUST be a rapidjson Object (SetObject());
-			* @return true if successfully serialized
-			*/
-			bool Serialize(Serialized* serObj) const;
-
-			/**
-			* Populate the object from the deserialization of the Serialized
-			* @param serObj contains the serialized object
-			* @return true on success
-			*/
-			bool Deserialize(const Serialized& serObj);
-
-			/**
 			* Computes all tables needed for decryption, homomorphic multiplication, and key switching
 			* @return true on success
 			*/
@@ -192,17 +178,17 @@ namespace lbcrypto {
 
 			std::vector<NativeInteger> const &GetDCRTParamsqModuli() const { return m_qModuli; }
 
-			std::vector<DoubleNativeInteger> const &GetDCRTParamsqModulimu() const { return m_qModulimu; }
+			std::vector<DoubleNativeInt> const &GetDCRTParamsqModulimu() const { return m_qModulimu; }
 
 			std::vector<NativeInteger> const &GetDCRTParamsBskModuli() const { return m_BskModuli; }
 
-			std::vector<DoubleNativeInteger> const &GetDCRTParamsBskModulimu() const { return m_BskModulimu; }
+			std::vector<DoubleNativeInt> const &GetDCRTParamsBskModulimu() const { return m_BskModulimu; }
 
 			NativeInteger const &GetDCRTParamsmtilde() const { return m_mtilde; }
 
 			std::vector<NativeInteger> const &GetDCRTParamsBskmtildeModuli() const { return m_BskmtildeModuli; }
 
-			std::vector<DoubleNativeInteger> const &GetDCRTParamsBskmtildeModulimu() const { return m_BskmtildeModulimu; }
+			std::vector<DoubleNativeInt> const &GetDCRTParamsBskmtildeModulimu() const { return m_BskmtildeModulimu; }
 
 			std::vector<NativeInteger> const &GetDCRTParamsmtildeqDivqiModqi() const { return m_mtildeqDivqiTable; }
 
@@ -266,6 +252,27 @@ namespace lbcrypto {
 
 			std::vector<std::vector<NativeInteger>> const &GetDCRTParamsqDivqiModtgammaPreconTable() const { return m_qDivqiModtgammaPreconTable; }
 
+			// NOTE that we do not serialize any of the members declared in this class.
+			// they are all cached computations, and get recomputed in any implementation
+			// that does a deserialization
+			template <class Archive>
+			void save ( Archive & ar, std::uint32_t const version ) const
+			{
+			    ar( ::cereal::base_class<LPCryptoParametersRLWE<Element>>( this ) );
+			}
+
+			template <class Archive>
+			void load( Archive & ar, std::uint32_t const version )
+			{
+				if( version > SerializedVersion() ) {
+					PALISADE_THROW(deserialize_error, "serialized object version " + std::to_string(version) + " is from a later version of the library");
+				}
+			    ar( ::cereal::base_class<LPCryptoParametersRLWE<Element>>( this ) );
+			}
+
+			std::string SerializedObjectName() const { return "BFVrnsBSchemeParameters"; }
+			static uint32_t SerializedVersion() { return 1; }
+
 		private:
 
 			// Stores a precomputed table of floor(Q/p) mod qi
@@ -294,7 +301,7 @@ namespace lbcrypto {
 
 			// 6) Stores the crt moduli of base B (size of B moduli is chosen such that )
 			std::vector<NativeInteger> m_qModuli;
-			std::vector<DoubleNativeInteger> m_qModulimu;
+			std::vector<DoubleNativeInt> m_qModulimu;
 
 			// 7) Stores the auxilliary base B moduli
 			std::vector<NativeInteger> m_BModuli;
@@ -304,11 +311,11 @@ namespace lbcrypto {
 
 			// 9) Stores the crt moduli of base Bsk = {B U msk}
 			std::vector<NativeInteger> m_BskModuli;
-			std::vector<DoubleNativeInteger> m_BskModulimu;
+			std::vector<DoubleNativeInt> m_BskModulimu;
 
 			// 10) Stores the crt moduli of base Bskmtilde = {Bsk U mtilde}
 			std::vector<NativeInteger> m_BskmtildeModuli;
-			std::vector<DoubleNativeInteger> m_BskmtildeModulimu; // Barrett constant
+			std::vector<DoubleNativeInt> m_BskmtildeModulimu; // Barrett constant
 
 			// 11) Stores (q/qi)^-1 mod qi
 			std::vector<NativeInteger> m_qDivqiModqiTable;
@@ -404,7 +411,6 @@ namespace lbcrypto {
 		*/
 		bool ParamsGen(shared_ptr<LPCryptoParameters<Element>> cryptoParams, int32_t evalAddCount = 0,
 			int32_t evalMultCount = 0, int32_t keySwitchCount = 0, size_t dcrBits = 60) const;
-
 	};
 
 	/**
@@ -456,8 +462,6 @@ namespace lbcrypto {
 		DecryptResult Decrypt(const LPPrivateKey<Element> privateKey,
 			ConstCiphertext<Element> ciphertext,
 			NativePoly *plaintext) const;
-
-
 	};
 
 	/**
@@ -538,8 +542,6 @@ namespace lbcrypto {
 		*/
 		Ciphertext<Element> EvalMultAndRelinearize(ConstCiphertext<Element> ct1,
 			ConstCiphertext<Element> ct, const vector<LPEvalKey<Element>> &ek) const;
-
-
 	};
 
 	/**
@@ -608,7 +610,6 @@ namespace lbcrypto {
 		Ciphertext<Element> ReEncrypt(const LPEvalKey<Element> EK,
 			ConstCiphertext<Element> ciphertext,
 			const LPPublicKey<Element> publicKey = nullptr) const;
-
 	};
 
 
@@ -645,8 +646,6 @@ namespace lbcrypto {
 		 */
 		DecryptResult MultipartyDecryptFusion(const vector<Ciphertext<Element>>& ciphertextVec,
 			NativePoly *plaintext) const;
-
-
 	};
 
 
@@ -666,7 +665,22 @@ namespace lbcrypto {
 		}
 
 		void Enable(PKESchemeFeature feature);
+
+		template <class Archive>
+		void save( Archive & ar, std::uint32_t const version ) const
+		{
+		    ar( ::cereal::base_class<LPPublicKeyEncryptionScheme<Element>>( this ) );
+		}
+
+		template <class Archive>
+		void load( Archive & ar, std::uint32_t const version )
+		{
+		    ar( ::cereal::base_class<LPPublicKeyEncryptionScheme<Element>>( this ) );
+		}
+
+		std::string SerializedObjectName() const { return "BFVrnsScheme"; }
 	};
 
 } // namespace lbcrypto ends
+
 #endif

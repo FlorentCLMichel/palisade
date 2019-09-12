@@ -1,8 +1,8 @@
 /*
  * @file 
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -245,7 +245,7 @@ void testParallelDiscreteUniformGenerator(typename V::Integer &modulus, std::str
   usint size = 50000;
   //usint size = omp_get_max_threads() * 4;
 
-  bool dbg_flag = false;
+  DEBUG_FLAG(false);
   vector <typename V::Integer> randBigVector;
 #pragma omp parallel // this is executed in parallel
   {
@@ -486,7 +486,7 @@ TEST(UTDistrGen, DiscreteGaussianGenerator) {
 template<typename V>
 void ParallelDiscreteGaussianGenerator_VERY_LONG(const string& msg) {
 	//mean test
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 
 	{
 		int stdev = 5;

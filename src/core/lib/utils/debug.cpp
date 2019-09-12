@@ -1,9 +1,9 @@
 /*
  * @file debug.cpp This file contains macros and associated helper functions for quick cerr oriented debugging 
 	that can be quickly enabled and disabled. It also contains functions for timing code.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:

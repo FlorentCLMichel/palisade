@@ -1,10 +1,10 @@
 /**
  * @file cryptotiming.h -- Definitions for taking timings of crypto operations
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
  * @section LICENSE
  *
- * Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT))
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -114,7 +114,7 @@ typedef map<TimingStatisticsKey,TimingStatistics> TimingStatisticsMap;
 
 
 // timing samples are collected into a TimingStatistics
-class TimingStatistics {
+class TimingStatistics : public Serializable {
 public:
 	OpType	operation;
 	usint	samples;
@@ -129,8 +129,6 @@ public:
 		this->average = total/samples;
 		this->argcnt = argcnt;
 	}
-	bool Serialize(Serialized* serObj) const;
-	bool Deserialize(const Serialized& serObj);
 
 	// collect a vector of samples into a map of statistics
 	static void GenStatisticsMap( vector<TimingInfo>& times, TimingStatisticsMap& stats ) {
@@ -147,6 +145,26 @@ public:
 			}
 		}
 	}
+
+	template <class Archive>
+	void save( Archive & ar ) const
+	{
+		ar( ::cereal::make_nvp("o", operation) );
+		ar( ::cereal::make_nvp("s", samples) );
+		ar( ::cereal::make_nvp("a", average) );
+		ar( ::cereal::make_nvp("c", argcnt) );
+	}
+
+	template <class Archive>
+	void load( Archive & ar )
+	{
+		ar( ::cereal::make_nvp("o", operation) );
+		ar( ::cereal::make_nvp("s", samples) );
+		ar( ::cereal::make_nvp("a", average) );
+		ar( ::cereal::make_nvp("c", argcnt) );
+	}
+
+	std::string SerializedObjectName() const { return "TimingStatistics"; }
 };
 
 inline std::ostream& operator<<(std::ostream& out, const TimingStatistics& t) {

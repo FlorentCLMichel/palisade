@@ -4,9 +4,9 @@
  * native integer type is supplied as a template parameter.  Currently
  * implementation based on uint32_t and uint64_t is
  * supported. a native double the base integer size is also needed.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -320,7 +320,7 @@ public:
 	 * Construct from a NativeInteger
 	 * @param n
 	 */
-	ubint(const NativeInteger& n) : ubint(n.ConvertToInt()) {}
+	ubint(const native_int::NativeInteger& n);
 
     /**
      * Constructors from smaller basic types
@@ -759,25 +759,6 @@ public:
 	 */
 	const std::string ToString() const;
 
-	//Serialization functions
-	const std::string SerializeToString(const ubint& mod = 0) const;
-	const char * DeserializeFromString(const char * str, const ubint& mod = 0);
-
-
-	/**
-	 * Serialize the object into a Serialized
-	 * @param serObj is used to store the serialized result. It MUST be a rapidjson Object (SetObject());
-	 * @return true if successfully serialized
-	 */
-	bool Serialize(lbcrypto::Serialized* serObj) const;
-
-	/**
-	 * Populate the object from the deserialization of the Serialized
-	 * @param serObj contains the serialized object
-	 * @return true on success
-	 */
-	bool Deserialize(const lbcrypto::Serialized& serObj);
-
 	// helper functions
 
 	/**
@@ -898,9 +879,6 @@ public:
 		return os;
 	}
 
-private:
-	static inline limb_t base64_to_value(const char &b64);
-
 public:
 #ifdef UBINT_32
 	static const std::string IntegerTypeName() { return "UBINT_32"; }
@@ -955,6 +933,27 @@ public:
 	 */
 	uschar GetBitAtIndex(usint index) const;
 
+	template <class Archive>
+	void save( Archive & ar, std::uint32_t const version ) const
+	{
+		ar( ::cereal::make_nvp("v", m_value) );
+		ar( ::cereal::make_nvp("m", m_MSB) );
+		ar( ::cereal::make_nvp("s", m_state) );
+	}
+
+	template <class Archive>
+	void load( Archive & ar, std::uint32_t const version )
+	{
+		if( version > SerializedVersion() ) {
+			PALISADE_THROW(lbcrypto::deserialize_error, "serialized object version " + std::to_string(version) + " is from a later version of the library");
+		}
+		ar( ::cereal::make_nvp("v", m_value) );
+		ar( ::cereal::make_nvp("m", m_MSB) );
+		ar( ::cereal::make_nvp("s", m_state) );
+	}
+
+	std::string SerializedObjectName() const { return "ExpInteger"; }
+	static uint32_t	SerializedVersion() { return 1; }
 
 protected:
 
@@ -975,8 +974,6 @@ protected:
 	 * @param guessIdxChar is the hint of the MSB position.
 	 */
 	void SetMSB(usint guessIdxChar);
-
-
 
 private:
 

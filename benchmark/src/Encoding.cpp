@@ -1,7 +1,7 @@
 /*
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -24,7 +24,7 @@
  */
 
 #define _USE_MATH_DEFINES
-#include "benchmark/benchmark_api.h"
+#include "benchmark/benchmark.h"
 
 bool runOnlyOnce = true;
 
@@ -192,7 +192,7 @@ void BM_Encoding_String(benchmark::State& state) { // benchmark
 BENCHMARK(BM_Encoding_String);
 
 //execute the benchmarks
-BENCHMARK_MAIN()
+BENCHMARK_MAIN();
 
 
 

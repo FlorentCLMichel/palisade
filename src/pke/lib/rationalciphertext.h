@@ -1,8 +1,8 @@
 /**
 * @file	rationalciphertext.h -- PALISADE.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -195,20 +195,6 @@ namespace lbcrypto {
 		}
 
 		/**
-		* Serialize the object into a Serialized
-		* @param serObj is used to store the serialized result. It MUST be a rapidjson Object (SetObject());
-		* @return true if successfully serialized
-		*/
-		bool Serialize(Serialized* serObj) const;
-
-		/**
-		* Populate the object from the deserialization of the Serialized
-		* @param serObj contains the serialized object
-		* @return true on success
-		*/
-		bool Deserialize(const Serialized& serObj);
-
-		/**
 		* Performs an addition operation and returns the result.
 		*
 		* @param &other is the ciphertext to add with.
@@ -265,6 +251,31 @@ namespace lbcrypto {
 		bool operator!=(const RationalCiphertext<Element>& rhs) const {
 			return ! ( *this == rhs );
 		}
+
+
+		template <class Archive>
+		void save( Archive & ar, std::uint32_t const version ) const
+		{
+		    ar( ::cereal::base_class<CryptoObject<Element>>( this ) );
+			ar( ::cereal::make_nvp("n", m_numerator) );
+			ar( ::cereal::make_nvp("d", m_denominator) );
+			ar( ::cereal::make_nvp("d", m_integerFlag) );
+		}
+
+		template <class Archive>
+		void load( Archive & ar, std::uint32_t const version )
+		{
+			if( version > SerializedVersion() ) {
+				PALISADE_THROW(deserialize_error, "serialized object version " + std::to_string(version) + " is from a later version of the library");
+			}
+		    ar( ::cereal::base_class<CryptoObject<Element>>( this ) );
+			ar( ::cereal::make_nvp("n", m_numerator) );
+			ar( ::cereal::make_nvp("d", m_denominator) );
+			ar( ::cereal::make_nvp("d", m_integerFlag) );
+		}
+
+		std::string SerializedObjectName() const { return "RationalCiphertext"; }
+		static uint32_t	SerializedVersion() { return 1; }
 
 	private:
 

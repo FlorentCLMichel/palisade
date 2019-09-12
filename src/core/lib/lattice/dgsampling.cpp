@@ -1,9 +1,9 @@
 /**
  * @file dgsampling.cpp Provides detailed algorithms for G-sampling and perturbation sampling as described in https://eprint.iacr.org/2017/844.pdf,
  * https://eprint.iacr.org/2018/946, and "Implementing Token-Based Obfuscation under (Ring) LWE" (not publicly available yet)
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -28,7 +28,6 @@
 #ifndef _SRC_LIB_TRAPDOOR_DGSAMPLING_CPP
 #define _SRC_LIB_TRAPDOOR_DGSAMPLING_CPP
 
-#include "cryptocontext.h"
 #include "dgsampling.h"
 
 namespace lbcrypto {

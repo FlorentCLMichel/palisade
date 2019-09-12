@@ -1,11 +1,11 @@
 
 /**
  * @file cryptocontext.h -- Control for encryption operations.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
  * @section LICENSE
  *
- * Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT))
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -63,7 +63,7 @@ class CryptoContextImpl : public Serializable {
 
 private:
 	shared_ptr<LPCryptoParameters<Element>>				params;			/*!< crypto parameters used for this context */
-	shared_ptr<LPPublicKeyEncryptionScheme<Element>>		scheme;			/*!< algorithm used; accesses all crypto methods */
+	shared_ptr<LPPublicKeyEncryptionScheme<Element>>	scheme;			/*!< algorithm used; accesses all crypto methods */
 
 	static std::map<string,std::vector<LPEvalKey<Element>>>					evalMultKeyMap;	/*!< cached evalmult keys, by secret key UID */
 	static std::map<string,shared_ptr<std::map<usint,LPEvalKey<Element>>>>	evalSumKeyMap;	/*!< cached evalsum keys, by secret key UID */
@@ -71,36 +71,6 @@ private:
 
 	bool doTiming;
 	vector<TimingInfo>* timeSamples;
-
-	/**
-	 * Private methods to compare two contexts; this is only used internally and is not generally available
-	 * @param a - shared pointer in the object
-	 * @param b - this object, usually
-	 * @return true if the shared pointer is a pointer to "this"
-	 */
-	friend bool operator==(const CryptoContext<Element>& a, const CryptoContext<Element>& b) {
-		if( a->params.get() != b->params.get() ) return false;
-		return true;
-	}
-
-	friend bool operator!=(const CryptoContext<Element>& a, const CryptoContext<Element>& b) {
-		return !( a == b );
-	}
-
-	/**
-	 * Private methods to compare two contexts; this is only used internally and is not generally available
-	 * @param a - shared pointer in the object
-	 * @param b - this object, usually
-	 * @return true if the shared pointer is a pointer to "this"
-	 */
-	friend bool operator==(const CryptoContextImpl<Element>& a, const CryptoContextImpl<Element>& b) {
-		if( a.params.get() != b.params.get() ) return false;
-		return true;
-	}
-
-	friend bool operator!=(const CryptoContextImpl<Element>& a, const CryptoContextImpl<Element>& b) {
-		return !( a == b );
-	}
 
 	/**
 	 * TypeCheck makes sure that an operation between two ciphertexts is permitted
@@ -247,6 +217,44 @@ public:
 	 */
 	operator bool() const { return bool(params) && bool(scheme); }
 
+	/**
+	 * Private methods to compare two contexts; this is only used internally and is not generally available
+	 * @param a - operand 1
+	 * @param b - operand 2
+	 * @return true if the implementations have identical parms and scheme
+	 */
+	friend bool operator==(const CryptoContextImpl<Element>& a, const CryptoContextImpl<Element>& b) {
+		// Identical if the parameters and the schemes are identical... the exact same object,
+		// OR the same type and the same values
+		if( a.params.get() == b.params.get() ) {
+			return true;
+		}
+		else {
+			if( typeid(*a.params.get()) != typeid(*b.params.get()) ) {
+				return false;
+			}
+			if( *a.params.get() != *b.params.get() )
+				return false;
+		}
+
+		if( a.scheme.get() == b.scheme.get() ) {
+			return true;
+		}
+		else {
+			if( typeid(*a.scheme.get()) != typeid(*b.scheme.get()) ) {
+				return false;
+			}
+			if( *a.scheme.get() != *b.scheme.get() )
+				return false;
+		}
+
+		return true;
+	}
+
+	friend bool operator!=(const CryptoContextImpl<Element>& a, const CryptoContextImpl<Element>& b) {
+		return !( a == b );
+	}
+
 	// TIMING METHODS
 	/**
 	 * StartTiming method activates timing of CryptoMethods
@@ -279,63 +287,43 @@ public:
 		this->timeSamples->clear();
 	}
 
-	// SERIALIZATION METHODS
-	/**
-	 * Serialize the CryptoContextImpl
-	 *
-	 * @param serObj - rapidJson object for the serializaion
-	 * @return true on success
-	 */
-	bool Serialize(Serialized* serObj) const;
+	static bool SerializeEvalMultKey(Serialized* serObj) __attribute__ ((deprecated("serialization changed, see wiki for details")));
+	static bool SerializeEvalMultKey(Serialized* serObj, const string& id) __attribute__ ((deprecated("serialization changed, see wiki for details")));
+	static bool SerializeEvalMultKey(Serialized* serObj, const CryptoContext<Element> cc) __attribute__ ((deprecated("serialization changed, see wiki for details")));
+	static bool DeserializeEvalMultKey(Serialized* serObj) __attribute__ ((deprecated("serialization changed, see wiki for details")));
 
 	/**
-	 * Deserialize the context AND initialize the algorithm
+	 * SerializeEvalMultKey for a single EvalMult key or all EvalMult keys
 	 *
-	 * @param serObj
+	 * @param ser - stream to serialize to
+	 * @param sertype - type of serialization
+	 * @param id for key to serialize - if empty string, serialize them all
 	 * @return true on success
 	 */
-	bool Deserialize(const Serialized& serObj) {
-		throw std::logic_error("Deserialize by using CryptoContextFactory::DeserializeAndCreateContext");
-	}
-
-	/**
-	 * SerializeEvalMultKey for all EvalMult keys
-	 * method will serialize each CryptoContextImpl only once
-	 *
-	 * @param serObj - serialization
-	 * @return true on success
-	 */
-	static bool SerializeEvalMultKey(Serialized* serObj);
-
-	/**
-	 * SerializeEvalMultKey for a single EvalMult key
-	 * method will serialize entire key AND cryptocontext
-	 *
-	 * @param serObj - serialization
-	 * @param id for key to serialize
-	 * @return true on success (false on failure or key id not found)
-	 */
-	static bool SerializeEvalMultKey(Serialized* serObj, const string& id);
+	template<typename ST>
+	static bool SerializeEvalMultKey(std::ostream& ser, const ST&, string id = "");
 
 	/**
 	 * SerializeEvalMultKey for all EvalMultKeys made in a given context
-	 * method will serialize the context only once
 	 *
-	 * @param serObj - serialization
 	 * @param cc whose keys should be serialized
+	 * @param ser - stream to serialize to
+	 * @param sertype - type of serialization
 	 * @return true on success (false on failure or no keys found)
 	 */
-	static bool SerializeEvalMultKey(Serialized* serObj, const CryptoContext<Element> cc);
+	template<typename ST>
+	static bool SerializeEvalMultKey(std::ostream& ser, const ST&, const CryptoContext<Element> cc);
 
 	/**
 	 * DeserializeEvalMultKey deserialize all keys in the serialization
 	 * deserialized keys silently replace any existing matching keys
 	 * deserialization will create CryptoContextImpl if necessary
 	 *
-	 * @param serObj - serialization
+	 * @param serObj - stream with a serialization
 	 * @return true on success
 	 */
-	static bool DeserializeEvalMultKey(const Serialized& serObj);
+	template<typename ST>
+	static bool DeserializeEvalMultKey(std::istream& ser, const ST&);
 
 	/**
 	 * ClearEvalMultKeys - flush EvalMultKey cache
@@ -360,44 +348,44 @@ public:
 	 */
 	static void InsertEvalMultKey(const std::vector<LPEvalKey<Element>>& vectorToInsert);
 
+	static bool SerializeEvalSumKey(Serialized* serObj) __attribute__ ((deprecated("serialization changed, see wiki for details")));
+	static bool SerializeEvalSumKey(Serialized* serObj, const string& id) __attribute__ ((deprecated("serialization changed, see wiki for details")));
+	static bool SerializeEvalSumKey(Serialized* serObj, const CryptoContext<Element> cc) __attribute__ ((deprecated("serialization changed, see wiki for details")));
+	static bool DeserializeEvalSumKey(const Serialized& serObj) __attribute__ ((deprecated("serialization changed, see wiki for details")));
+
 	/**
-	 * SerializeEvalSumKey for all EvalSum keys
-	 * method will serialize each CryptoContextImpl only once
+	 * SerializeEvalSumKey for a single EvalSum key or all of the EvalSum keys
 	 *
-	 * @param serObj - serialization
+	 * @param ser - stream to serialize to
+	 * @param sertype - type of serialization
+	 * @param id - key to serialize; empty string means all keys
 	 * @return true on success
 	 */
-	static bool SerializeEvalSumKey(Serialized* serObj);
+	template<typename ST>
+	static bool SerializeEvalSumKey(std::ostream& ser, const ST& sertype, string id = "");
 
 	/**
-	 * SerializeEvalSumKey for a single EvalSum key
-	 * method will serialize entire key AND cryptocontext
+	 * SerializeEvalSumKey for all of the EvalSum keys for a context
 	 *
-	 * @param serObj - serialization
-	 * @param id for key to serialize
-	 * @return true on success (false on failure or key id not found)
+	 * @param ser - stream to serialize to
+	 * @param sertype - type of serialization
+	 * @param cc - context
+	 * @return true on success
 	 */
-	static bool SerializeEvalSumKey(Serialized* serObj, const string& id);
-
-	/**
-	 * SerializeEvalSumKey for all EvalSumKeys made in a given context
-	 * method will serialize the context only once
-	 *
-	 * @param serObj - serialization
-	 * @param cc whose keys should be serialized
-	 * @return true on success (false on failure or no keys found)
-	 */
-	static bool SerializeEvalSumKey(Serialized* serObj, const CryptoContext<Element> cc);
+	template<typename ST>
+	static bool SerializeEvalSumKey(std::ostream& ser, const ST& sertype, const CryptoContext<Element> cc);
 
 	/**
 	 * DeserializeEvalSumKey deserialize all keys in the serialization
 	 * deserialized keys silently replace any existing matching keys
 	 * deserialization will create CryptoContextImpl if necessary
 	 *
-	 * @param serObj - serialization
+	 * @param ser - stream to serialize from
+	 * @param sertype - type of serialization
 	 * @return true on success
 	 */
-	static bool DeserializeEvalSumKey(const Serialized& serObj);
+	template<typename ST>
+	static bool DeserializeEvalSumKey(std::istream& ser, const ST& sertype);
 
 	/**
 	 * ClearEvalSumKeys - flush EvalSumKey cache
@@ -422,44 +410,44 @@ public:
 	 */
 	static void InsertEvalSumKey(const shared_ptr<std::map<usint,LPEvalKey<Element>>> mapToInsert);
 
+	static bool SerializeEvalAutomorphismKey(Serialized* serObj) __attribute__ ((deprecated("serialization changed, see wiki for details")));
+	static bool SerializeEvalAutomorphismKey(Serialized* serObj, const string& id) __attribute__ ((deprecated("serialization changed, see wiki for details")));
+	static bool SerializeEvalAutomorphismKey(Serialized* serObj, const CryptoContext<Element> cc) __attribute__ ((deprecated("serialization changed, see wiki for details")));
+	static bool DeserializeEvalAutomorphismKey(const Serialized& serObj) __attribute__ ((deprecated("serialization changed, see wiki for details")));
+
 	/**
-	 * SerializeEvalAutomorphismKey for all EvalAutomorphism keys
-	 * method will serialize each CryptoContextImpl only once
+	 * SerializeEvalAutomorphismKey for a single EvalAuto key or all of the EvalAuto keys
 	 *
-	 * @param serObj - serialization
+	 * @param ser - stream to serialize to
+	 * @param sertype - type of serialization
+	 * @param id - key to serialize; empty string means all keys
 	 * @return true on success
 	 */
-	static bool SerializeEvalAutomorphismKey(Serialized* serObj);
+	template<typename ST>
+	static bool SerializeEvalAutomorphismKey(std::ostream& ser, const ST& sertype, string id = "");
 
 	/**
-	 * SerializeEvalAutomorphismKey for a single EvalAutomorphism key
-	 * method will serialize entire key AND cryptocontext
+	 * SerializeEvalAutomorphismKey for all of the EvalAuto keys for a context
 	 *
-	 * @param serObj - serialization
-	 * @param id for key to serialize
-	 * @return true on success (false on failure or key id not found)
+	 * @param ser - stream to serialize to
+	 * @param sertype - type of serialization
+	 * @param cc - context
+	 * @return true on success
 	 */
-	static bool SerializeEvalAutomorphismKey(Serialized* serObj, const string& id);
-
-	/**
-	 * SerializeEvalAutomorphismKey for all EvalAutomorphismKeys made in a given context
-	 * method will serialize the context only once
-	 *
-	 * @param serObj - serialization
-	 * @param cc whose keys should be serialized
-	 * @return true on success (false on failure or no keys found)
-	 */
-	static bool SerializeEvalAutomorphismKey(Serialized* serObj, const CryptoContext<Element> cc);
+	template<typename ST>
+	static bool SerializeEvalAutomorphismKey(std::ostream& ser, const ST& sertype, const CryptoContext<Element> cc);
 
 	/**
 	 * DeserializeEvalAutomorphismKey deserialize all keys in the serialization
 	 * deserialized keys silently replace any existing matching keys
 	 * deserialization will create CryptoContextImpl if necessary
 	 *
-	 * @param serObj - serialization
+	 * @param ser - stream to serialize from
+	 * @param sertype - type of serialization
 	 * @return true on success
 	 */
-	static bool DeserializeEvalAutomorphismKey(const Serialized& serObj);
+	template<typename ST>
+	static bool DeserializeEvalAutomorphismKey(std::istream& ser, const ST& sertype);
 
 	/**
 	 * ClearEvalAutomorphismKeys - flush EvalAutomorphismKey cache
@@ -979,52 +967,7 @@ public:
 	void EncryptStream(
 		const LPPublicKey<Element> publicKey,
 		std::istream& instream,
-		std::ostream& outstream) const
-	{
-		// NOTE timing this operation is not supported
-
-		if( publicKey == NULL || Mismatched(publicKey->GetCryptoContext()) )
-			throw std::logic_error("key passed to EncryptStream was not generated with this crypto context");
-
-		bool padded = false;
-		Plaintext px;
-		size_t chunkSize = this->GetRingDimension();
-		char *ptxt = new char[chunkSize];
-
-		while (instream.good()) {
-			instream.read(ptxt, chunkSize);
-			size_t nRead = instream.gcount();
-
-			if (nRead <= 0 && padded)
-				break;
-
-			px = this->MakeStringPlaintext(std::string(ptxt,nRead));
-
-			if (nRead < chunkSize) {
-				padded = true;
-			}
-
-			Ciphertext<Element> ciphertext = GetEncryptionAlgorithm()->Encrypt(publicKey, px->GetElement<Element>());
-			if (!ciphertext) {
-				break;
-			}
-			ciphertext->SetEncodingType( px->GetEncodingType() );
-
-			Serialized cS;
-
-			if (ciphertext->Serialize(&cS)) {
-				if (!SerializableHelper::SerializationToStream(cS, outstream)) {
-					break;
-				}
-			}
-			else {
-				break;
-			}
-		}
-
-		delete [] ptxt;
-		return;
-	}
+		std::ostream& outstream) const __attribute__ ((deprecated("serialization changed, see wiki for details")));
 
 	// PLAINTEXT FACTORY METHODS
 	// FIXME to be deprecated in 2.0
@@ -1107,7 +1050,6 @@ public:
 		return PlaintextFactory::MakePlaintext( encoding, cc->GetElementParams(), cc->GetEncodingParams(), value, value2 );
 	}
 
-private:
 	static Plaintext
 	GetPlaintextForDecrypt(PlaintextEncodings pte, shared_ptr<typename Element::Params> evp, EncodingParams ep) {
 		shared_ptr<typename NativePoly::Params> vp(
@@ -1368,49 +1310,7 @@ public:
 	size_t DecryptStream(
 		const LPPrivateKey<Element> privateKey,
 		std::istream& instream,
-		std::ostream& outstream)
-	{
-		// NOTE timing this operation is not supported
-
-		if( privateKey == NULL || Mismatched(privateKey->GetCryptoContext()) )
-			throw std::logic_error("Information passed to DecryptStream was not generated with this crypto context");
-
-		Serialized serObj;
-		size_t tot = 0;
-
-		bool firstTime = true;
-		Plaintext pte[2];
-		bool whichArray = false;
-
-		while( SerializableHelper::StreamToSerialization(instream, &serObj) ) {
-			Ciphertext<Element> ct;
-			if( (ct = deserializeCiphertext(serObj)) != NULL ) {
-				if( ct->GetEncodingType() != String ) {
-					throw std::logic_error("Library can only stream string encodings");
-				}
-
-				pte[whichArray] = GetPlaintextForDecrypt(ct->GetEncodingType(), this->GetElementParams(), this->GetEncodingParams());
-				DecryptResult res = GetEncryptionAlgorithm()->Decrypt(privateKey, ct, &pte[whichArray]->GetElement<NativePoly>());
-				if( !res.isValid )
-					return tot;
-				tot += res.messageLength;
-
-				pte[whichArray]->Decode();
-
-				if( !firstTime ) {
-					outstream << pte[!whichArray]->GetStringValue();
-				}
-				firstTime = false;
-				whichArray = !whichArray;
-			}
-			else
-				return tot;
-		}
-
-		outstream << pte[!whichArray]->GetStringValue();
-
-		return tot;
-	}
+		std::ostream& outstream) __attribute__ ((deprecated("serialization changed, see wiki for details")));
 
 	/**
 	* ReEncrypt - Proxy Re Encryption mechanism for PALISADE
@@ -1452,34 +1352,7 @@ public:
 		const LPEvalKey<Element> evalKey,
 		std::istream& instream,
 		std::ostream& outstream,
-		const LPPublicKey<Element> publicKey = nullptr)
-	{
-		// NOTE timing this operation is not supported
-
-		if( evalKey == NULL || Mismatched(evalKey->GetCryptoContext()) )
-			throw std::logic_error("Information passed to ReEncryptStream was not generated with this crypto context");
-
-		Serialized serObj;
-
-		while( SerializableHelper::StreamToSerialization(instream, &serObj) ) {
-			Ciphertext<Element> ct;
-			ct = deserializeCiphertext(serObj);
-			if( ct ) {
-				Ciphertext<Element> reCt = ReEncrypt(evalKey, ct, publicKey);
-
-				Serialized serReObj;
-				if( reCt->Serialize(&serReObj) ) {
-					SerializableHelper::SerializationToStream(serReObj, outstream);
-				}
-				else {
-					return;
-				}
-			}
-			else {
-				return;
-			}
-		}
-	}
+		const LPPublicKey<Element> publicKey = nullptr) __attribute__ ((deprecated("serialization changed, see wiki for details")));
 
 	/**
 	 * EvalAdd - PALISADE EvalAdd method for a pair of ciphertexts
@@ -2254,40 +2127,38 @@ public:
 		return rv;
 	}
 
-	/**
-	* Deserialize into a Public Key
-	* @param serObj
-	* @return deserialized object
-	*/
-	static LPPublicKey<Element>	deserializePublicKey(const Serialized& serObj);
+	static LPPublicKey<Element>	deserializePublicKey(const Serialized& serObj) __attribute__ ((deprecated("serialization changed, see wiki for details")));
+	static LPPrivateKey<Element> deserializeSecretKey(const Serialized& serObj) __attribute__ ((deprecated("serialization changed, see wiki for details")));
+	static LPEvalKey<Element> deserializeEvalKey(const Serialized& serObj) __attribute__ ((deprecated("serialization changed, see wiki for details")));
+	static LPEvalKey<Element> deserializeEvalKeyInContext(const Serialized& serObj, CryptoContext<Element> cc) __attribute__ ((deprecated("serialization changed, see wiki for details")));
 
-	/**
-	* Deserialize into a Private Key
-	* @param serObj
-	* @return deserialized object
-	*/
-	static LPPrivateKey<Element>	deserializeSecretKey(const Serialized& serObj);
+	template <class Archive>
+	void save( Archive & ar, std::uint32_t const version ) const
+	{
+		ar( ::cereal::make_nvp("cc", params) );
+		ar( ::cereal::make_nvp("kt", scheme) );
+	}
 
-	/**
-	* Deserialize into a Ciphertext
-	* @param serObj
-	* @return deserialized object
-	*/
-	static Ciphertext<Element>		deserializeCiphertext(const Serialized& serObj);
+	template <class Archive>
+	void load( Archive & ar, std::uint32_t const version )
+	{
+		if( version > SerializedVersion() ) {
+			PALISADE_THROW(deserialize_error, "serialized object version " + std::to_string(version) + " is from a later version of the library");
+		}
+		ar( ::cereal::make_nvp("cc", params) );
+		ar( ::cereal::make_nvp("kt", scheme) );
 
-	/**
-	* Deserialize into an Eval Key in a given context
-	* @param serObj
-	* @return deserialized object
-	*/
-	static LPEvalKey<Element>		deserializeEvalKey(const Serialized& serObj);
+		// NOTE: a pointer to this object will be wrapped in a shared_ptr, and is a "CryptoContext".
+		// PALISADE relies on the notion that identical CryptoContextImpls are not duplicated in memory
+		// Once we deserialize this object, we must check to see if there is a matching object
+		// for this object that's already existing in memory
+		// if it DOES exist, use it. If it does NOT exist, add this to the cache of all contexts
 
-	/**
-	* Deserialize into an Eval Key
-	* @param serObj
-	* @return deserialized object
-	*/
-	static LPEvalKey<Element>		deserializeEvalKeyInContext(const Serialized& serObj, CryptoContext<Element> cc);
+		// That functionality gets handled in the Deserialize wrapper for CryptoContext
+	}
+
+	std::string SerializedObjectName() const { return "CryptoContext"; }
+	static uint32_t	SerializedVersion() { return 1; }
 };
 
 /**
@@ -2343,19 +2214,27 @@ public:
 
 	void SetKeyTag(const string& tag) { keyTag = tag; }
 
-	/**
-	* SerializeCryptoObject serializes this header into a Serialized
-	* @param serObj is used to store the serialized result.
-	* @return true if successfully serialized
-	*/
-	bool SerializeCryptoObject(Serialized* serObj, bool includeContext = true) const;
+	template <class Archive>
+	void save( Archive & ar, std::uint32_t const version ) const
+	{
+		ar( ::cereal::make_nvp("cc", context) );
+		ar( ::cereal::make_nvp("kt", keyTag) );
+	}
 
-	/**
-	* DeserializeCryptoObject Populates this header from the deserialization of the Serialized
-	* @param serObj contains the serialized object
-	* @return true on success
-	*/
-	bool DeserializeCryptoObject(const Serialized& serObj, bool includesContext = true);
+	template <class Archive>
+	void load( Archive & ar, std::uint32_t const version )
+	{
+		if( version > SerializedVersion() ) {
+			PALISADE_THROW(deserialize_error, "serialized object version " + std::to_string(version) + " is from a later version of the library");
+		}
+		ar( ::cereal::make_nvp("cc", context) );
+		ar( ::cereal::make_nvp("kt", keyTag) );
+
+		context = CryptoContextFactory<Element>::GetContext(context->GetCryptoParameters(),context->GetEncryptionAlgorithm());
+	}
+
+	std::string SerializedObjectName() const { return "CryptoObject"; }
+	static uint32_t	SerializedVersion() { return 1; }
 };
 
 /**
@@ -2379,70 +2258,9 @@ public:
 			shared_ptr<LPCryptoParameters<Element>> params,
 			shared_ptr<LPPublicKeyEncryptionScheme<Element>> scheme);
 
-	static CryptoContext<Element> GetContextForPointer(
-			CryptoContextImpl<Element>* cc);
+	static CryptoContext<Element> GetContextForPointer(CryptoContextImpl<Element>* cc);
 
-	static const vector<CryptoContext<Element>>& GetAllContexts() { return AllContexts; }
-
-	/**
-	* construct a PALISADE CryptoContextImpl for the LTV Scheme
-	* @param params ring parameters
-	* @param plaintextModulus plaintext modulus
-	* @param relinWindow bits in the base of digits in key switching/relinearization
-	* @param stdDev sigma - distribution parameter for error distribution
-	* @param depth of supported computation circuit (not used; for future use)
-	* @param assuranceMeasure alpha - effective bound for gaussians: - sqrt{alpha}*sigma..sqrt{alpha}*sigma
-	* @param security level - root Hermite factor
-	* @return new context
-	*/
-	static CryptoContext<Element> genCryptoContextLTV(shared_ptr<typename Element::Params> params,
-		const PlaintextModulus plaintextmodulus,
-		usint relinWindow, float stDev, int depth = 1, int assuranceMeasure = 9, float securityLevel = 1.006);
-
-	/**
-	* construct a PALISADE CryptoContextImpl for the LTV Scheme
-	* @param params ring parameters
-	* @param encodingParams plaintext encoding parameters
-	* @param relinWindow bits in the base of digits in key switching/relinearization
-	* @param stdDev sigma - distribution parameter for error distribution
-	* @param depth of supported computation circuit (not used; for future use)
-	* @param assuranceMeasure alpha - effective bound for gaussians: - sqrt{alpha}*sigma..sqrt{alpha}*sigma
-	* @param security level - root Hermite factor
-	* @return new context
-	*/
-	static CryptoContext<Element> genCryptoContextLTV(shared_ptr<typename Element::Params> params,
-		EncodingParams encodingParams,
-		usint relinWindow, float stDev, int depth = 1, int assuranceMeasure = 9, float securityLevel = 1.006);
-
-	/**
-	* construct a PALISADE CryptoContextImpl for the LTV Scheme using the scheme's ParamsGen methods
-	* @param plaintextModulus plaintext modulus
-	* @param security level - root Hermite factor
-	* @param relinWindow bits in the base of digits in key switching/relinearization
-	* @param dist sigma - distribution parameter for error distribution
-	* @param numAdds - number/depth of homomorphic additions (assuming no other homomorphic operations are performed)
-	* @param numMults - multiplicative depth (assuming no other homomorphic operations are performed)
-	* @param numKeyswitches - depth of key switching/number of hops in proxy re-encryption (assuming no other homomorphic operations are performed)
-	* @return new context
-	*/
-	static CryptoContext<Element> genCryptoContextLTV(
-		const PlaintextModulus plaintextModulus, float securityLevel, usint relinWindow, float dist,
-		unsigned int numAdds, unsigned int numMults, unsigned int numKeyswitches);
-
-	/**
-	* construct a PALISADE CryptoContextImpl for the LTV Scheme using the scheme's ParamsGen methods
-	* @param encodingParams plaintext encoding parameters
-	* @param security level - root Hermite factor
-	* @param relinWindow bits in the base of digits in key switching/relinearization
-	* @param dist sigma - distribution parameter for error distribution
-	* @param numAdds - number/depth of homomorphic additions (assuming no other homomorphic operations are performed)
-	* @param numMults - multiplicative depth (assuming no other homomorphic operations are performed)
-	* @param numKeyswitches - depth of key switching/number of hops in proxy re-encryption (assuming no other homomorphic operations are performed)
-	* @return new context
-	*/
-	static CryptoContext<Element> genCryptoContextLTV(
-		EncodingParams encodingParams, float securityLevel, usint relinWindow, float dist,
-		unsigned int numAdds, unsigned int numMults, unsigned int numKeyswitches);
+	static const vector<CryptoContext<Element>>& GetAllContexts();
 
 	/**
 	* construct a PALISADE CryptoContextImpl for the BFV Scheme
@@ -2790,12 +2608,7 @@ public:
 	*/
 	static CryptoContext<Element> genCryptoContextNull(unsigned int m, EncodingParams encodingParams);
 
-	/**
-	* Create a PALISADE CryptoContextImpl from a serialization
-	* @param serObj
-	* @return new context
-	*/
-	static CryptoContext<Element> DeserializeAndCreateContext(const Serialized& serObj);
+	static CryptoContext<Element> DeserializeAndCreateContext(const Serialized& serObj) __attribute__ ((deprecated("serialization changed, see wiki for details")));
 };
 
 

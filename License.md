@@ -1,7 +1,7 @@
 License Information
 -------------------
 
-Copyright (c) 2017-2019, New Jersey Institute of Technology (NJIT)
+Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
 
 All rights reserved.
 

@@ -1,9 +1,9 @@
 /**
  * @file trapdoor.cpp Provides the utility for sampling trapdoor lattices as described in https://eprint.iacr.org/2017/844.pdf
  * https://eprint.iacr.org/2018/946, and "Implementing Token-Based Obfuscation under (Ring) LWE" (not publicly available yet)
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -28,7 +28,6 @@
 #ifndef _SRC_LIB_CRYPTO_SIGNATURE_TRAPDOOR_CPP
 #define _SRC_LIB_CRYPTO_SIGNATURE_TRAPDOOR_CPP
 
-#include "cryptocontext.h"
 #include "trapdoor.h"
 
 namespace lbcrypto {
@@ -103,7 +102,7 @@ namespace lbcrypto {
 			const RLWETrapdoorPair<DCRTPoly> &Tprime,
 			const DCRTPoly::DggType& dgg, const DCRTPoly::DggType& dggLargeSigma,
 			shared_ptr<Matrix<DCRTPoly>> perturbationVector){
-		bool dbg_flag = false;
+		DEBUG_FLAG(false);
 		TimeVar t1, t2, t3, t1_tot, t2_tot, t3_tot;
 
 		TIC(t1);

@@ -1,8 +1,8 @@
 /*
  * @file 
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -132,7 +132,7 @@ template<typename Element>
 void switch_format_decompose_single_crt(const string& msg) {
 	using Params = typename Element::Params;
 
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	usint m1 = 16;
 
 	typename Element::Integer modulus = FirstPrime<typename Element::Integer>(22, m1);
@@ -185,7 +185,7 @@ TEST(UTNTT, switch_format_decompose_single_crt) {
 
 template<typename Element>
 void decomposeMult_double_crt(const string& msg) {
-  bool dbg_flag = false;
+  DEBUG_FLAG(false);
 	usint init_m = 16;
 
 	float init_stdDev = 4;
@@ -258,7 +258,7 @@ template<typename Element>
 void decomposeMult_single_crt(const string& msg) {
 	using Params = typename Element::Params;
 
-  bool dbg_flag = false;
+  DEBUG_FLAG(false);
 	usint m1 = 16;
 
 	typename Element::Integer modulus("17729");

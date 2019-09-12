@@ -1,8 +1,8 @@
 /*
  * @file binvect.cpp This file contains the vector manipulation functionality.
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -161,7 +161,7 @@ const BigVectorImpl<IntegerType>& BigVectorImpl<IntegerType>::operator=(std::ini
 
 template<class IntegerType>
 const BigVectorImpl<IntegerType>& BigVectorImpl<IntegerType>::operator=(std::initializer_list<std::string> rhs) {
-        bool dbg_flag = false;
+        DEBUG_FLAG(false);
         size_t len = rhs.size();
 	for(size_t i=0;i<m_length;i++){
 		if(i<len) {
@@ -200,7 +200,7 @@ void BigVectorImpl<IntegerType>::SetModulus(const IntegerType& value){
 */
 template<class IntegerType>
 void BigVectorImpl<IntegerType>::SwitchModulus(const IntegerType& newModulus) {
-    bool dbg_flag = false;
+    DEBUG_FLAG(false);
     DEBUG("Switch modulus old mod :"<<this->m_modulus);
     DEBUG("Switch modulus old this :"<<*this);
 	
@@ -601,7 +601,7 @@ BigVectorImpl<IntegerType> BigVectorImpl<IntegerType>::MultWithOutMod(const BigV
 //Gets the ind
 template<class IntegerType>
 BigVectorImpl<IntegerType> BigVectorImpl<IntegerType>::GetDigitAtIndexForBase(usint index, usint base) const{
-	bool dbg_flag = false;
+	DEBUG_FLAG(false);
 	DEBUG("BigVectorImpl::GetDigitAtIndexForBase:  index = " << index << ", base = " << base);
 	BigVectorImpl ans(*this);
 	for(usint i=0;i<this->m_length;i++){
@@ -610,78 +610,6 @@ BigVectorImpl<IntegerType> BigVectorImpl<IntegerType>::GetDigitAtIndexForBase(us
 	}
 
 	return ans;
-}
-
-// Serialize Operation
-template<class IntegerType>
-bool BigVectorImpl<IntegerType>::Serialize(lbcrypto::Serialized* serObj) const {
-
-  if( !serObj->IsObject() ){
-    serObj->SetObject();
-  }
-  
-	lbcrypto::SerialItem bbvMap(rapidjson::kObjectType);
-
-	bbvMap.AddMember("Modulus", this->GetModulus().ToString(), serObj->GetAllocator());
-	bbvMap.AddMember("IntegerType", IntegerType::IntegerTypeName(), serObj->GetAllocator());
-
-	usint pkVectorLength = this->GetLength();
-	bbvMap.AddMember("Length", std::to_string(pkVectorLength), serObj->GetAllocator());
-
-	if( pkVectorLength > 0 ) {
-		std::string pkBufferString = "";
-		for (size_t i = 0; i < pkVectorLength; i++) {
-			pkBufferString += (*this)[i].SerializeToString(this->GetModulus());
-		}
-		bbvMap.AddMember("VectorValues", pkBufferString, serObj->GetAllocator());
-	}
-
-	serObj->AddMember("BigVectorImpl", bbvMap, serObj->GetAllocator());
-
-	return true;
-}
-
-// Deserialize Operation
-template<class IntegerType>
-bool BigVectorImpl<IntegerType>::Deserialize(const lbcrypto::Serialized& serObj) {
-
-	lbcrypto::Serialized::ConstMemberIterator mIter = serObj.FindMember("BigVectorImpl");
-	if( mIter == serObj.MemberEnd() )
-		return false;
-
-	lbcrypto::SerialItem::ConstMemberIterator vIt;
-
-	if( (vIt = mIter->value.FindMember("IntegerType")) == mIter->value.MemberEnd() )
-		return false;
-	if( IntegerType::IntegerTypeName() != vIt->value.GetString() )
-		return false;
-
-	if( (vIt = mIter->value.FindMember("Modulus")) == mIter->value.MemberEnd() )
-		return false;
-	IntegerType bbiModulus(vIt->value.GetString());
-
-	if( (vIt = mIter->value.FindMember("Length")) == mIter->value.MemberEnd() )
-		return false;
-	usint vectorLength = std::stoi(vIt->value.GetString());
-
-	if( (vIt = mIter->value.FindMember("VectorValues")) == mIter->value.MemberEnd() )
-		return false;
-
-	BigVectorImpl<IntegerType> newVec(vectorLength, bbiModulus);
-
-	IntegerType vectorElem;
-	const char *vp = vIt->value.GetString();
-	for( usint ePos = 0; ePos < vectorLength; ePos++ ) {
-		if( *vp == '\0' ) {
-			return false; // premature end of vector
-		}
-		vp = vectorElem.DeserializeFromString(vp, bbiModulus);
-		newVec[ePos] = vectorElem;
-	}
-
-	*this = std::move(newVec);
-
-	return true;
 }
 
 template class BigVectorImpl<BigInteger<integral_dtype,BigIntegerBitLength>>;

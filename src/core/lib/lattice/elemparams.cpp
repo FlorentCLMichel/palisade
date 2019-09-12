@@ -1,8 +1,8 @@
 /*
  * @file elemparams.cpp - element parameters for palisade
- * @author  TPOC: palisade@njit.edu
+ * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2017, New Jersey Institute of Technology (NJIT)
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -26,61 +26,9 @@
 
 #include "elemparams.h"
 
-namespace lbcrypto
-{
-
-/**
-* Stores this object's attribute name value pairs to a map for serializing this object to a JSON file.
-*
-* @param serObj stores this object's serialized attribute name value pairs.
-* @return map updated with the attribute name value pairs required to serialize this object.
-*/
-template<typename IntType>
-bool ElemParams<IntType>::Serialize(Serialized* serObj) const
-{
-        if( !serObj->IsObject() ){
-	  serObj->SetObject();
-	}
-
-	SerialItem ser(rapidjson::kObjectType);
-	ser.AddMember("Modulus", this->GetModulus().ToString(), serObj->GetAllocator());
-	ser.AddMember("Order", std::to_string(this->GetCyclotomicOrder()), serObj->GetAllocator());
-
-	serObj->AddMember("ElemParams", ser, serObj->GetAllocator());
-
-	return true;
-}
-
-/**
-* Sets this object's attribute name value pairs to deserialize this object from a JSON file.
-*
-* @param serObj stores this object's serialized attribute name value pairs.
-*/
-template<typename IntType>
-bool ElemParams<IntType>::Deserialize(const Serialized& serObj)
-{
-
-	Serialized::ConstMemberIterator mIter = serObj.FindMember("ElemParams");
-	if( mIter == serObj.MemberEnd() ) {
-		return false;
-	}
-
-	SerialItem::ConstMemberIterator oIt;
-
-	if( (oIt = mIter->value.FindMember("Modulus")) == mIter->value.MemberEnd() )
-		return false;
-	IntType modulus(oIt->value.GetString());
-
-	if( (oIt = mIter->value.FindMember("Order")) == mIter->value.MemberEnd() )
-		return false;
-	usint order = atoi(oIt->value.GetString());
-
-	cyclotomicOrder = order;
-	ringDimension = GetTotient(order);
-	isPowerOfTwo = cyclotomicOrder/2 == ringDimension;
-	ciphertextModulus = modulus;
-	return true;
-}
-
-
-} // namespace lbcrypto ends
+CEREAL_CLASS_VERSION( lbcrypto::ElemParams<M2Integer>, lbcrypto::ElemParams<M2Integer>::SerializedVersion() );
+CEREAL_CLASS_VERSION( lbcrypto::ElemParams<M4Integer>, lbcrypto::ElemParams<M4Integer>::SerializedVersion() );
+#ifdef WITH_NTL
+CEREAL_CLASS_VERSION( lbcrypto::ElemParams<M6Integer>, lbcrypto::ElemParams<M6Integer>::SerializedVersion() );
+#endif
+CEREAL_CLASS_VERSION( lbcrypto::ElemParams<NativeInteger>, lbcrypto::ElemParams<NativeInteger>::SerializedVersion() );
