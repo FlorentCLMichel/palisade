@@ -61,7 +61,7 @@ may face temporary or permanent repercussions as determined by other members of 
 project's leadership.
 
 If you feel that your report has not been followed up satisfactorily, then you may 
-contact our parent organisation NumFOCUS at [info@numfocus.org](mailto:info@numfocus.org) for further redress.
+contact our sponsor organisation NumFOCUS at [info@numfocus.org](mailto:info@numfocus.org) for further redress.
 
 ## Attribution
 
