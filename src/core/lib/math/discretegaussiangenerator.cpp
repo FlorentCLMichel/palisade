@@ -25,9 +25,9 @@
  *
  */
  
-#include "discretegaussiangenerator.h"
-#include "nbtheory.h"
-#include "backend.h"
+#include "math/discretegaussiangenerator.h"
+#include "math/nbtheory.h"
+#include "math/backend.h"
  
 
 namespace lbcrypto {
@@ -262,8 +262,6 @@ namespace lbcrypto {
 		DEBUG_FLAG(false);
 		int32_t x;
 
-		#pragma omp critical 
-		{		
 		double t = log2(n)*stddev;  //this representation of log_2 is used for Visual Studio
 		DEBUG("DiscreteGaussianGeneratorImpl =========");
 		DEBUG("mean "<<mean);
@@ -311,7 +309,6 @@ namespace lbcrypto {
 
 		}
 
-		}//end pragma
 		return x;
 
 	}
@@ -322,7 +319,7 @@ namespace lbcrypto {
 		std::uniform_int_distribution<int32_t> uniform_sign(0, 1);
 		std::uniform_int_distribution<int64_t> uniform_j(0, ceil(stddev)-1);
 
-		std::mt19937 &g = PseudoRandomNumberGenerator::GetPRNG();
+		PRNG &g = PseudoRandomNumberGenerator::GetPRNG();
 
 		bool flagSuccess = false;
 		int32_t k;
@@ -367,12 +364,12 @@ namespace lbcrypto {
 	}
 	
 	template<typename VecType>
-	bool DiscreteGaussianGeneratorImpl<VecType>::AlgorithmP(std::mt19937 &g, int n){
+	bool DiscreteGaussianGeneratorImpl<VecType>::AlgorithmP(PRNG &g, int n){
 		while (n-- && AlgorithmH(g)){}; return n < 0;
 	}
 
 	template<typename VecType>
-	int32_t DiscreteGaussianGeneratorImpl<VecType>::AlgorithmG(std::mt19937 &g)
+	int32_t DiscreteGaussianGeneratorImpl<VecType>::AlgorithmG(PRNG &g)
 	{
 		int n = 0; while (AlgorithmH(g)) ++n; return n;
 	}
@@ -380,7 +377,7 @@ namespace lbcrypto {
 	// Use single floating-point precision in most cases; if a situation w/ not enough precision is encountered,
 	// call the double-precision algorithm
 	template<typename VecType>
-	bool DiscreteGaussianGeneratorImpl<VecType>::AlgorithmH(std::mt19937 &g){
+	bool DiscreteGaussianGeneratorImpl<VecType>::AlgorithmH(PRNG &g){
 		
 		std::uniform_real_distribution<float> dist(0,1);
 		float h_a, h_b;
@@ -410,7 +407,7 @@ namespace lbcrypto {
 	}
 
 	template<typename VecType>
-	bool DiscreteGaussianGeneratorImpl<VecType>::AlgorithmHDouble(std::mt19937 &g) {
+	bool DiscreteGaussianGeneratorImpl<VecType>::AlgorithmHDouble(PRNG &g) {
 	
 		std::uniform_real_distribution<double> dist(0, 1);
 		double h_a, h_b;
@@ -428,7 +425,7 @@ namespace lbcrypto {
 	}
 
 	template<typename VecType>
-	bool DiscreteGaussianGeneratorImpl<VecType>::AlgorithmB(std::mt19937 &g, int32_t k, double x) {
+	bool DiscreteGaussianGeneratorImpl<VecType>::AlgorithmB(PRNG &g, int32_t k, double x) {
 
 		std::uniform_real_distribution<float> dist(0.0, 1.0);
 
@@ -462,7 +459,7 @@ namespace lbcrypto {
 	}
 
 	template<typename VecType>
-	bool DiscreteGaussianGeneratorImpl<VecType>::AlgorithmBDouble(std::mt19937 &g, int32_t k, double x) {
+	bool DiscreteGaussianGeneratorImpl<VecType>::AlgorithmBDouble(PRNG &g, int32_t k, double x) {
 		std::uniform_real_distribution<double> dist(0.0, 1.0);
 
 		double y = x;

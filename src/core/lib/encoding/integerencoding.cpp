@@ -24,7 +24,7 @@
  *
  */
 
-#include "integerencoding.h"
+#include "encoding/integerencoding.h"
 
 namespace lbcrypto {
 

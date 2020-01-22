@@ -22,9 +22,7 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include "math/discretegaussiangenerator.h"
-#include "math/discretegaussiangeneratorgeneric.h"
-#include "utils/debug.h"
+#include "palisadecore.h"
 //#include <vld.h>
 using namespace lbcrypto;
 
@@ -44,7 +42,7 @@ int main() {
 	DiscreteGaussianGenerator dggRejection(4);
 	DiscreteGaussianGenerator dgg4(stdBase); //for Peikert's method
 	double start, finish;
-	size_t count = 10000;
+	size_t count = 1000;
 	double SMOOTHING_PARAMETER =6;
 
 	std::cout << "Distribution parameter = " << std << std::endl;

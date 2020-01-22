@@ -24,7 +24,7 @@
  *
  */ 
 
-#include "utilities.h"
+#include "utils/utilities.h"
 
 namespace lbcrypto {
 

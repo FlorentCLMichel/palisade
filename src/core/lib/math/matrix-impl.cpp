@@ -27,9 +27,9 @@
 #ifndef _SRC_LIB_CORE_MATH_MATRIX_IMPL_CPP
 #define _SRC_LIB_CORE_MATH_MATRIX_IMPL_CPP
 
-#include "../lattice/field2n.h"
-#include "matrix.cpp"
-#include "matrixstrassen.h"
+#include "lattice/field2n.h"
+#include "math/matrix.cpp"
+#include "math/matrixstrassen.h"
 using std::invalid_argument;
 
 // this is the implementation of matrixes of things that are in core

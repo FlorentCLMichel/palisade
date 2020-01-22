@@ -18,6 +18,7 @@ File Listing
 ------------
 
 * Demo programs
+- [demo-advanced-real-numbers.cpp](src/pke/demo/demo-advanced-real-numbers.cpp): shows several advanced examples of approximate homomorphic encryption using CKKS
 - [demo-automorphism.cpp](src/pke/demo/demo-automorphism.cpp): demonstrates use of EvalAutomorphism for different schemes, plaintext encodings, and cyclotomic rings
 - [demo-bfvrns.cpp](src/pke/demo/demo-bfvrns.cpp): demonstrates use of the BFVrns scheme for basic SHE operations
 - [demo-cross-correlation-bfvrns.cpp](src/pke/demo/demo-cross-correlation-bfrns.cpp): a demo program that demonstrates the use of serialization, DCRT, power-of-two-cyclotomics, and packed encoding for an application that computes cross-correlation using inner products.
@@ -32,7 +33,8 @@ File Listing
 - [demo-pke.cpp](src/pke/demo/demo-pke.cpp): demonstrates use of encryption across several schemes
 - [demo-pre.cpp](src/pke/demo/demo-pre.cpp): demonstrates use of proxy re-encryption across several schemes
 - [demo-she.cpp](src/pke/demo/demo-she.cpp): demonstrates SHE operations using several schemes
-- [demo-simple-example.cpp](src/pke/demo/demo-simple-example.cpp): simple demo showing homomorphic additions, multiplications, and rotations
-- [demo-simple-example-serial.cpp](src/pke/demo/demo-simple-example-serial.cpp): simple demo showing typical serialization/deserialization calls for a prototype computing homomorphic additions, multiplications, and rotations
+- [demo-simple-example.cpp](src/pke/demo/demo-simple-example.cpp): simple demo showing homomorphic additions, multiplications, and rotations for vectors of integers using BFVrns
+- [demo-simple-example-serial.cpp](src/pke/demo/demo-simple-example-serial.cpp): simple demo showing typical serialization/deserialization calls for a prototype computing homomorphic additions, multiplications, and rotations for vectors of integers using BFVrns
+- [demo-simple-real-numbers.cpp](src/pke/demo/demo-simple-real-numbers): simple demo showing homomorphic additions, multiplications, and rotations for vectors of real numbers using CKKS
 - [run-bfvrns.cpp](src/pke/demo/run-bfvrns.cpp): demonstrates benchmarking of RNS operations for BFVrns
 - [run-bfvrns-b.cpp](src/pke/demo/run-bfvrns-b.cpp): demonstrates benchmarking of RNS operations for BFVrnsB

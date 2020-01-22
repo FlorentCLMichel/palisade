@@ -24,7 +24,7 @@
  *
  */ 
 
-#include "palisadebase64.h"
+#include "utils/palisadebase64.h"
 
 namespace lbcrypto {
 

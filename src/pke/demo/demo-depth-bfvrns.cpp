@@ -1,5 +1,5 @@
 /*
- * @file demo_she.cpp - PALISADE library.
+ * @file demo-depth-bfvrns.cpp - PALISADE library.
  * @author  TPOC: contact@palisade-crypto.org
  *
  * @section LICENSE
@@ -38,15 +38,17 @@
 #include <iterator>
 
 #include "palisade.h"
-#include "cryptocontexthelper.h"
 #include "cryptocontextgen.h"
-#include "encoding/encodings.h"
-#include "utils/debug.h"
 
 using namespace std;
 using namespace lbcrypto;
 
 int main(int argc, char *argv[]) {
+
+#ifdef NO_QUADMATH
+  std::cout << "BFVrns is currently not available for this architecture"<<std::endl;
+  exit(0);
+#endif
 
 	////////////////////////////////////////////////////////////
 	// Set-up of parameters

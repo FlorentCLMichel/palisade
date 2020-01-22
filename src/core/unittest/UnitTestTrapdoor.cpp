@@ -459,6 +459,11 @@ TEST(UTTrapdoor, TrapDoorGaussGqSampTestBase1024) {
 
 	Matrix<Poly> z = SplitInt64AltIntoElements<Poly>(zHatBBI, n, params);
 	DEBUG("4.5");
+	// FIXME for some reason I must do this before calling switchformat (which uses omp for parallel execution)
+	// FIXME my guess is there is a race in the calculation/caching of factors underneath, though the critical
+	// FIXME region *should* address that...
+	  auto mmm = z.GetData()[0][0];
+	  mmm.SwitchFormat();
 
 	z.SwitchFormat();
 

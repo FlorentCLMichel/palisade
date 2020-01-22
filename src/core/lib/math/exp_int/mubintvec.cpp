@@ -29,13 +29,13 @@
  */
 
 
-#include "../../utils/serializable.h"
-#include "../backend.h"
+#include "utils/serializable.h"
+#include "math/backend.h"
 
 #include "time.h"
 #include <chrono>
 
-#include "../../utils/debug.h"
+#include "utils/debug.h"
 
 namespace exp_int {
 

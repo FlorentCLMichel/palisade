@@ -2,7 +2,9 @@
  * @file 
  * @author  TPOC: contact@palisade-crypto.org
  *
- * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
+ * @section LICENSE
+ *
+ * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT))
  * All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -22,11 +24,8 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- */
- /*
-Description:
-This code shows how the EvalAtIndex and EvalMerge operations work for different cyclotomic rings (both power-of-two and cyclic)
-
+ * @section DESCRIPTION
+ * This code shows how the EvalAtIndex and EvalMerge operations work for different cyclotomic rings (both power-of-two and cyclic)
 */
 
 #include <iostream>
@@ -34,14 +33,7 @@ This code shows how the EvalAtIndex and EvalMerge operations work for different 
 
 #include "palisade.h"
 
-#include "cryptocontexthelper.h"
-
-#include "encoding/encodings.h"
-
-#include "utils/debug.h"
 #include <random>
-
-#include "math/nbtheory.h"
 
 using namespace std;
 using namespace lbcrypto;
@@ -49,6 +41,7 @@ using namespace lbcrypto;
 #include <iterator>
 
 void BFVrnsEvalAtIndex2n();
+void CKKSEvalAtIndex2n();
 void NullEvalAtIndex2n();
 void BFVEvalAtIndexCyclic();
 void BFVrnsEvalMerge2n();
@@ -59,8 +52,16 @@ int main() {
 	std::cout << "\nThis code shows how the EvalAtIndex and EvalMerge operations work for different cyclotomic rings (both power-of-two and cyclic).\n" << std::endl;
 
 	std::cout << "\n========== BFVrns.EvalAtIndex - Power-of-Two Cyclotomics ===========" << std::endl;
-
+#ifdef NO_QUADMATH
+	std::cout << "BFVrns is currently not available for this architecture. Skipping"<<std::endl;
+#else
 	BFVrnsEvalAtIndex2n();
+#endif
+
+
+	std::cout << "\n========== CKKS.EvalAtIndex - Power-of-Two Cyclotomics ===========" << std::endl;
+
+	CKKSEvalAtIndex2n();
 
 	std::cout << "\n========== Null.EvalAtIndex - Power-of-Two Cyclotomics ===========" << std::endl;
 
@@ -71,8 +72,13 @@ int main() {
 	BFVEvalAtIndexCyclic();
 
 	std::cout << "\n========== BFVrns.EvalMerge - Power-of-Two Cyclotomics ===========" << std::endl;
-
+#ifdef NO_QUADMATH
+	std::cout << "BFVrns is currently not available for this architecture. Skipping"<<std::endl;
+#else
 	BFVrnsEvalMerge2n();
+#endif
+
+
 
 	std::cout << "\n========== Null.EvalMerge - Power-of-Two Cyclotomics ===========" << std::endl;
 
@@ -129,6 +135,63 @@ void BFVrnsEvalAtIndex2n() {
 	}
 
 }
+
+void CKKSEvalAtIndex2n() {
+
+	usint m = 8192;
+
+	usint init_size = 3;
+	usint dcrtBits = 40;
+
+	CryptoContext<DCRTPoly> cc =
+			CryptoContextFactory<DCRTPoly>::genCryptoContextCKKSWithParamsGen(
+											   m,
+											   init_size, /*numPrimes*/
+											   dcrtBits,
+											   10, /*relinWindow*/
+											   16, /*batch size*/
+											   OPTIMIZED,
+											   3 /*depth*/);
+
+	int32_t n = m/4;
+
+	cc->Enable(ENCRYPTION);
+	cc->Enable(SHE);
+	cc->Enable(LEVELEDSHE);
+
+	// Initialize the public key containers.
+	LPKeyPair<DCRTPoly> kp = cc->KeyGen();
+
+	vector<int32_t> indexList = {2,3,4,5,6,7,8,9,10,-n+2,-n+3, n-1, n-2, -1, -2, -3, -4, -5};
+
+	cc->EvalAtIndexKeyGen(kp.secretKey, indexList);
+
+	std::vector<std::complex<double>> vectorOfInts = { 1,2,3,4,5,6,7,8, 9, 10 };
+	vectorOfInts.resize(n);
+	vectorOfInts[n-1]=n;
+	vectorOfInts[n-2]=n-1;
+	vectorOfInts[n-3]=n-2;
+
+	Plaintext intArray = cc->MakeCKKSPackedPlaintext(vectorOfInts);
+
+	auto ciphertext = cc->Encrypt(kp.publicKey, intArray);
+
+	for (size_t i = 0; i < 18; i++) {
+
+		auto permutedCiphertext = cc->EvalAtIndex(ciphertext, indexList[i]);
+
+		Plaintext intArrayNew;
+
+		cc->Decrypt(kp.secretKey,  permutedCiphertext, &intArrayNew);
+
+		intArrayNew->SetLength(10);
+
+		std::cout << "Automorphed array - at index " << indexList[i] << ": " << *intArrayNew << std::endl;
+
+	}
+
+}
+
 
 void NullEvalAtIndex2n() {
 

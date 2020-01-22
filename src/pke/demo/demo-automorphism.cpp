@@ -35,16 +35,7 @@ This code shows how the automorphism operation works for different plaintext enc
 
 #include "palisade.h"
 
-
-#include "cryptocontexthelper.h"
-
-#include "encoding/encodings.h"
-
-#include "utils/debug.h"
 #include <random>
-
-#include "math/nbtheory.h"
-
 
 using namespace std;
 using namespace lbcrypto;

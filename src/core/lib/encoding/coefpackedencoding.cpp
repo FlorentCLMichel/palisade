@@ -24,7 +24,7 @@
  *
  */
 
-#include "coefpackedencoding.h"
+#include "encoding/coefpackedencoding.h"
 
 namespace lbcrypto {
 

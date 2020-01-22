@@ -24,7 +24,7 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include "../lib/abecontext.h"
+#include "abecontext.h"
 
 using namespace lbcrypto;
 

@@ -29,14 +29,14 @@
  */
 
 #define _SECURE_SCL 0 // to speed up VS
-#include "../backend.h"
+#include "math/backend.h"
 
 #include <iostream>
 #include <fstream>
 #include "time.h"
 #include <chrono>
-#include "../../utils/serializable.h"
-#include "../../utils/debug.h"
+#include "utils/serializable.h"
+#include "utils/debug.h"
 
 #define LimbReserveHint 4  // hint for reservation of limbs
 
@@ -319,12 +319,22 @@ float ubint<limb_t>::ConvertToFloat() const{
 
 //Converts the ubint to double using the std library functions.
 template<typename limb_t>
-double ubint<limb_t>::ConvertToDouble() const{
+inline double ubint<limb_t>::ConvertToDouble() const{
 	if (m_value.size()==0)
 		throw std::logic_error("ConvertToDouble() on uninitialized bint");
-	double ans;
+	double ans = 0.0;
 	try {
-		ans = std::stod(this->ToString());
+		//ans = std::stod(this->ToString());
+
+		usint ceilInt = ceilIntByUInt(m_MSB);
+		double factor = pow(2.0,m_limbBitLength);
+		double power = 1.0;
+		//copy the values by shift and add
+		for (usint i = 0; i < ceilInt; i++){
+			ans += this->m_value[i]*power;
+			power *= factor;
+		}
+
 	} catch (const std::exception& e) {
 		throw std::logic_error("ConvertToDouble() parse error converting to double");
 		ans = -1.0;

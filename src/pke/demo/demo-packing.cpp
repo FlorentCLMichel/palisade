@@ -29,10 +29,6 @@
 #include <random>
 #include <iterator>
 #include "palisade.h"
-#include "cryptocontexthelper.h"
-#include "utils/debug.h"
-#include "encoding/encodings.h"
-#include "math/nbtheory.h"
 
 using namespace std;
 using namespace lbcrypto;
@@ -60,9 +56,9 @@ int main() {
 	ArbBGVInnerProductPackedArray();
 
 
-	std::cout << "Please press any key to continue..." << std::endl;
+	//std::cout << "Please press any key to continue..." << std::endl;
 
-	cin.get();
+	//cin.get();
 	return 0;
 }
 

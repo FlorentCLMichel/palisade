@@ -24,7 +24,7 @@
  *
  */
 
-#include "stringencoding.h"
+#include "encoding/stringencoding.h"
 
 namespace lbcrypto {
 

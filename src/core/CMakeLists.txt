@@ -1,4 +1,9 @@
-file (GLOB_RECURSE CORE_SRC_FILES CONFIGURE_DEPENDS lib/*.cpp)
+# includes both C++ and C files
+file (GLOB_RECURSE CORE_SRC_FILES CONFIGURE_DEPENDS lib/*.c*)
+
+include_directories( ../core/include )
+include_directories( include )
+include_directories( lib )
 
 set(CORE_VERSION_MAJOR ${PALISADE_VERSION_MAJOR})
 set(CORE_VERSION_MINOR ${PALISADE_VERSION_MINOR})
@@ -20,6 +25,8 @@ if( ${BUILD_STATIC} MATCHES "YES" )
 	install(TARGETS PALISADEcore_static DESTINATION lib)
 endif()
 
+install(DIRECTORY include/ DESTINATION include/palisade/core)
+
 target_include_directories (PALISADEcore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 set (CORELIBS PUBLIC PALISADEcore ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
@@ -29,11 +36,13 @@ if( ${BUILD_STATIC} MATCHES "YES" )
 	target_link_libraries (PALISADEcore_static ${THIRDPARTYSTATICLIBS} ${OpenMP_CXX_FLAGS})
 endif()
 
+if( ${BUILD_UNITTESTS} )
 file (GLOB CORE_TEST_SRC_FILES CONFIGURE_DEPENDS unittest/*.cpp)
 set (CORE_TEST_SRC_FILES ${CORE_TEST_SRC_FILES})
 add_executable( core_tests ${CORE_TEST_SRC_FILES} ${UNITTESTMAIN} )
 set_property(TARGET core_tests PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/unittest)
 target_link_libraries ( core_tests ${CORELIBS} )
+endif()
 
 set( COREAPPS "" )
 file (GLOB CORE_DEMO_SRC_FILES CONFIGURE_DEPENDS demo/*.cpp)
@@ -49,10 +58,14 @@ add_custom_target( allcoredemos )
 add_dependencies( allcoredemos ${COREAPPS} )
 
 add_custom_target( allcore )
-add_dependencies( allcore PALISADEcore allcoredemos core_tests )
+add_dependencies( allcore PALISADEcore allcoredemos )
+
+if( ${BUILD_UNITTESTS} )
+add_dependencies( allcore core_tests )
+endif()
 
 add_custom_command( OUTPUT coreinfocmd COMMAND echo Builds PALISADEcore and these apps: ${COREAPPS} )
 add_custom_target( coreinfo DEPENDS coreinfocmd )
 
-add_custom_command( OUTPUT runcoretests COMMAND ${CMAKE_BINARY_DIR}/unittest/core_tests )
+add_custom_command( OUTPUT runcoretests WORKING_DIRECTORY ${CMAKE_BINARY_DIR} COMMAND ${CMAKE_BINARY_DIR}/unittest/core_tests )
 add_custom_target( testcore DEPENDS core_tests runcoretests )

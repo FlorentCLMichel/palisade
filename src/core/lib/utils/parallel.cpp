@@ -24,7 +24,7 @@
  *
  */
 
-#include "parallel.h"
+#include "utils/parallel.h"
 
 namespace lbcrypto {
 

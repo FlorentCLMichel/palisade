@@ -33,22 +33,14 @@
 
 #include "palisade.h"
 
-
-#include "cryptocontexthelper.h"
-
-#include "encoding/encodings.h"
-
-#include "utils/debug.h"
 #include "utils/serialize-binary.h"
-#include "bfvrns-ser.h"
+#include "scheme/bfvrns/bfvrns-ser.h"
 #include "pubkeylp-ser.h"
 #include "cryptocontext-ser.h"
 #include "ciphertext-ser.h"
 #include <random>
 
-#include "math/nbtheory.h"
-#include "math/matrix.h"
-#include "math/matrix.cpp"
+#include "../../core/lib/math/matrix.cpp"
 
 using namespace std;
 using namespace lbcrypto;
@@ -69,7 +61,10 @@ const std::string DATAFOLDER = "demoData";
 
 
 int main(int argc, char* argv[]) {
-
+#ifdef NO_QUADMATH
+    std::cout << "This demo uses BFVrns which is currently not available for this architecture"<<std::endl;
+	exit(0);
+#endif
 	if (argc < 2) { // called with no arguments
 		std::cout << "Usage is `" << argv[0] << " arg1 ' where: " << std::endl;
 		std::cout << "  arg1 can be one of the following: keygen, encrypt, compute, or decrypt" << std::endl;

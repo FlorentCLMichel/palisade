@@ -229,6 +229,16 @@ map<string, map<string,string>> CryptoContextParameterSets = {
 				{ "ring", "2048" },
 				{ "modulus", "2" },
 				{ "rootOfUnity", "1" }
+		} },
+
+		{ "CKKS", {
+				{ "parameters", "CKKS" },
+				{ "cyclotomicOrder", "2048" },
+				{ "numPrimes", "8" },
+				{ "scaleExponent", "50" },
+				{ "batchSize", "8" },
+				{ "stDev", "3.19" },
+				{ "relinWindow", "0" }
 		} }
 
 };

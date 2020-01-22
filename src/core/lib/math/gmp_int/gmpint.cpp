@@ -42,9 +42,9 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "../backend.h"
+#include "math/backend.h"
 
-#include "gmpint.h"
+#include "math/gmp_int/gmpint.h"
 
 namespace NTL {
 

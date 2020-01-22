@@ -28,7 +28,7 @@
 #include <algorithm>
 #include <random>
 
-#include "../lib/cryptocontext.h"
+#include "cryptocontext.h"
 
 #include "encoding/encodings.h"
 
@@ -59,11 +59,11 @@ TEST_F(UTEvalIP, Test_BGV_EvalInnerProduct) {
 	usint limit = 15;
 	usint plainttextMod = 89;
 
-	random_device rnd_device;
-	mt19937 mersenne_engine(rnd_device());
+	PRNG rand_engine(1);
+
 	uniform_int_distribution<usint> dist(0, limit);
 
-	auto gen = std::bind(dist, mersenne_engine);
+	auto gen = std::bind(dist, rand_engine);
 	generate(input1.begin(), input1.end() - 2, gen);
 	generate(input2.begin(), input2.end() - 2, gen);
 
@@ -93,11 +93,10 @@ TEST_F(UTEvalIP, Test_BFV_EvalInnerProduct) {
 	usint limit = 15;
 	usint plainttextMod = 2333;
 
-	random_device rnd_device;
-	mt19937 mersenne_engine(rnd_device());
+	PRNG rand_engine(1);
 	uniform_int_distribution<usint> dist(0, limit);
 
-	auto gen = std::bind(dist, mersenne_engine);
+	auto gen = std::bind(dist, rand_engine);
 	generate(input1.begin(), input1.end() - 2, gen);
 	generate(input2.begin(), input2.end() - 2, gen);
 

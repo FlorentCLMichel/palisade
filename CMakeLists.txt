@@ -1,14 +1,30 @@
 cmake_minimum_required (VERSION 3.5.1)
 
-# if no build type is chose, set the Release mode
+message("***** INSTALL IS AT ${CMAKE_INSTALL_PREFIX}; to change, run cmake with -DCMAKE_INSTALL_PREFIX=/your/path")
+set (CMAKE_INSTALL_MESSAGE LAZY)
+
+project (PALISADE C CXX)
+
+option( BUILD_UNITTESTS "Set to TRUE to build unit tests for the library" TRUE)
+
+# determine the architecture on a Linux/Unix/macOS/MinGW system
+if(CMAKE_HOST_UNIX OR MINGW)
+  EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
+else()
+  set(ARCHITECTURE "unknown")
+endif()
+  
+if(ARCHITECTURE)
+  message("-- Architecture is " ${ARCHITECTURE})
+endif()
+
+# if no build type is chosen, set the Release mode
 if( NOT CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Release CACHE STRING
        "Choose the type of build, options are: None Debug Release RelWithDebInfo
 MinSizeRel."
        FORCE )
 endif()
-
-project (PALISADE C CXX)
 
 set(BUILD_STATIC "NO") # set to YES to build static libs and apps
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -45,10 +61,8 @@ else()
 	message("-- tcmalloc is turned OFF")	
 endif()
 
-set(TAR "tar")
-if(APPLE)
-	set(TAR "gtar")
-endif()
+find_program(TAR "gtar")
+find_program(TAR "tar")
 
 if(APPLE)
 	set(OPENMP_LIBRARIES "/usr/local/opt/libomp/lib")
@@ -88,8 +102,8 @@ if( ${AUTOCONF_VER_LEN} EQUAL 0 )
 endif()
 
 set(PALISADE_VERSION_MAJOR 1)
-set(PALISADE_VERSION_MINOR 6)
-set(PALISADE_VERSION_PATCH 0)
+set(PALISADE_VERSION_MINOR 7)
+set(PALISADE_VERSION_PATCH 4)
 set(PALISADE_VERSION ${PALISADE_VERSION_MAJOR}.${PALISADE_VERSION_MINOR}.${PALISADE_VERSION_PATCH})
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -113,16 +127,16 @@ SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 # (but later on when installing)
 SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 
-SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+SET(CMAKE_INSTALL_RPATH "${LIBINSTALL}")
 
 # add the automatically determined parts of the RPATH
 # which point to directories outside the build tree to the install RPATH
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # the RPATH to be used when installing, but only if it's not a system directory
-LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
+LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${LIBINSTALL}" isSystemDir)
 IF("${isSystemDir}" STREQUAL "-1")
-   SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+   SET(CMAKE_INSTALL_RPATH "${LIBINSTALL}")
 ENDIF("${isSystemDir}" STREQUAL "-1")
 
 set(CMAKE_CXX_STANDARD 11)
@@ -153,9 +167,6 @@ if (OpenMP_C_FOUND)
 	set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 endif()
 
-message("***** INSTALL IS AT ${CMAKE_INSTALL_PREFIX}; to change, run cmake with -DCMAKE_INSTALL_PREFIX=/your/path")
-set (CMAKE_INSTALL_MESSAGE LAZY)
-
 # Added -Wno-parentheses -Wno-pessimizing-move for compatibility with g++ >= v9.0
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
@@ -165,12 +176,14 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	endif()
 endif()
 if(APPLE AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-	set(IGNORE_WARNINGS "${IGNORE_WARNINGS} -Wno-unused-private-field")
+	set(IGNORE_WARNINGS "${IGNORE_WARNINGS} -Wno-unused-private-field -Wno-shift-op-parentheses")
 endif()
 
-set(COMPILEFLAGS "-Wall -Werror -O3 -DPALISADE_VERSION=${PALISADE_VERSION} ${IGNORE_WARNINGS}")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMPILEFLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMPILEFLAGS}")
+set(CCOMPILEFLAGS "-Wall -Werror -O3 -DPALISADE_VERSION=${PALISADE_VERSION}")
+set(CXXCOMPILEFLAGS "-Wall -Werror -O3 -DPALISADE_VERSION=${PALISADE_VERSION} ${IGNORE_WARNINGS}")
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CCOMPILEFLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXCOMPILEFLAGS}")
 
 find_package (Git REQUIRED)
 
@@ -196,18 +209,15 @@ include_directories( ${THIRDPARTYDIR}/include )
 
 ### Handle third-party CEREAL
 include_directories( ${THIRDPARTYDIR}/cereal/include )
-
-include_directories( src )
-set (SUBMAKEFILES core pke abe signature)
-foreach( dir ${SUBMAKEFILES} )
-	include_directories( src/${dir}/lib )
-endforeach( dir )
+install(DIRECTORY ${THIRDPARTYDIR}/cereal/include/ DESTINATION include/palisade)
 
 include_directories( third-party/google-test/googletest third-party/google-test/googletest/include )
 include_directories( ${CMAKE_CURRENT_BINARY_DIR}/third-party/include )
 
 ## for tests
-set(UNITTESTMAIN ${PROJECT_SOURCE_DIR}/test/Main_TestAll.cpp)
+if( ${BUILD_UNITTESTS} )
+	set(UNITTESTMAIN ${PROJECT_SOURCE_DIR}/test/Main_TestAll.cpp)
+endif()
 
 ### handle third-party gmp
 
@@ -253,7 +263,7 @@ else()
 endif()
 
 if("${WITH_NTL}" STREQUAL "Y")
-	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/third-party/lib DESTINATION .
+	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/third-party/lib/ DESTINATION lib
 		FILES_MATCHING PATTERN "libgmp.*" )
 	# also copies the gmp dll file
 	if(MINGW)
@@ -330,7 +340,7 @@ set_target_properties(ntl PROPERTIES IMPORTED_LOCATION ${NTLLIBFILE})
 endif()
 
 if("${WITH_NTL}" STREQUAL "Y")
-	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/third-party/lib DESTINATION .
+	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/third-party/lib/ DESTINATION lib
 		FILES_MATCHING PATTERN "libntl.*" )
 	# also copies the dll file
 	if(MINGW)
@@ -362,11 +372,16 @@ add_library(tcmalloc_static STATIC IMPORTED GLOBAL)
 set_target_properties(tcmalloc_static PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/third-party/lib/libtcmalloc_minimal${CMAKE_STATIC_LIBRARY_SUFFIX})
 
 if("${WITH_TCM}" STREQUAL "Y")
-	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/third-party/lib DESTINATION .
+	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/third-party/lib/ DESTINATION lib
 		FILES_MATCHING PATTERN "libtcmalloc_minimal.*")
 endif()
 
-set(QUADMATHLIB -lquadmath)
+#quad math is not supported by the compiler in ARM
+if("${ARCHITECTURE}" STREQUAL "aarch64")
+  set(QUADMATHLIB )
+else()
+  set(QUADMATHLIB -lquadmath)
+endif()
 
 if("${WITH_TCM}" STREQUAL "Y")
 	set(THIRDPARTYLIBS PUBLIC tcmalloc)
@@ -382,8 +397,8 @@ else()
 	set(THIRDPARTYSTATICLIBS "${THIRDPARTYSTATICLIBS}" "${QUADMATHLIB}")
 endif()
 
-if("${WITH_NTL}" STREQUAL "Y")
-	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/third-party/include DESTINATION .)
+if("${WITH_NTL}" STREQUAL "Y" OR "${WITH_TCM}" STREQUAL "Y")
+	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/third-party/include/ DESTINATION include/palisade)
 endif()
 
 set(DEMODATAPATH ${CMAKE_CURRENT_SOURCE_DIR}/demoData)
@@ -412,9 +427,12 @@ add_subdirectory(src/core)
 add_subdirectory(src/pke)
 add_subdirectory(src/abe)
 add_subdirectory(src/signature)
+add_subdirectory(src/binfhe)
 
 ### build the google test handlers
-add_subdirectory(third-party/google-test EXCLUDE_FROM_ALL)
+if( ${BUILD_UNITTESTS} )
+	add_subdirectory(third-party/google-test EXCLUDE_FROM_ALL)
+endif()
 
 ### build the google benchmark handlers (just the parts we need)
 set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Enable testing of the benchmark library." FORCE)
@@ -430,20 +448,23 @@ add_custom_target( clobber DEPENDS gmp_clobber ntl_clobber
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
+if( ${BUILD_UNITTESTS} )
 add_custom_target( testall
-	DEPENDS core_tests pke_tests abe_tests signature_tests 
+	DEPENDS core_tests pke_tests abe_tests signature_tests binfhe_tests
 	COMMAND echo core: && unittest/core_tests -t
 	COMMAND echo pke: && unittest/pke_tests -t
 	COMMAND echo abe: && unittest/abe_tests -t
 	COMMAND echo signature: && unittest/signature_tests -t
+	COMMAND echo binfhe: && unittest/binfhe_tests -t
 )
+endif()
 
 add_custom_target( alldemos 
-	DEPENDS allcoredemos allpkedemos allabedemos allsignaturedemos
+	DEPENDS allcoredemos allpkedemos allabedemos allsignaturedemos allbinfhedemos
 )
 
 add_custom_target( allmodules
-	DEPENDS PALISADEcore PALISADEpke PALISADEabe PALISADEsignature
+	DEPENDS PALISADEcore PALISADEpke PALISADEabe PALISADEsignature PALISADEbinfhe
 )
 
 # Add the additional "make clean" files

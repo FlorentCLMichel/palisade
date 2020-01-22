@@ -148,6 +148,54 @@ void CryptoContextImpl<Element>::EvalSumKeyGen(
 }
 
 template <typename Element>
+shared_ptr<std::map<usint, LPEvalKey<Element>>> CryptoContextImpl<Element>::EvalSumRowsKeyGen(
+	const LPPrivateKey<Element> privateKey,
+	const LPPublicKey<Element> publicKey, usint rowSize) {
+
+	if( privateKey == NULL || Mismatched(privateKey->GetCryptoContext()) ) {
+		throw std::logic_error("Private key passed to EvalSumKeyGen were not generated with this crypto context");
+	}
+
+	if( publicKey != NULL && privateKey->GetKeyTag() != publicKey->GetKeyTag() ) {
+		throw std::logic_error("Public key passed to EvalSumKeyGen does not match private key");
+	}
+
+	double start = 0;
+	if( doTiming ) start = currentDateTime();
+	auto evalKeys = GetEncryptionAlgorithm()->EvalSumRowsKeyGen(privateKey,publicKey,rowSize);
+
+	if( doTiming ) {
+		timeSamples->push_back( TimingInfo(OpEvalSumRowsKeyGen, currentDateTime() - start) );
+	}
+
+	return evalKeys;
+}
+
+template <typename Element>
+shared_ptr<std::map<usint, LPEvalKey<Element>>> CryptoContextImpl<Element>::EvalSumColsKeyGen(
+	const LPPrivateKey<Element> privateKey,
+	const LPPublicKey<Element> publicKey) {
+
+	if( privateKey == NULL || Mismatched(privateKey->GetCryptoContext()) ) {
+		throw std::logic_error("Private key passed to EvalSumKeyGen were not generated with this crypto context");
+	}
+
+	if( publicKey != NULL && privateKey->GetKeyTag() != publicKey->GetKeyTag() ) {
+		throw std::logic_error("Public key passed to EvalSumKeyGen does not match private key");
+	}
+
+	double start = 0;
+	if( doTiming ) start = currentDateTime();
+	auto evalKeys = GetEncryptionAlgorithm()->EvalSumColsKeyGen(privateKey,publicKey);
+
+	if( doTiming ) {
+		timeSamples->push_back( TimingInfo(OpEvalSumColsKeyGen, currentDateTime() - start) );
+	}
+
+	return evalKeys;
+}
+
+template <typename Element>
 const std::map<usint, LPEvalKey<Element>>& CryptoContextImpl<Element>::GetEvalSumKeyMap(const string& keyID) {
 	auto ekv = evalSumKeyMap.find(keyID);
 	if( ekv == evalSumKeyMap.end() )
@@ -221,6 +269,7 @@ void CryptoContextImpl<Element>::EvalAtIndexKeyGen(const LPPrivateKey<Element> p
 	evalAutomorphismKeyMap[privateKey->GetKeyTag()] = evalKeys;
 }
 
+
 template <typename Element>
 const std::map<usint, LPEvalKey<Element>>& CryptoContextImpl<Element>::GetEvalAutomorphismKeyMap(const string& keyID) {
 	auto ekv = evalAutomorphismKeyMap.find(keyID);
@@ -272,134 +321,6 @@ void CryptoContextImpl<Element>::InsertEvalAutomorphismKey(const shared_ptr<std:
 	evalAutomorphismKeyMap[ onekey->second->GetKeyTag() ] = mapToInsert;
 }
 
-/**
- * SerializeEvalMultKey for a single EvalMult key
- */
-template <typename Element>
-template <typename ST>
-bool CryptoContextImpl<Element>::SerializeEvalMultKey(std::ostream& ser, const ST& sertype, const string id) {
-	decltype(evalMultKeyMap)	*smap;
-	decltype(evalMultKeyMap)	omap;
-
-	if( id.length() == 0 )
-		smap = &evalMultKeyMap;
-	else {
-		auto k = evalMultKeyMap.find(id);
-
-		if( k == evalMultKeyMap.end() )
-			return false; // no such id
-
-		smap = &omap;
-		omap[ k->first ] = k->second;
-	}
-	Serial::Serialize(*smap, ser, sertype);
-	return true;
-}
-
-/**
- * SerializeEvalMultKey for all EvalMultKeys made in a given context
- * method will serialize the context only once
- */
-template <typename Element>
-template <typename ST>
-bool CryptoContextImpl<Element>::SerializeEvalMultKey(std::ostream& ser, const ST& sertype, const CryptoContext<Element> cc) {
-
-	decltype(evalMultKeyMap) omap;
-	for( const auto& k : evalMultKeyMap ) {
-		if( k.second[0]->GetCryptoContext() == cc ) {
-			omap[k.first] = k.second;
-		}
-	}
-
-	if( omap.size() == 0 )
-		return false;
-
-	Serial::Serialize(omap, ser, sertype);
-	return true;
-}
-
-template <typename Element>
-template <typename ST>
-bool CryptoContextImpl<Element>::DeserializeEvalMultKey(std::istream& ser, const ST& sertype) {
-
-	decltype(evalMultKeyMap) evalMultKeys;
-
-	Serial::Deserialize(evalMultKeys, ser, sertype);
-
-	// The deserialize call created any contexts that needed to be created.... so all we need to do
-	// is put the keys into the maps for their context
-
-	for( auto k : evalMultKeys ) {
-
-		evalMultKeyMap[ k.first ] = k.second;
-	}
-
-	return true;
-}
-
-/**
- * SerializeEvalSumKey for all EvalSum keys
- */
-template <typename Element>
-template <typename ST>
-bool CryptoContextImpl<Element>::SerializeEvalSumKey(std::ostream& ser, const ST& sertype, string id) {
-	decltype(evalSumKeyMap)*	smap;
-	decltype(evalSumKeyMap)		omap;
-	if( id.length() == 0 )
-		smap = &evalSumKeyMap;
-	else {
-		auto k = evalSumKeyMap.find(id);
-
-		if( k == evalSumKeyMap.end() )
-			return false; // no such id
-
-		smap = &omap;
-		omap[ k->first ] = k->second;
-	}
-	Serial::Serialize(*smap, ser, sertype);
-	return true;
-}
-
-/**
- * SerializeEvalSumKey for all EvalSumKeys made in a given context
- * method will serialize the context only once
- */
-template <typename Element>
-template <typename ST>
-bool CryptoContextImpl<Element>::SerializeEvalSumKey(std::ostream& ser, const ST& sertype, const CryptoContext<Element> cc) {
-
-	decltype(evalSumKeyMap) omap;
-	for( const auto& k : evalSumKeyMap ) {
-		if( k.second->begin()->second->GetCryptoContext() == cc ) {
-			omap[k.first] = k.second;
-		}
-	}
-
-	if( omap.size() == 0 )
-		return false;
-
-	Serial::Serialize(omap, ser, sertype);
-	return true;
-}
-
-template <typename Element>
-template <typename ST>
-bool CryptoContextImpl<Element>::DeserializeEvalSumKey(std::istream& ser, const ST& sertype) {
-
-	decltype(evalSumKeyMap) evalSumKeys;
-
-	Serial::Deserialize(evalSumKeys, ser, sertype);
-
-	// The deserialize call created any contexts that needed to be created.... so all we need to do
-	// is put the keys into the maps for their context
-
-	for( auto k : evalSumKeys ) {
-		evalSumKeyMap[ k.first ] = k.second;
-	}
-
-	return true;
-}
-
 template <typename Element>
 Ciphertext<Element> CryptoContextImpl<Element>::EvalSum(ConstCiphertext<Element> ciphertext, usint batchSize) const {
 
@@ -417,59 +338,38 @@ Ciphertext<Element> CryptoContextImpl<Element>::EvalSum(ConstCiphertext<Element>
 }
 
 template <typename Element>
-template <typename ST>
-bool CryptoContextImpl<Element>::SerializeEvalAutomorphismKey(std::ostream& ser, const ST& sertype, string id) {
-	decltype(evalAutomorphismKeyMap)*	smap;
-	decltype(evalAutomorphismKeyMap)		omap;
-	if( id.length() == 0 )
-		smap = &evalAutomorphismKeyMap;
-	else {
-		auto k = evalAutomorphismKeyMap.find(id);
+Ciphertext<Element> CryptoContextImpl<Element>::EvalSumRows(ConstCiphertext<Element> ciphertext, usint rowSize,
+		const std::map<usint, LPEvalKey<Element>> &evalSumKeys) const {
 
-		if( k == evalAutomorphismKeyMap.end() )
-			return false; // no such id
+	if( ciphertext == NULL || Mismatched(ciphertext->GetCryptoContext()) )
+		throw std::logic_error("Information passed to EvalSum was not generated with this crypto context");
 
-		smap = &omap;
-		omap[ k->first ] = k->second;
+	double start = 0;
+	if( doTiming ) start = currentDateTime();
+	auto rv = GetEncryptionAlgorithm()->EvalSumRows(ciphertext, rowSize, evalSumKeys);
+	if( doTiming ) {
+		timeSamples->push_back( TimingInfo(OpEvalSumRows, currentDateTime() - start) );
 	}
-	Serial::Serialize(*smap, ser, sertype);
-	return true;
+	return rv;
 }
 
-template <typename Element>
-template <typename ST>
-bool CryptoContextImpl<Element>::SerializeEvalAutomorphismKey(std::ostream& ser, const ST& sertype, const CryptoContext<Element> cc) {
-
-	decltype(evalAutomorphismKeyMap) omap;
-	for( const auto& k : evalAutomorphismKeyMap ) {
-		if( k.second->begin()->second->GetCryptoContext() == cc ) {
-			omap[k.first] = k.second;
-		}
-	}
-
-	if( omap.size() == 0 )
-		return false;
-
-	Serial::Serialize(omap, ser, sertype);
-	return true;
-}
 
 template <typename Element>
-template <typename ST>
-bool CryptoContextImpl<Element>::DeserializeEvalAutomorphismKey(std::istream& ser, const ST& sertype) {
+Ciphertext<Element> CryptoContextImpl<Element>::EvalSumCols(ConstCiphertext<Element> ciphertext, usint rowSize,
+		const std::map<usint, LPEvalKey<Element>> &evalSumKeysRight) const {
 
-	decltype(evalAutomorphismKeyMap) evalSumKeys;
+	if( ciphertext == NULL || Mismatched(ciphertext->GetCryptoContext()) )
+		throw std::logic_error("Information passed to EvalSum was not generated with this crypto context");
 
-	Serial::Deserialize(evalSumKeys, ser, sertype);
+	auto evalSumKeys = CryptoContextImpl<Element>::GetEvalSumKeyMap(ciphertext->GetKeyTag());
 
-	// The deserialize call created any contexts that needed to be created.... so all we need to do
-	// is put the keys into the maps for their context
-
-	for( auto k : evalSumKeys ) {
-		evalAutomorphismKeyMap[ k.first ] = k.second;
+	double start = 0;
+	if( doTiming ) start = currentDateTime();
+	auto rv = GetEncryptionAlgorithm()->EvalSumCols(ciphertext, rowSize, evalSumKeys, evalSumKeysRight);
+	if( doTiming ) {
+		timeSamples->push_back( TimingInfo(OpEvalSumCols, currentDateTime() - start) );
 	}
-
-	return true;
+	return rv;
 }
 
 template <typename Element>
@@ -497,10 +397,13 @@ Ciphertext<Element> CryptoContextImpl<Element>::EvalMerge(const vector<Ciphertex
 	auto evalAutomorphismKeys = CryptoContextImpl<Element>::GetEvalAutomorphismKeyMap(ciphertextVector[0]->GetKeyTag());
 	double start = 0;
 	if( doTiming ) start = currentDateTime();
+
 	auto rv = GetEncryptionAlgorithm()->EvalMerge(ciphertextVector, evalAutomorphismKeys);
+
 	if( doTiming ) {
 		timeSamples->push_back( TimingInfo(OpEvalMerge, currentDateTime() - start) );
 	}
+
 	return rv;
 }
 
@@ -577,6 +480,6 @@ CryptoContextImpl<Element>::EvalLinRegressBatched(const shared_ptr<Matrix<Ration
 		timeSamples->push_back( TimingInfo(OpEvalLinRegressionBatched, currentDateTime() - start) );
 	}
 	return rv;
-		}
+}
 
 }

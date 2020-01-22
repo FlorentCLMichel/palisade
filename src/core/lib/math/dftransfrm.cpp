@@ -24,17 +24,50 @@
  *
  */
 
-#include "dftransfrm.h"
+#include "math/dftransfrm.h"
 
 namespace lbcrypto {
 
 std::complex<double>* DiscreteFourierTransform::rootOfUnityTable = 0;
+size_t DiscreteFourierTransform::m_M = 0;
+size_t DiscreteFourierTransform::m_Nh = 0;
+
+std::vector<uint32_t> DiscreteFourierTransform::m_rotGroup; ///< precomputed rotation group indexes
+std::vector<std::complex<double>> DiscreteFourierTransform::m_ksiPows; ///< precomputed ksi powers
 
 void DiscreteFourierTransform::Reset() {
 	if (rootOfUnityTable) {
 		delete[] rootOfUnityTable;
 		rootOfUnityTable = 0;
 	}
+}
+
+void DiscreteFourierTransform::Initialize(size_t m, size_t nh) {
+
+#pragma omp critical
+{
+
+	m_M = m;
+	m_Nh = nh;
+
+	m_rotGroup.resize(m_Nh);
+	uint32_t fivePows = 1;
+	for (size_t i = 0; i < m_Nh; ++i) {
+		m_rotGroup[i] = fivePows;
+		fivePows *= 5;
+		fivePows %= m_M;
+	}
+
+	m_ksiPows.resize(m_M + 1);
+	for (size_t j = 0; j < m_M; ++j) {
+		double angle = 2.0 * M_PI * j / m_M;
+		m_ksiPows[j].real(cos(angle));
+		m_ksiPows[j].imag(sin(angle));
+	}
+
+	m_ksiPows[m_M] = m_ksiPows[0];
+}
+
 }
 
 void DiscreteFourierTransform::PreComputeTable(uint32_t s) {
@@ -51,30 +84,31 @@ std::vector<std::complex<double>> DiscreteFourierTransform::FFTForwardTransform(
 	std::vector<std::complex<double>> B(A);
 	usint l = floor(log2(m));
 
-	static usint maxMCached (65536);
-	static usint LOGM_MAX(16);
+
+	static usint maxMCached (8192);
+	static usint LOGM_MAX(13);
 	static std::vector<usint> cachedM(LOGM_MAX, 0);
 	static std::vector<std::vector<double>> cosTable(LOGM_MAX);
 	static std::vector<std::vector<double>> sinTable(LOGM_MAX);;
 
 #pragma omp critical
 	if( m != cachedM[l] ) {
-		if (m>maxMCached){
-			//need to grow cachedM and the tables
-			cachedM.resize(l);
-			cosTable.resize(l);
-			sinTable.resize(l);
-			maxMCached = m;
-		}
-		//std::cout<<"miss m "<<m<<" != M "<<cachedM[l]<<std::endl;
-		cachedM[l] = m;
+	  if (m>maxMCached){
+	     //need to grow cachedM and the tables
+	    cachedM.resize(l);
+	    cosTable.resize(l);
+	    cosTable.resize(l);
+	    maxMCached = m;
+	  }
+	  //std::cout<<"miss m "<<m<<" != M "<<cachedM[l]<<std::endl;
+	  cachedM[l] = m;
 
-		sinTable[l].resize(m/2);
-		cosTable[l].resize(m/2);
-		for (usint i = 0; i < m / 2; i++) {
-			cosTable[l][i] = cos(2 * M_PI * i / m);
-			sinTable[l][i] = sin(2 * M_PI * i / m);
-		}
+	  sinTable[l].resize(m/2);
+	  cosTable[l].resize(m/2);
+	  for (usint i = 0; i < m / 2; i++) {
+	    cosTable[l][i] = cos(2 * M_PI * i / m);
+	    sinTable[l][i] = sin(2 * M_PI * i / m);
+	  }
 
 	}
 
@@ -158,6 +192,66 @@ std::vector<std::complex<double>> DiscreteFourierTransform::InverseTransform(std
 		invDftRemainder[i] = invDft[i];
 	}
 	return invDftRemainder;
+}
+
+void DiscreteFourierTransform::FFTSpecialInvLazy(std::vector<std::complex<double>> &vals) {
+	uint32_t size = vals.size();
+	for (size_t len = size; len >= 1; len >>= 1) {
+		for (size_t i = 0; i < size; i += len) {
+			size_t lenh = len >> 1;
+			size_t lenq = len << 2;
+			for (size_t j = 0; j < lenh; ++j) {
+				size_t idx = (lenq - (m_rotGroup[j] % lenq)) * m_M / lenq;
+				std::complex<double> u = vals[i + j] + vals[i + j + lenh];
+				std::complex<double> v = vals[i + j] - vals[i + j + lenh];
+				v *= m_ksiPows[idx];
+				vals[i + j] = u;
+				vals[i + j + lenh] = v;
+			}
+		}
+	}
+	BitReverse(vals);
+}
+
+void DiscreteFourierTransform::FFTSpecialInv(std::vector<std::complex<double>> &vals) {
+	FFTSpecialInvLazy(vals);
+	uint32_t size = vals.size();
+	for (size_t i = 0; i < size; ++i) {
+		vals[i] /= size;
+	}
+}
+
+void DiscreteFourierTransform::FFTSpecial(std::vector<std::complex<double>> &vals) {
+	BitReverse(vals);
+	uint32_t size = vals.size();
+	for (size_t len = 2; len <= size; len <<= 1) {
+		for (size_t i = 0; i < size; i += len) {
+			size_t lenh = len >> 1;
+			size_t lenq = len << 2;
+			for (size_t j = 0; j < lenh; ++j) {
+				long idx = ((m_rotGroup[j] % lenq)) * m_M / lenq;
+				std::complex<double> u = vals[i + j];
+				std::complex<double> v = vals[i + j + lenh];
+				v *= m_ksiPows[idx];
+				vals[i + j] = u + v;
+				vals[i + j + lenh] = u - v;
+			}
+		}
+	}
+}
+
+void DiscreteFourierTransform::BitReverse(std::vector<std::complex<double>> &vals) {
+	uint32_t size = vals.size();
+	for (size_t i = 1, j = 0; i < size; ++i) {
+		size_t bit = size >> 1;
+		for (; j >= bit; bit>>=1) {
+			j -= bit;
+		}
+		j += bit;
+		if(i < j) {
+			swap(vals[i], vals[j]);
+		}
+	}
 }
 
 }//namespace ends here

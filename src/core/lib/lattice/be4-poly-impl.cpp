@@ -63,6 +63,23 @@ SPLIT32ALT_FOR_TYPE(M4DCRTPoly)
 template Matrix<M4Vector> RotateVecResult(Matrix<M4DCRTPoly> const& inMat);
 template Matrix<M4Integer> Rotate(Matrix<M4DCRTPoly> const& inMat);
 
+// biginteger version
+template<>
+PolyImpl<NativeVector>
+PolyImpl<M4Vector>::ToNativePoly() const {
+
+	PolyImpl<NativeVector> interp(
+			shared_ptr<ILParamsImpl<NativeInteger>>( new ILParamsImpl<NativeInteger>(this->GetCyclotomicOrder(), std::numeric_limits<uint64_t>::max(), 1) ),
+															this->GetFormat(), true);
+
+	for (usint i = 0; i<this->GetLength(); i++) {
+		interp[i] = (*this)[i].ConvertToInt();
+	}
+
+	return std::move( interp );
+}
+
+
 }  // namespace lbcrypto
 
 CEREAL_CLASS_VERSION( lbcrypto::M4Poly, lbcrypto::M4Poly::SerializedVersion() );

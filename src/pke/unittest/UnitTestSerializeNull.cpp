@@ -27,7 +27,7 @@
 #include "include/gtest/gtest.h"
 #include "UnitTestSer.h"
 
-#include "nullscheme-ser.h"
+#include "scheme/null/nullscheme-ser.h"
 
 using namespace std;
 using namespace lbcrypto;

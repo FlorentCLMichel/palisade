@@ -57,7 +57,8 @@ template <typename Element>
 CryptoContext<Element>
 CryptoContextFactory<Element>::GetContext(
 		shared_ptr<LPCryptoParameters<Element>> params,
-		shared_ptr<LPPublicKeyEncryptionScheme<Element>> scheme) {
+		shared_ptr<LPPublicKeyEncryptionScheme<Element>> scheme,
+		const string & schemeId) {
 
 	for( CryptoContext<Element> cc : AllContexts ) {
 		if( *cc->GetEncryptionAlgorithm().get() == *scheme.get() &&
@@ -66,7 +67,7 @@ CryptoContextFactory<Element>::GetContext(
 		}
 	}
 
-	CryptoContext<Element> cc(new CryptoContextImpl<Element>(params,scheme));
+	CryptoContext<Element> cc(new CryptoContextImpl<Element>(params,scheme, schemeId));
 	AllContexts.push_back(cc);
 
     if( cc->GetEncodingParams()->GetPlaintextRootOfUnity() != 0 ) {
@@ -154,13 +155,13 @@ template <typename T>
 CryptoContext<T>
 CryptoContextFactory<T>::genCryptoContextBFV(
 		const PlaintextModulus plaintextModulus, float securityLevel, usint relinWindow, float dist,
-		unsigned int numAdds, unsigned int numMults, unsigned int numKeyswitches, MODE mode, int maxDepth)
+		unsigned int numAdds, unsigned int numMults, unsigned int numKeyswitches, MODE mode, int maxDepth, uint32_t n)
 		{
 
 	EncodingParams encodingParams(new EncodingParamsImpl(plaintextModulus));
 
 	return genCryptoContextBFV(encodingParams,securityLevel,relinWindow, dist,
-			numAdds, numMults, numKeyswitches, mode, maxDepth);
+			numAdds, numMults, numKeyswitches, mode, maxDepth, n);
 
 		}
 
@@ -168,7 +169,7 @@ template <typename T>
 CryptoContext<T>
 CryptoContextFactory<T>::genCryptoContextBFV(
 		EncodingParams encodingParams, float securityLevel, usint relinWindow, float dist,
-		unsigned int numAdds, unsigned int numMults, unsigned int numKeyswitches, MODE mode, int maxDepth)
+		unsigned int numAdds, unsigned int numMults, unsigned int numKeyswitches, MODE mode, int maxDepth, uint32_t n)
 		{
 	int nonZeroCount = 0;
 
@@ -200,7 +201,7 @@ CryptoContextFactory<T>::genCryptoContextBFV(
 
 	shared_ptr<LPPublicKeyEncryptionScheme<T>> scheme(new LPPublicKeyEncryptionSchemeBFV<T>());
 
-	scheme->ParamsGen(params, numAdds, numMults, numKeyswitches);
+	scheme->ParamsGen(params, numAdds, numMults, numKeyswitches, n);
 
 	return CryptoContextFactory<T>::GetContext(params,scheme);
 		}
@@ -209,7 +210,7 @@ template <typename T>
 CryptoContext<T>
 CryptoContextFactory<T>::genCryptoContextBFV(
 		EncodingParams encodingParams, SecurityLevel securityLevel, usint relinWindow, float dist,
-		unsigned int numAdds, unsigned int numMults, unsigned int numKeyswitches, MODE mode, int maxDepth)
+		unsigned int numAdds, unsigned int numMults, unsigned int numKeyswitches, MODE mode, int maxDepth, uint32_t n)
 		{
 	int nonZeroCount = 0;
 
@@ -241,7 +242,7 @@ CryptoContextFactory<T>::genCryptoContextBFV(
 
 	shared_ptr<LPPublicKeyEncryptionScheme<T>> scheme(new LPPublicKeyEncryptionSchemeBFV<T>());
 
-	scheme->ParamsGen(params, numAdds, numMults, numKeyswitches);
+	scheme->ParamsGen(params, numAdds, numMults, numKeyswitches, n);
 
 	return CryptoContextFactory<T>::GetContext(params,scheme);
 		}
@@ -251,7 +252,7 @@ CryptoContext<T>
 CryptoContextFactory<T>::genCryptoContextBFVrns(
 		const PlaintextModulus plaintextModulus, float securityLevel, float dist,
 		unsigned int numAdds, unsigned int numMults, unsigned int numKeyswitches, MODE mode, int maxDepth,
-		uint32_t relinWindow, size_t dcrtBits)
+		uint32_t relinWindow, size_t dcrtBits, uint32_t n)
 		{
 	int nonZeroCount = 0;
 
@@ -277,7 +278,7 @@ CryptoContextFactory<T>::genCryptoContextBFVrns(
 
 	shared_ptr<LPPublicKeyEncryptionScheme<T>> scheme( new LPPublicKeyEncryptionSchemeBFVrns<T>() );
 
-	scheme->ParamsGen(params, numAdds, numMults, numKeyswitches, dcrtBits);
+	scheme->ParamsGen(params, numAdds, numMults, numKeyswitches, dcrtBits, n);
 
 	return CryptoContextFactory<T>::GetContext(params,scheme);
 		}
@@ -287,13 +288,13 @@ CryptoContext<T>
 CryptoContextFactory<T>::genCryptoContextBFVrns(
 		const PlaintextModulus plaintextModulus, SecurityLevel securityLevel, float dist,
 		unsigned int numAdds, unsigned int numMults, unsigned int numKeyswitches, MODE mode, int maxDepth,
-		uint32_t relinWindow, size_t dcrtBits)
+		uint32_t relinWindow, size_t dcrtBits, uint32_t n)
 		{
 
 	EncodingParams encodingParams(new EncodingParamsImpl(plaintextModulus));
 
 	return genCryptoContextBFVrns(encodingParams, securityLevel, dist, numAdds, numMults,
-			numKeyswitches, mode, maxDepth, relinWindow, dcrtBits);
+			numKeyswitches, mode, maxDepth, relinWindow, dcrtBits, n);
 
 		}
 
@@ -302,7 +303,7 @@ CryptoContext<T>
 CryptoContextFactory<T>::genCryptoContextBFVrns(
 		EncodingParams encodingParams, float securityLevel, float dist,
 		unsigned int numAdds, unsigned int numMults, unsigned int numKeyswitches, MODE mode, int maxDepth,
-		uint32_t relinWindow, size_t dcrtBits)
+		uint32_t relinWindow, size_t dcrtBits, uint32_t n)
 		{
 	int nonZeroCount = 0;
 
@@ -329,7 +330,7 @@ CryptoContextFactory<T>::genCryptoContextBFVrns(
 
 	shared_ptr<LPPublicKeyEncryptionScheme<T>> scheme(new LPPublicKeyEncryptionSchemeBFVrns<T>());
 
-	scheme->ParamsGen(params, numAdds, numMults, numKeyswitches, dcrtBits);
+	scheme->ParamsGen(params, numAdds, numMults, numKeyswitches, dcrtBits, n);
 
 	return CryptoContextFactory<T>::GetContext(params,scheme);
 		}
@@ -339,7 +340,7 @@ CryptoContext<T>
 CryptoContextFactory<T>::genCryptoContextBFVrns(
 		EncodingParams encodingParams, SecurityLevel securityLevel, float dist,
 		unsigned int numAdds, unsigned int numMults, unsigned int numKeyswitches, MODE mode, int maxDepth,
-		uint32_t relinWindow, size_t dcrtBits)
+		uint32_t relinWindow, size_t dcrtBits, uint32_t n)
 		{
 	int nonZeroCount = 0;
 
@@ -366,7 +367,7 @@ CryptoContextFactory<T>::genCryptoContextBFVrns(
 
 	shared_ptr<LPPublicKeyEncryptionScheme<T>> scheme(new LPPublicKeyEncryptionSchemeBFVrns<T>());
 
-	scheme->ParamsGen(params, numAdds, numMults, numKeyswitches, dcrtBits);
+	scheme->ParamsGen(params, numAdds, numMults, numKeyswitches, dcrtBits, n);
 
 	return CryptoContextFactory<T>::GetContext(params,scheme);
 		}
@@ -377,7 +378,7 @@ CryptoContext<T>
 CryptoContextFactory<T>::genCryptoContextBFVrnsB(
 		const PlaintextModulus plaintextModulus, float securityLevel, float dist,
 		unsigned int numAdds, unsigned int numMults, unsigned int numKeyswitches, MODE mode, int maxDepth,
-		uint32_t relinWindow, size_t dcrtBits)
+		uint32_t relinWindow, size_t dcrtBits, uint32_t n)
 		{
 	int nonZeroCount = 0;
 
@@ -403,7 +404,7 @@ CryptoContextFactory<T>::genCryptoContextBFVrnsB(
 
 	shared_ptr<LPPublicKeyEncryptionScheme<T>> scheme( new LPPublicKeyEncryptionSchemeBFVrnsB<T>() );
 
-	scheme->ParamsGen(params, numAdds, numMults, numKeyswitches, dcrtBits);
+	scheme->ParamsGen(params, numAdds, numMults, numKeyswitches, dcrtBits, n);
 
 	return CryptoContextFactory<T>::GetContext(params,scheme);
 		}
@@ -413,13 +414,13 @@ CryptoContext<T>
 CryptoContextFactory<T>::genCryptoContextBFVrnsB(
 		const PlaintextModulus plaintextModulus, SecurityLevel securityLevel, float dist,
 		unsigned int numAdds, unsigned int numMults, unsigned int numKeyswitches, MODE mode, int maxDepth,
-		uint32_t relinWindow, size_t dcrtBits)
+		uint32_t relinWindow, size_t dcrtBits, uint32_t n)
 		{
 
 	EncodingParams encodingParams(new EncodingParamsImpl(plaintextModulus));
 
 	return genCryptoContextBFVrnsB(encodingParams, securityLevel, dist, numAdds, numMults,
-			numKeyswitches, mode, maxDepth, relinWindow, dcrtBits);
+			numKeyswitches, mode, maxDepth, relinWindow, dcrtBits, n);
 
 		}
 
@@ -429,7 +430,7 @@ CryptoContext<T>
 CryptoContextFactory<T>::genCryptoContextBFVrnsB(
 		EncodingParams encodingParams, float securityLevel, float dist,
 		unsigned int numAdds, unsigned int numMults, unsigned int numKeyswitches, MODE mode, int maxDepth,
-		uint32_t relinWindow, size_t dcrtBits)
+		uint32_t relinWindow, size_t dcrtBits, uint32_t n)
 		{
 	int nonZeroCount = 0;
 
@@ -456,7 +457,7 @@ CryptoContextFactory<T>::genCryptoContextBFVrnsB(
 
 	shared_ptr<LPPublicKeyEncryptionScheme<T>> scheme(new LPPublicKeyEncryptionSchemeBFVrnsB<T>());
 
-	scheme->ParamsGen(params, numAdds, numMults, numKeyswitches, dcrtBits);
+	scheme->ParamsGen(params, numAdds, numMults, numKeyswitches, dcrtBits, n);
 
 	return CryptoContextFactory<T>::GetContext(params,scheme);
 		}
@@ -466,7 +467,7 @@ CryptoContext<T>
 CryptoContextFactory<T>::genCryptoContextBFVrnsB(
 		EncodingParams encodingParams, SecurityLevel securityLevel, float dist,
 		unsigned int numAdds, unsigned int numMults, unsigned int numKeyswitches, MODE mode, int maxDepth,
-		uint32_t relinWindow, size_t dcrtBits)
+		uint32_t relinWindow, size_t dcrtBits, uint32_t n)
 		{
 	int nonZeroCount = 0;
 
@@ -493,7 +494,7 @@ CryptoContextFactory<T>::genCryptoContextBFVrnsB(
 
 	shared_ptr<LPPublicKeyEncryptionScheme<T>> scheme(new LPPublicKeyEncryptionSchemeBFVrnsB<T>());
 
-	scheme->ParamsGen(params, numAdds, numMults, numKeyswitches, dcrtBits);
+	scheme->ParamsGen(params, numAdds, numMults, numKeyswitches, dcrtBits, n);
 
 	return CryptoContextFactory<T>::GetContext(params,scheme);
 		}
@@ -542,6 +543,188 @@ CryptoContextFactory<T>::genCryptoContextBGV(shared_ptr<typename T::Params> ep,
 
 	return CryptoContextFactory<T>::GetContext(params,scheme);
 		}
+
+template <typename T>
+CryptoContext<T>
+CryptoContextFactory<T>::genCryptoContextCKKS(shared_ptr<typename T::Params> ep,
+		const PlaintextModulus plaintextmodulus,
+		usint relinWindow, float stDev,
+		MODE mode, int depth, int maxDepth,
+		enum KeySwitchTechnique ksTech,
+		RescalingTechnique rsTech)
+{
+	shared_ptr<LPCryptoParametersCKKS<T>> params( new LPCryptoParametersCKKS<T>(
+		ep,
+		plaintextmodulus,
+		stDev,
+		9, // assuranceMeasure,
+		1.006, // securityLevel,
+		relinWindow, // Relinearization Window
+		mode,
+		depth,
+		maxDepth) );
+
+	params->PrecomputeCRTTables(ksTech, rsTech);
+
+	shared_ptr<LPPublicKeyEncryptionScheme<T>> scheme( new LPPublicKeyEncryptionSchemeCKKS<T>() );
+
+    auto cc = CryptoContextFactory<T>::GetContext(params,scheme);
+
+    cc->setSchemeId("CKKS");
+
+    return cc;
+}
+
+template <typename T>
+CryptoContext<T>
+CryptoContextFactory<T>::genCryptoContextCKKS(shared_ptr<typename T::Params> ep,
+	EncodingParams encodingParams,
+	usint relinWindow, float stDev,
+	MODE mode, int depth, int maxDepth,
+	enum KeySwitchTechnique ksTech,
+	RescalingTechnique rsTech)
+{
+	shared_ptr<LPCryptoParametersCKKS<T>> params(new LPCryptoParametersCKKS<T>(
+		ep,
+		encodingParams,
+		stDev,
+		9, // assuranceMeasure,
+		1.006, // securityLevel,
+		relinWindow, // Relinearization Window
+		mode,
+		depth,
+		maxDepth
+	));
+
+	params->PrecomputeCRTTables(ksTech, rsTech);
+
+	shared_ptr<LPPublicKeyEncryptionScheme<T>> scheme(new LPPublicKeyEncryptionSchemeCKKS<T>());
+
+	auto cc = CryptoContextFactory<T>::GetContext(params,scheme);
+
+	cc->setSchemeId("CKKS");
+
+	return cc;
+}
+
+template <typename T>
+CryptoContext<T>
+CryptoContextFactory<T>::genCryptoContextCKKSWithParamsGen(
+		   usint cyclOrder,
+		   usint numPrimes,
+		   usint scaleExp,
+		   usint relinWindow,
+		   usint batchSize,
+		   MODE mode,
+		   int depth,
+		   int maxDepth,
+		   usint firstModSize,
+		   enum KeySwitchTechnique ksTech,
+		   enum RescalingTechnique rsTech,
+		   uint32_t numLargeDigits) {
+
+	uint64_t p = scaleExp;
+	float stdDev = 3.19;
+
+	shared_ptr<typename T::Params> ep(new typename T::Params(0, typename T::Integer(0), typename T::Integer(0)));
+
+	EncodingParams encodingParams(new EncodingParamsImpl(p));
+	encodingParams->SetBatchSize(batchSize);
+
+	shared_ptr<LPCryptoParametersCKKS<T>> params(new LPCryptoParametersCKKS<T>(
+		ep,
+		encodingParams,
+		stdDev,
+		9, // assuranceMeasure,
+		1.006, // securityLevel,
+		relinWindow, // Relinearization Window
+		mode,
+		depth,
+		maxDepth
+	));
+
+	auto schemeCKKS = new LPPublicKeyEncryptionSchemeCKKS<T>();
+	schemeCKKS->ParamsGen(params, cyclOrder, numPrimes, scaleExp, relinWindow, mode, ksTech, firstModSize, rsTech, numLargeDigits);
+
+	shared_ptr<LPPublicKeyEncryptionScheme<T>> scheme(schemeCKKS);
+
+	auto cc = CryptoContextFactory<T>::GetContext(params,scheme);
+
+	cc->setSchemeId("CKKS");
+
+	return cc;
+}
+
+
+template <typename T>
+CryptoContext<T>
+CryptoContextFactory<T>::genCryptoContextCKKS(
+		   usint multiplicativeDepth,
+		   usint scalingFactorBits,
+		   usint batchSize,
+		   SecurityLevel stdLevel,
+		   usint ringDim,
+		   enum RescalingTechnique rsTech,
+		   enum KeySwitchTechnique ksTech,
+		   uint32_t numLargeDigits,
+		   int maxDepth,
+		   usint firstModSize,
+		   usint relinWindow,
+		   MODE mode) {
+
+	float stdDev = 3.19;
+
+	shared_ptr<typename T::Params> ep(new typename T::Params(0, typename T::Integer(0), typename T::Integer(0)));
+
+	// In CKKS, the plaintext modulus is equal to the scaling factor.
+	EncodingParams encodingParams(new EncodingParamsImpl(scalingFactorBits));
+	encodingParams->SetBatchSize(batchSize);
+
+	shared_ptr<LPCryptoParametersCKKS<T>> params(new LPCryptoParametersCKKS<T>(
+		ep,
+		encodingParams,
+		stdDev,
+		9, // assuranceMeasure,
+		1.006, // securityLevel,
+		relinWindow, // Relinearization Window
+		mode,
+		1, // depth
+		maxDepth
+	));
+
+	params->SetStdLevel(stdLevel);
+
+	// Setting the default value for numLargeDigits for HYBRID
+	if (numLargeDigits == 0) { // Choose one of the default values
+		if (multiplicativeDepth > 3) // If more than 4 towers, use 3 digits
+			numLargeDigits = 3;
+		else if (multiplicativeDepth == 3) // If 4 towers, use two digits
+			numLargeDigits = 2;
+		else // If less than 4 towers, use as many digits as available towers (equivalent to RNS decomposition (BV) + 1 special prime)
+			numLargeDigits = multiplicativeDepth;
+	}
+
+	auto schemeCKKS = new LPPublicKeyEncryptionSchemeCKKS<T>();
+	schemeCKKS->ParamsGen(
+			params,
+			2*ringDim,
+			multiplicativeDepth+1,
+			scalingFactorBits,
+			relinWindow,
+			mode,
+			ksTech,
+			firstModSize,
+			rsTech,
+			numLargeDigits);
+
+	shared_ptr<LPPublicKeyEncryptionScheme<T>> scheme(schemeCKKS);
+
+	auto cc = CryptoContextFactory<T>::GetContext(params,scheme);
+
+	cc->setSchemeId("CKKS");
+
+	return cc;
+}
 
 
 template <typename T>

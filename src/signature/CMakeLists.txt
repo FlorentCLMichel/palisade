@@ -1,5 +1,10 @@
 file (GLOB SIG_SRC_FILES CONFIGURE_DEPENDS lib/*-impl.cpp)
 
+include_directories( ../core/include )
+include_directories( ../pke/include )
+include_directories( include )
+include_directories( lib )
+
 set(SIG_VERSION_MAJOR ${PALISADE_VERSION_MAJOR})
 set(SIG_VERSION_MINOR ${PALISADE_VERSION_MINOR})
 set(SIG_VERSION_PATCH ${PALISADE_VERSION_PATCH})
@@ -20,6 +25,8 @@ if( ${BUILD_STATIC} MATCHES "YES" )
 	install(TARGETS PALISADEsignature_static DESTINATION lib)
 endif()
 
+install(DIRECTORY include/ DESTINATION include/palisade/signature)
+
 target_include_directories (PALISADEsignature PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 set (SIGLIBS PUBLIC PALISADEsignature PUBLIC PALISADEcore ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
@@ -29,10 +36,12 @@ if( ${BUILD_STATIC} MATCHES "YES" )
 	target_link_libraries (PALISADEsignature_static PUBLIC PALISADEcore_static ${THIRDPARTYSTATICLIBS} ${OpenMP_CXX_FLAGS})
 endif()
 
+if( ${BUILD_UNITTESTS} )
 file (GLOB SIG_TEST_SRC_FILES CONFIGURE_DEPENDS unittest/*.cpp)
 add_executable (signature_tests ${SIG_TEST_SRC_FILES} ${UNITTESTMAIN})
 set_property(TARGET signature_tests PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/unittest)
 target_link_libraries ( signature_tests ${SIGLIBS} )
+endif()
 
 set (SIGAPPS "")
 file (GLOB SIG_DEMO_SRC_FILES CONFIGURE_DEPENDS demo/*.cpp)
@@ -48,10 +57,14 @@ add_custom_target( allsignaturedemos )
 add_dependencies( allsignaturedemos ${SIGAPPS} )
 
 add_custom_target( allsignature )
-add_dependencies( allsignature PALISADEsignature allsignaturedemos signature_tests )
+add_dependencies( allsignature PALISADEsignature allsignaturedemos )
+
+if( ${BUILD_UNITTESTS} )
+add_dependencies( allsignature signature_tests )
+endif()
 
 add_custom_command( OUTPUT signatureinfocmd COMMAND echo Builds PALISADEsignature and these apps: ${SIGAPPS} )
 add_custom_target( signatureinfo DEPENDS signatureinfocmd )
 
-add_custom_command( OUTPUT runsignaturetests COMMAND ${CMAKE_BINARY_DIR}/unittest/signature_tests )
+add_custom_command( OUTPUT runsignaturetests WORKING_DIRECTORY ${CMAKE_BINARY_DIR} COMMAND ${CMAKE_BINARY_DIR}/unittest/signature_tests )
 add_custom_target( testsignature DEPENDS signature_tests runsignaturetests )

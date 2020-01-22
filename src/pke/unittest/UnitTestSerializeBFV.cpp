@@ -27,7 +27,7 @@
 #include "include/gtest/gtest.h"
 #include "UnitTestSer.h"
 
-#include "bfv-ser.h"
+#include "scheme/bfv/bfv-ser.h"
 
 using namespace std;
 using namespace lbcrypto;

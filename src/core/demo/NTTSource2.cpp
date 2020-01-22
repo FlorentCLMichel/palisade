@@ -31,19 +31,10 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include "math/backend.h"
-
-#include "lattice/elemparams.h"
-#include "lattice/ilparams.h"
-#include "lattice/ildcrtparams.h"
-#include "lattice/ilelement.h"
-#include "utils/inttypes.h"
-#include "math/distrgen.h"
-#include "encoding/plaintext.h"
+#include "palisadecore.h"
 #include "time.h"
 #include <chrono>
 #include <exception>
-#include "utils/debug.h"
 
 using namespace std;
 using namespace lbcrypto;

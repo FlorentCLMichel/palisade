@@ -29,7 +29,7 @@
 #include <algorithm>
 #include <random>
 
-#include "../lib/cryptocontext.h"
+#include "cryptocontext.h"
 
 #include "encoding/encodings.h"
 

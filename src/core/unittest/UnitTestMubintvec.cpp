@@ -33,7 +33,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "../lib/lattice/dcrtpoly.h"
+#include "lattice/dcrtpoly.h"
 #include "math/backend.h"
 #include "utils/inttypes.h"
 #include "math/nbtheory.h"

@@ -28,8 +28,8 @@
 #include <iostream>
 #include <vector>
 
-#include "../lib/math/backend.h"
-#include "../lib/abecontext.h"
+#include "math/backend.h"
+#include "abecontext.h"
 
 
 using namespace std;

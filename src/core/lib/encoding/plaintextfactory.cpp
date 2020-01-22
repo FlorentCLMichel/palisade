@@ -24,7 +24,7 @@
  *
  */
 
-#include "plaintextfactory.h"
+#include "encoding/plaintextfactory.h"
 
 
 namespace lbcrypto {

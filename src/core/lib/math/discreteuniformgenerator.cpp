@@ -25,11 +25,11 @@
  *
  */
  
-#include "discreteuniformgenerator.h"
-#include "distributiongenerator.h"
+#include "math/discreteuniformgenerator.h"
+#include "math/distributiongenerator.h"
 #include <sstream>
 #include <bitset>
-#include "backend.h"
+#include "math/backend.h"
 
 namespace lbcrypto {
 

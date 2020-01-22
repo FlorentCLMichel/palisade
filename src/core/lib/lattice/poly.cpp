@@ -24,7 +24,7 @@
  *
  */
 
-#include "../lattice/backend.h"
+#include "lattice/backend.h"
 #include <fstream>
 #include <cmath>
 
@@ -133,13 +133,13 @@ PolyImpl<VecType>::PolyImpl(const BinaryUniformGeneratorImpl<VecType> &bug, cons
 }
 
 template<typename VecType>
-PolyImpl<VecType>::PolyImpl(const TernaryUniformGeneratorImpl<VecType> &tug, const shared_ptr<PolyImpl::Params> params, Format format)
+PolyImpl<VecType>::PolyImpl(const TernaryUniformGeneratorImpl<VecType> &tug, const shared_ptr<PolyImpl::Params> params, Format format, uint32_t h)
 {
 
 	m_params = params;
 
 	usint vectorSize = params->GetRingDimension();
-	m_values = make_unique<VecType>(tug.GenerateVector(vectorSize, params->GetModulus()));
+	m_values = make_unique<VecType>(tug.GenerateVector(vectorSize, params->GetModulus(),h));
 	(*m_values).SetModulus(params->GetModulus());
 	m_format = COEFFICIENT;
 
@@ -551,6 +551,23 @@ PolyImpl<VecType> PolyImpl<VecType>::Times(const Integer &element) const
 {
 	PolyImpl<VecType> tmp = CloneParametersOnly();
 	tmp.SetValues( GetValues().ModMul(element), this->m_format );
+	return std::move( tmp );
+}
+
+template<typename VecType>
+PolyImpl<VecType> PolyImpl<VecType>::Times(int64_t element) const
+{
+	PolyImpl<VecType> tmp = CloneParametersOnly();
+	if (element < 0)
+	{
+		Integer q = m_params->GetModulus();
+		int64_t elementReduced = (-element) % q.ConvertToInt();
+		tmp.SetValues( GetValues().ModMul(q-Integer(elementReduced)), this->m_format );
+	}
+	else
+	{
+		tmp.SetValues( GetValues().ModMul(Integer(element)), this->m_format );
+	}
 	return std::move( tmp );
 }
 

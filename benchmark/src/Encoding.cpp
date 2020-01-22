@@ -32,6 +32,7 @@ bool runOnlyOnce = true;
 #include <fstream>
 #include "palisade.h"
 
+#include "cryptocontextgen.h"
 #include "cryptocontexthelper.h"
 
 #include "encoding/encodings.h"
@@ -190,6 +191,38 @@ void BM_Encoding_String(benchmark::State& state) { // benchmark
 }
 
 BENCHMARK(BM_Encoding_String);
+
+void BM_encoding_PackedCKKSPlaintext(benchmark::State& state) {
+        Plaintext plaintext;
+        shared_ptr<ILDCRTParams<BigInteger>> lp;
+        EncodingParams ep;
+
+        std::vector<complex<double>> vectorOfComplex = 
+                        { {1,0}, {2,0}, {3,0},
+                          {4,0}, {5,0}, {6,0},
+                          {7,0}, {8,0}, {0,0},
+                          {0,0} };
+
+        usint m = 1024;
+        usint numPrimes = 1;
+        uint64_t p = 50;
+        usint dcrtBits = p;
+        usint relinWin = 0;
+        usint batch = 8;
+
+        auto cc = GenCryptoContextCKKS<DCRTPoly>(m, numPrimes, p, relinWin, batch, OPTIMIZED, BV, APPROXRESCALE);
+        lp = cc->GetElementParams();
+        ep = cc->GetEncodingParams();
+        auto scalingFactor = cc->GetEncodingParams()->GetPlaintextModulus();
+
+        int i = 0;
+        while (state.KeepRunning()) {
+                plaintext.reset( new CKKSPackedEncoding(lp, ep, vectorOfComplex, 1, 0, scalingFactor) );
+                plaintext->Encode();
+        }
+}
+
+BENCHMARK(BM_encoding_PackedCKKSPlaintext);
 
 //execute the benchmarks
 BENCHMARK_MAIN();

@@ -27,6 +27,7 @@
 #include "palisade.h"
 
 #include "cryptocontext.h"
+#include "cryptocontextgen.h"
 #include "cryptocontexthelper.h"
 #include "utils/parmfactory.h"
 
@@ -58,6 +59,9 @@ buildContextFromSerialized(const map<string,string>& s, shared_ptr<typename Elem
 	std::string stDev;
 	std::string stDevStSt;
 	std::string secLevel;
+	std::string numPrimes;
+	std::string scaleExp;
+	std::string batchSize;
 
 	if( !getValueForName(s, "parameters", parmtype) ) {
 		std::cerr << "parameters element is missing" << std::endl;
@@ -112,6 +116,23 @@ buildContextFromSerialized(const map<string,string>& s, shared_ptr<typename Elem
 		return CryptoContextFactory<Element>::genCryptoContextBGV(parms,
 				stoul(plaintextModulus), stoul(relinWindow), stof(stDev));
 	}
+	else if( parmtype == "CKKS" ) {
+		if( !getValueForName(s, "numPrimes", numPrimes) ||
+				!getValueForName(s, "scaleExponent", scaleExp) ||
+				!getValueForName(s, "relinWindow", relinWindow) ||
+				!getValueForName(s, "batchSize", batchSize) ||
+				!getValueForName(s, "stDev", stDev) ) {
+			return 0;
+		}
+
+		EncodingParams encodingParams(new EncodingParamsImpl(stoul(scaleExp)));
+		encodingParams->SetBatchSize(stoul(batchSize));
+
+		return CryptoContextFactory<Element>::genCryptoContextCKKS(
+				parms, encodingParams, stoul(relinWindow),
+				stof(stDev), OPTIMIZED, 1, stoul(numPrimes));
+
+	}
 	else if( parmtype == "Null" ) {
 		if( !getValueForName(s, "plaintextModulus", plaintextModulus) ) {
 			return 0;
@@ -134,6 +155,7 @@ CryptoContextHelper::getNewContext(const string& parmset, EncodingParams ep)
 	std::string ring;
 	std::string modulus;
 	std::string rootOfUnity;
+	std::string scaleExp;
 
 	map<string, map<string,string>>::iterator it = CryptoContextParameterSets.find(parmset);
 
@@ -148,16 +170,30 @@ CryptoContextHelper::getNewContext(const string& parmset, EncodingParams ep)
 
 	// BFV uses parm generation so we skip this code for BFV
 	shared_ptr<typename Poly::Params> parms;
-	if(( parmtype != "BFV" ) && ( parmtype != "BFVrns" ) && ( parmtype != "BFVrnsB" )) {
-		if( !getValueForName(it->second, "ring", ring) ||
-				!getValueForName(it->second, "modulus", modulus) ||
-				!getValueForName(it->second, "rootOfUnity", rootOfUnity) ) {
-			return 0;
-		}
+	if(( parmtype != "BFV" ) && ( parmtype != "BFVrns" ) && ( parmtype != "BFVrnsB" )) { /* For all schemes besides BFV */
+		if (( parmtype == "CKKS" )) { /* For CKKS */
+			if( !getValueForName(it->second, "cyclotomicOrder", ring) ||
+					!getValueForName(it->second, "scaleExponent", scaleExp) ) {
+				return 0;
+			}
 
-		parms.reset( new typename Poly::Params(stoul(ring),
-								typename Poly::Integer(modulus),
-								typename Poly::Integer(rootOfUnity)));
+			NativeInteger q = FirstPrime<NativeInteger>(stoul(scaleExp), stoul(ring));
+			NativeInteger rootOfUnity = RootOfUnity<NativeInteger>(stoul(ring), q);
+
+			parms.reset( new typename Poly::Params(stoul(ring),
+											typename Poly::Integer(q),
+											typename Poly::Integer(rootOfUnity)));
+		} else { /* All other schemes */
+			if( !getValueForName(it->second, "ring", ring) ||
+					!getValueForName(it->second, "modulus", modulus) ||
+					!getValueForName(it->second, "rootOfUnity", rootOfUnity) ) {
+				return 0;
+			}
+
+			parms.reset( new typename Poly::Params(stoul(ring),
+									typename Poly::Integer(modulus),
+									typename Poly::Integer(rootOfUnity)));
+		}
 	}
 
 	return buildContextFromSerialized<Poly>(it->second, parms, ep);

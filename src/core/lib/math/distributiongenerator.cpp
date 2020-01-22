@@ -24,15 +24,12 @@
  *
  */
  
-#include "distributiongenerator.h"
+#include "math/distributiongenerator.h"
 #include <random>
-#include "backend.h"
+#include "math/backend.h"
 
 namespace lbcrypto {
 
-bool PseudoRandomNumberGenerator::m_flag = false;
-
-//std::shared_ptr<std::mt19937> PseudoRandomNumberGenerator::m_prng = std::shared_ptr<std::mt19937>(new std::mt19937(1));
-std::shared_ptr<std::mt19937> PseudoRandomNumberGenerator::m_prng = nullptr;
+std::shared_ptr<PRNG> PseudoRandomNumberGenerator::m_prng = nullptr;
 
 } // namespace lbcrypto
