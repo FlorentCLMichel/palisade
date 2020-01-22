@@ -32,7 +32,7 @@
 #include "cryptocontext.h"
 #include "rationalciphertext.h"
 
-#include "math/matrix.cpp"
+#include "../../core/lib/../../core/lib/math/matrix.cpp"
 using std::invalid_argument;
 
 namespace lbcrypto {

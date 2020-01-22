@@ -27,7 +27,7 @@
 #ifndef _SRC_LIB_CORE_MATH_MATRIX_CPP
 #define _SRC_LIB_CORE_MATH_MATRIX_CPP
 
-#include "matrix.h"
+#include "math/matrix.h"
 
 using std::invalid_argument;
 

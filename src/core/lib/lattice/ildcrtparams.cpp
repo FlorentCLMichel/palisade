@@ -23,7 +23,7 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include "ildcrtparams.h"
+#include "lattice/ildcrtparams.h"
 
 
 namespace lbcrypto

@@ -27,7 +27,7 @@
 #include "include/gtest/gtest.h"
 #include "UnitTestSer.h"
 
-#include "bgv-ser.h"
+#include "scheme/bgv/bgv-ser.h"
 #include "pubkeylp-ser.h"
 #include "ciphertext-ser.h"
 

@@ -2,7 +2,12 @@ PALISADE Lattice Cryptography Library
 =====================================
 
 PALISADE is a general lattice cryptography library that currently includes efficient implementations of the following lattice cryptography capabilities:
-* Homomorphic Encryption (HE): Brakerski/Fan-Vercauteren (3 variants), Brakerski-Gentry-Vaikuntanathan, and Stehle-Steinfeld schemes
+* Homomorphic Encryption (HE): 
+   * Brakerski/Fan-Vercauteren scheme (3 variants)
+   * Brakerski-Gentry-Vaikuntanathan scheme
+   * Cheon-Kim-Kim-Song scheme
+   * FHEW (Ducas-Micciancio) scheme
+   * Stehle-Steinfeld scheme
 * Proxy Re-Encryption for all HE schemes
 * Digital Signature
 * Identity-Based Encryption
@@ -21,7 +26,7 @@ The library is based on modular architecture with the following layers:
 * Crypto layer containing efficient implementations of lattice cryptography schemes.
 * Encoding layer supporting multiple plaintext encodings for cryptographic schemes.
 
-A major focus is on the usability of the schemes. For instance, all HE schemes use the same common API, and are implemented using runtime polymorphism.
+A major focus is on the usability of the schemes. For instance, all HE schemes with packing use the same common API, and are implemented using runtime polymorphism.
 
 PALISADE implements efficient Residue Number System (RNS) algorithms to achieve high performance, e.g., PALISADE was used as the library for a winning genome-wide association studies solution at iDASH’18. 
 
@@ -36,6 +41,7 @@ Further information about PALISADE:
 [Code of Conduct](Code-of-conduct.md)
 
 [Governance](Governance.md)
+
 
 Build Instructions
 =====================================
@@ -76,7 +82,7 @@ After the "make" completes, you should see the PALISADE library files in the lib
 make install
 ```	
 You would probably need to run "sudo make install" unless you are specifying some other install location. You can change the install location by running
-"cmake -DCMAKE_INSTALL_PREFIX=/your/path ..".
+"cmake -DCMAKE_INSTALL_PREFIX=/your/path ..". The header files are placed in the "include/palisade" folder of the specified path, and the binaries of the library are copied directly to the "lib" folder. For example, if no installation path is provided in Ubuntu (and many other Unix-based OSes), the header and library binary files will be placed in "/usr/local/inlude/palisade" and "/usr/local/lib", respectively.
 
 Testing and cleaning the build
 -------------------
@@ -110,4 +116,6 @@ More detailed steps for some common platforms are provided in the following Wiki
 
 PALISADE provides many CMake/make configuration options, such as installing specific modules of the library, compiling only libraries w/o any unit tests and demos, choosing the Debug mode for compilation, turning on/off NTL/GMP. These options are described in detail in the following Wiki article:
 
-[Configuration flags to customize the build](https://gitlab.com/palisade/palisade-release/wikis/Configuration-flags-to-customize-the-build) 
+[Configuration flags to customize the build](https://gitlab.com/palisade/palisade-release/wikis/Configuration-flags-to-customize-the-build)
+
+[Instructions for building C++ projects that use PALISADE](https://gitlab.com/palisade/palisade-release/wikis/Instructions-for-building-projects-that-use-PALISADE) 

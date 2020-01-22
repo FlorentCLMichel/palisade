@@ -28,11 +28,11 @@
 
 */
 
-#include "../backend.h"
-#include "../../utils/serializable.h"
-#include "../native_int/binvect.h"
-#include "../nbtheory.h"
-#include "../../utils/debug.h"
+#include "math/backend.h"
+#include "utils/serializable.h"
+#include "math/native_int/binvect.h"
+#include "math/nbtheory.h"
+#include "utils/debug.h"
 
 
 namespace native_int {

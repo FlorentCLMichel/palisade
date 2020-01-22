@@ -30,7 +30,7 @@
 #include "include/gtest/gtest.h"
 #include <iostream>
 
-#include "../lib/lattice/dcrtpoly.h"
+#include "lattice/dcrtpoly.h"
 #include "math/backend.h"
 #include "math/nbtheory.h"
 #include "math/distrgen.h"
@@ -186,7 +186,7 @@ void method_prime_modulus(const string& msg) {
     nBits=49;
 	
     T primeModulus = lbcrypto::FirstPrime<T>(nBits, m);
-    T expectedResult("562949954203649");
+    T expectedResult("562949953548289");
     EXPECT_EQ(expectedResult, primeModulus)
       << msg << " Failure returns_higher_bit_length";
   }
@@ -219,7 +219,7 @@ void method_primitive_root_of_unity_VERY_LONG(const string& msg) {
   {
     //TEST CASE TO ENSURE THE ROOTS OF UNITY THAT ARE FOUND ARE
     //CONSISTENTLY THE PRIMITIVE ROOTS OF UNTIY
-    const usint n=2048;
+    const usint n=256;
     const usint m=2*n;
     const usint nBits=43;
     const int ITERATIONS = m*2;
@@ -230,7 +230,6 @@ void method_primitive_root_of_unity_VERY_LONG(const string& msg) {
 
     for(int i=0; i<ITERATIONS; i++) {
       T primitiveRootOfUnity = lbcrypto::RootOfUnity<T>(m, primeModulus);
-
       T wpowerm = primitiveRootOfUnity.ModExp(M, primeModulus);
       EXPECT_EQ(wpowerm, T(1))
 	<< msg << " Failure single input iteration "<< i <<" equal_m";
@@ -241,6 +240,7 @@ void method_primitive_root_of_unity_VERY_LONG(const string& msg) {
       EXPECT_NE(wpowermbyfour, T(1))
 	<< msg << " Failure single input iteration "<< i <<"not_equal_mbyfour";
     }
+
   }
   {
     //TEST CASE TO ENSURE THE ROOTS OF UNITY FOUND FOR MULTIPLE
@@ -375,6 +375,7 @@ void test_nextQ(const string& msg) {
 	usint bits = 22;
 
 	vector<T> moduliBBV = {
+		T("4208641"),
 		T("4263937"),
 		T("4270081"),
 		T("4274177"),
@@ -383,8 +384,7 @@ void test_nextQ(const string& msg) {
 		T("4304897"),
 		T("4319233"),
 		T("4323329"),
-		T("4360193"),
-		T("4366337")
+		T("4360193")
 	};
 
 	auto q = FirstPrime<T>(bits,m);

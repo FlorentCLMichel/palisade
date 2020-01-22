@@ -31,7 +31,7 @@
  * MAKE SURE THAT PRECISION - BERNOULLI FLIPS IS ALWAYS DIVISIBLE BY LOG_BASE
  * WHEN CHOOSING A STANDARD DEVIATION SIGMA_B FOR BASE SAMPLER, MAKE SURE THAT SIGMA_B>=4*SQRT(2)*N WHERE N IS THE SMOOTHING PARAMETER
  * */
-#include "discretegaussiangeneratorgeneric.h"
+#include "math/discretegaussiangeneratorgeneric.h"
 
 namespace lbcrypto {
 

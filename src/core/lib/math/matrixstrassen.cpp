@@ -24,7 +24,7 @@
  *
  */
 
-#include "matrixstrassen.h"
+#include "math/matrixstrassen.h"
 
 using std::invalid_argument;
 

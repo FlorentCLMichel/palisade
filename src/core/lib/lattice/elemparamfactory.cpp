@@ -24,7 +24,7 @@
  *
  */
 
-#include "elemparamfactory.h"
+#include "lattice/elemparamfactory.h"
 
 namespace lbcrypto {
 

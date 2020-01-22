@@ -50,6 +50,13 @@ SPLIT32ALT_FOR_TYPE(NativePoly)
 template Matrix<NativeVector> RotateVecResult(Matrix<NativePoly> const& inMat);
 template Matrix<NativeInteger> Rotate(Matrix<NativePoly> const& inMat);
 
+// native poly version
+template<>
+PolyImpl<NativeVector>
+PolyImpl<NativeVector>::ToNativePoly() const {
+	return *this;
+}
+
 }  // namespace lbcrypto
 
 CEREAL_CLASS_VERSION( lbcrypto::NativePoly, lbcrypto::NativePoly::SerializedVersion() );

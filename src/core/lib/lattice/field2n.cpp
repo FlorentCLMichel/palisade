@@ -23,7 +23,7 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include "field2n.h"
+#include "lattice/field2n.h"
 
 namespace lbcrypto
 {

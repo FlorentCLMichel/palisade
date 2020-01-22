@@ -26,7 +26,7 @@
  */
 
 
-#include "stdlatticeparms.h"
+#include "lattice/stdlatticeparms.h"
 #include <vector>
 using std::vector;
 

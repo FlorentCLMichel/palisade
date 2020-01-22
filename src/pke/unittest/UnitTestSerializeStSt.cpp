@@ -26,7 +26,7 @@
 
 #include "include/gtest/gtest.h"
 #include "UnitTestSer.h"
-#include "stst-ser.h"
+#include "scheme/stst/stst-ser.h"
 #include "pubkeylp-ser.h"
 
 using namespace std;

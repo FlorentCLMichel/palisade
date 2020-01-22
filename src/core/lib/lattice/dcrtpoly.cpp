@@ -24,12 +24,12 @@
  *
  */
 
-#include "dcrtpoly.h"
+#include "lattice/dcrtpoly.h"
 #include <fstream>
 #include <memory>
 using std::shared_ptr;
 using std::string;
-#include "../utils/debug.h"
+#include "utils/debug.h"
 
 namespace lbcrypto
 {
@@ -115,21 +115,11 @@ DCRTPolyImpl<VecType>::operator=(const NativePoly &element)
 
     // fill up with vectors with the proper moduli
     for(usint i = 0; i < vecCount; i++ ) {
-        PolyType newvec(m_params->GetParams()[i], m_format, true);
+    	PolyType newvec(element);
+    	if (i > 0) {
+    		newvec.SwitchModulus(m_params->GetParams()[i]->GetModulus(),m_params->GetParams()[i]->GetRootOfUnity());
+    	}
         m_vectors.push_back( std::move(newvec) );
-    }
-
-    // gets moduli
-    std::vector<NativeInteger> mods;
-    mods.reserve(vecCount);
-    for( usint i = 0; i < vecCount; i++ )
-        mods.push_back( NativeInteger(m_params->GetParams()[i]->GetModulus().ConvertToInt()) );
-
-    // copy each coefficient mod the new modulus
-    for(usint p = 0; p < element.GetLength(); p++ ) {
-        for( usint v = 0; v < vecCount; v++ ) {
-            m_vectors[v][p] = element[p].Mod(mods[v]);
-        }
     }
 
     return *this;
@@ -251,14 +241,17 @@ DCRTPolyImpl<VecType>::DCRTPolyImpl(DugType& dug, const shared_ptr<DCRTPolyImpl:
 
     for (usint i = 0; i < numberOfTowers; i++) {
 
-        dug.SetModulus(dcrtParams->GetParams()[i]->GetModulus());
+    	dug.SetModulus(dcrtParams->GetParams()[i]->GetModulus());
         NativeVector vals(dug.GenerateVector(dcrtParams->GetRingDimension()));
+
         PolyType ilvector(dcrtParams->GetParams()[i]);
 
-        ilvector.SetValues(vals, Format::COEFFICIENT); // the random values are set in coefficient format
+    	ilvector.SetValues(vals, Format::COEFFICIENT); // the random values are set in coefficient format
+
         if (m_format == Format::EVALUATION) {  // if the input format is evaluation, then once random values are set in coefficient format, switch the format to achieve what the caller asked for.
             ilvector.SwitchFormat();
         }
+
         m_vectors.push_back(ilvector);
     }
 }
@@ -289,7 +282,7 @@ DCRTPolyImpl<VecType>::DCRTPolyImpl(const BugType& bug, const shared_ptr<DCRTPol
 }
 
 template<typename VecType>
-DCRTPolyImpl<VecType>::DCRTPolyImpl(const TugType& tug, const shared_ptr<DCRTPolyImpl::Params> dcrtParams, Format format)
+DCRTPolyImpl<VecType>::DCRTPolyImpl(const TugType& tug, const shared_ptr<DCRTPolyImpl::Params> dcrtParams, Format format, uint32_t h)
 {
 
     m_format = format;
@@ -299,7 +292,7 @@ DCRTPolyImpl<VecType>::DCRTPolyImpl(const TugType& tug, const shared_ptr<DCRTPol
     m_vectors.reserve(numberOfTowers);
 
     //tug generating random values
-    std::shared_ptr<int32_t> tugValues = tug.GenerateIntVector(dcrtParams->GetRingDimension());
+    std::shared_ptr<int32_t> tugValues = tug.GenerateIntVector(dcrtParams->GetRingDimension(),h);
 
     for (usint i = 0; i < numberOfTowers; i++) {
 
@@ -444,17 +437,32 @@ template<typename VecType>
 std::vector<DCRTPolyImpl<VecType>> DCRTPolyImpl<VecType>::CRTDecompose(uint32_t baseBits) const
 {
 
-    uint32_t nWindows = 1;
+    uint32_t nWindows = 0;
+
+	// used to store the number of digits for each small modulus
+	std::vector<usint> arrWindows;
 
     if (baseBits > 0) {
-        uint32_t nBits = m_vectors[0].GetModulus().GetLengthForBase(2);
 
-        nWindows = nBits / baseBits;
-        if (nBits % baseBits > 0)
-            nWindows++;
+    	nWindows = 0;
+
+		// creates an array of digits up to a certain tower
+		for (usint i = 0; i < m_vectors.size(); i++) {
+			usint nBits = m_vectors[i].GetModulus().GetLengthForBase(2);
+			usint curWindows = nBits / baseBits;
+			if (nBits % baseBits > 0)
+				curWindows++;
+			arrWindows.push_back(nWindows);
+			nWindows += curWindows;
+		}
+
+    }
+    else
+    {
+    	nWindows = m_vectors.size();
     }
 
-    std::vector<DCRTPolyType> result(m_vectors.size()*nWindows);
+    std::vector<DCRTPolyType> result(nWindows);
 
     DCRTPolyType input = this->Clone();
 
@@ -474,7 +482,7 @@ std::vector<DCRTPolyImpl<VecType>> DCRTPolyImpl<VecType>::CRTDecompose(uint32_t 
                     temp.SwitchModulus(input.m_vectors[k].GetModulus(),input.m_vectors[k].GetRootOfUnity());
                     // Switch to evaluation representation
                     temp.SwitchFormat();
-                	currentDCRTPoly.m_vectors[k] = temp;
+                    currentDCRTPoly.m_vectors[k] = temp;
                 }
                 // saves an extra NTT
                 else
@@ -506,8 +514,7 @@ std::vector<DCRTPolyImpl<VecType>> DCRTPolyImpl<VecType>::CRTDecompose(uint32_t 
 
                 currentDCRTPoly.SwitchFormat();
 
-                result[j + i*nWindows] = std::move(currentDCRTPoly);
-
+                result[j + arrWindows[i]] = std::move(currentDCRTPoly);
             }
 
         }
@@ -600,10 +607,11 @@ DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::Plus(const DCRTPolyImpl &element) c
     }
     DCRTPolyImpl<VecType> tmp(*this);
 
-    for (usint i = 0; i < tmp.m_vectors.size(); i++) {
-        tmp.m_vectors[i] += element.GetElementAtIndex (i);
-    }
-    return std::move(tmp);
+#pragma omp parallel for
+	for (usint i = 0; i < tmp.m_vectors.size(); i++) {
+		tmp.m_vectors[i] += element.GetElementAtIndex (i);
+	}
+	return std::move(tmp);
 }
 
 template<typename VecType>
@@ -627,10 +635,11 @@ DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::Minus(const DCRTPolyImpl &element) 
     }
     DCRTPolyImpl<VecType> tmp(*this);
 
-    for (usint i = 0; i < tmp.m_vectors.size(); i++) {
-        tmp.m_vectors[i] -= element.GetElementAtIndex (i);
-    }
-    return std::move(tmp);
+#pragma omp parallel for
+	for (usint i = 0; i < tmp.m_vectors.size(); i++) {
+		tmp.m_vectors[i] -= element.GetElementAtIndex (i);
+	}
+	return std::move(tmp);
 }
 
 template<typename VecType>
@@ -851,28 +860,58 @@ DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::Plus(const Integer &element) const
 {
     DCRTPolyImpl<VecType> tmp(*this);
 
-    for (usint i = 0; i < tmp.m_vectors.size(); i++) {
-        tmp.m_vectors[i] += element.ConvertToInt();
-    }
-    return std::move(tmp);
+#pragma omp parallel for
+	for (usint i = 0; i < tmp.m_vectors.size(); i++) {
+		tmp.m_vectors[i] += element.ConvertToInt();
+	}
+	return std::move(tmp);
 }
+
+
+template<typename VecType>
+DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::Plus(const vector<Integer> &crtElement) const
+{
+    DCRTPolyImpl<VecType> tmp(*this);
+
+#pragma omp parallel for
+	for (usint i = 0; i < tmp.m_vectors.size(); i++) {
+		tmp.m_vectors[i] += crtElement[i].ConvertToInt();
+	}
+	return std::move(tmp);
+}
+
 
 template<typename VecType>
 DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::Minus(const Integer &element) const
 {
     DCRTPolyImpl<VecType> tmp(*this);
 
-    for (usint i = 0; i < tmp.m_vectors.size(); i++) {
-        tmp.m_vectors[i] -= element.ConvertToInt();
-    }
-    return std::move(tmp);
+#pragma omp parallel for
+	for (usint i = 0; i < tmp.m_vectors.size(); i++) {
+		tmp.m_vectors[i] -= element.ConvertToInt();
+	}
+	return std::move(tmp);
 }
+
+
+template<typename VecType>
+DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::Minus(const vector<Integer> &crtElement) const
+{
+    DCRTPolyImpl<VecType> tmp(*this);
+
+#pragma omp parallel for
+	for (usint i = 0; i < tmp.m_vectors.size(); i++) {
+		tmp.m_vectors[i] -= crtElement[i].ConvertToInt();
+	}
+	return std::move(tmp);
+}
+
 
 template<typename VecType>
 DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::Times(const DCRTPolyImpl & element) const
 {
     if( m_vectors.size() != element.m_vectors.size() ) {
-        throw std::logic_error("tower size mismatch; cannot multiply");
+    	throw std::logic_error("tower size mismatch; cannot multiply");
     }
     DCRTPolyImpl<VecType> tmp(*this);
 
@@ -892,6 +931,31 @@ DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::Times(const Integer &element) const
 #pragma omp parallel for
     for (usint i = 0; i < m_vectors.size(); i++) {
         tmp.m_vectors[i] = tmp.m_vectors[i] * element.ConvertToInt(); // (element % Integer((*m_params)[i]->GetModulus().ConvertToInt())).ConvertToInt();
+    }
+    return std::move(tmp);
+}
+
+template<typename VecType>
+DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::Times(int64_t element) const
+{
+    DCRTPolyImpl<VecType> tmp(*this);
+
+#pragma omp parallel for
+    for (usint i = 0; i < m_vectors.size(); i++) {
+        tmp.m_vectors[i] = tmp.m_vectors[i] * element; // (element % Integer((*m_params)[i]->GetModulus().ConvertToInt())).ConvertToInt();
+    }
+    return std::move(tmp);
+}
+
+template<typename VecType>
+DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::Times(
+        const std::vector<Integer> &crtElement) const
+{
+    DCRTPolyImpl<VecType> tmp(*this);
+
+#pragma omp parallel for
+    for (usint i = 0; i < m_vectors.size(); i++) {
+    	tmp.m_vectors[i] = this->m_vectors[i].Times(crtElement[i].ConvertToInt());
     }
     return std::move(tmp);
 }
@@ -1008,6 +1072,80 @@ void DCRTPolyImpl<VecType>::DropLastElement()
     DCRTPolyImpl::Params *newP = new DCRTPolyImpl::Params( *m_params );
     newP->PopLastParam();
     m_params.reset(newP);
+}
+
+template<typename VecType>
+void DCRTPolyImpl<VecType>::DropLastElements(size_t i)
+{
+	if(m_vectors.size() < i) {
+		throw std::out_of_range("There are not enough towers in the current ciphertext to perform the modulus reduction");
+	}
+
+	m_vectors.resize(m_vectors.size() - i);
+	DCRTPolyImpl::Params *newP = new DCRTPolyImpl::Params( *m_params );
+	for (size_t j = 0; j < i; j++)
+		newP->PopLastParam();
+	m_params.reset(newP);
+}
+
+template<typename VecType>
+void DCRTPolyImpl<VecType>::DropLastElementAndScale(const std::vector<typename PolyType::Integer> &omega)
+{
+	//this->SetFormat(COEFFICIENT);
+
+	usint ringDimension = GetRingDimension();
+	usint lastTowerIndex = m_vectors.size() - 1;
+
+	typename PolyType::Integer qt(m_vectors[lastTowerIndex].GetModulus());
+
+	shared_ptr<DCRTPolyImpl::Params> newP = shared_ptr<DCRTPolyImpl::Params>(new DCRTPolyImpl::Params( *m_params ));
+	newP->PopLastParam();
+	DCRTPolyType extra(newP,COEFFICIENT,true);
+
+	PolyType lastPoly = m_vectors[lastTowerIndex];
+
+	lastPoly.SetFormat(COEFFICIENT);
+
+#pragma omp parallel for
+	for( usint rIndex = 0; rIndex < ringDimension; rIndex++ ) {
+
+		const typename PolyType::Integer &xl = lastPoly[rIndex];
+
+		long double nu = (long double)xl.ConvertToInt()/(long double)qt.ConvertToInt();
+
+		typename PolyType::Integer rounded = std::llround(nu);
+
+		for( usint vIndex = 0; vIndex < m_vectors.size() - 1; vIndex++ ) {
+
+			NativeInteger curValue = 0;
+
+			const typename PolyType::Integer &qi = m_params->GetParams()[vIndex]->GetModulus();
+
+			curValue = omega[vIndex].ModMulFast(xl,qi);
+
+			curValue.ModAddFast(rounded,qi);
+
+			extra.m_vectors[vIndex][rIndex] = curValue;
+
+		}
+
+	}
+
+	DropLastElement();
+
+	extra.SetFormat(EVALUATION);
+
+	std::vector<PolyType::Integer> qtInverseModQi(m_vectors.size());
+
+#pragma omp parallel for
+	for(usint i=0; i<m_vectors.size(); i++) {
+		const PolyType::Integer& mod = m_vectors[i].GetModulus();
+		qtInverseModQi[i] = qt.ModInverse(mod);
+		m_vectors[i] = qtInverseModQi[i].ConvertToInt() * m_vectors[i] + extra.m_vectors[i];
+	}
+
+	//this->SetFormat(EVALUATION);
+
 }
 
 /**
@@ -1317,6 +1455,12 @@ NativePoly DCRTPolyImpl<VecType>::DecryptionCRTInterpolate(PlaintextModulus ptm)
     return this->CRTInterpolate().DecryptionCRTInterpolate(ptm);
 }
 
+// todo can we be smarter with this method?
+template<typename VecType>
+NativePoly DCRTPolyImpl<VecType>::ToNativePoly() const {
+	return this->CRTInterpolate().ToNativePoly();
+}
+
 //Source: Halevi S., Polyakov Y., and Shoup V. An Improved RNS Variant of the BFV Homomorphic Encryption Scheme. Cryptology ePrint Archive, Report 2018/117. (https://eprint.iacr.org/2018/117)
 //
 //Computes Round(p/q*x) mod p as [\sum_i x_i*alpha_i + Round(\sum_i x_i*beta_i)] mod p for fast rounding in RNS
@@ -1329,7 +1473,10 @@ template<typename VecType>
 PolyImpl<NativeVector>
 DCRTPolyImpl<VecType>::ScaleAndRound(const NativeInteger &p,
         const std::vector<NativeInteger> &alpha, const std::vector<double> &beta,
-        const std::vector<NativeInteger> &alphaPrecon, const std::vector<QuadFloat> &quadBeta,
+        const std::vector<NativeInteger> &alphaPrecon,
+#ifndef NO_QUADMATH
+		const std::vector<QuadFloat> &quadBeta,
+#endif									 
         const std::vector<long double> &extBeta) const {
 
     usint ringDimension = GetRingDimension();
@@ -1379,7 +1526,7 @@ DCRTPolyImpl<VecType>::ScaleAndRound(const NativeInteger &p,
     }
     else
     {
-
+#ifndef NO_QUADMATH
         if (nTowers > 16) // handles the case when curFloatSum exceeds 2^63 (causing an an overflow in int)
             {
             QuadFloat pFloat = ext_double::quadFloatFromInt64(p.ConvertToInt());
@@ -1422,6 +1569,10 @@ DCRTPolyImpl<VecType>::ScaleAndRound(const NativeInteger &p,
                 coefficients[ri] = (curIntSum + NativeInteger(ext_double::quadFloatRound(curFloatSum))).Mod(p);
             }
         }
+#else
+		PALISADE_THROW(math_error, "BFVrns.ScaleAndRound(): Number of bits in CRT moduli should be in < 58 for this architecture");
+
+#endif
     }
 
     // Setting the root of unity to ONE as the calculation is expensive
@@ -1432,6 +1583,175 @@ DCRTPolyImpl<VecType>::ScaleAndRound(const NativeInteger &p,
     return std::move(result);
 
 }
+
+template<typename VecType>
+BigInteger DCRTPolyImpl<VecType>::GetWorkingModulus() const {
+	usint nTowersQ = m_vectors.size();
+	BigInteger modulusQ = 1;
+	for (size_t i = 0; i < nTowersQ; i++){
+		modulusQ *= m_params->GetParams()[i]->GetModulus();
+	}
+	return modulusQ;
+}
+
+template<typename VecType>
+shared_ptr<typename DCRTPolyImpl<VecType>::Params> DCRTPolyImpl<VecType>::GetExtendedCRTBasis(
+		shared_ptr<DCRTPolyImpl::Params> paramsP) const {
+
+	usint nTowersQ = m_vectors.size();
+	usint nTowersP = paramsP->GetParams().size();
+	usint nTowersQP = nTowersQ + nTowersP;
+
+	vector<NativeInteger> moduliQP(nTowersQP);
+	vector<NativeInteger> rootsQP(nTowersQP);
+	for (size_t i = 0; i < nTowersQP; i++){
+		if (i < nTowersQ) {
+			moduliQP[i] = m_params->GetParams()[i]->GetModulus();
+			rootsQP[i] = m_params->GetParams()[i]->GetRootOfUnity();
+		} else {
+			moduliQP[i] = paramsP->GetParams()[i-nTowersQ]->GetModulus();
+			rootsQP[i] = paramsP->GetParams()[i-nTowersQ]->GetRootOfUnity();
+		}
+	}
+
+	return shared_ptr<DCRTPolyImpl::Params>( new DCRTPolyImpl::Params(2 * GetRingDimension(),
+			moduliQP, rootsQP) );
+}
+
+
+
+template<typename VecType>
+DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::ApproxSwitchCRTBasis(
+		const shared_ptr<DCRTPolyImpl::Params> paramsFrom,
+		const shared_ptr<DCRTPolyImpl::Params> paramsTo,
+		const vector<NativeInteger> &hatInvModFrom,
+		const vector<NativeInteger> &hatInvModFromPrecon,
+		const vector<vector<NativeInteger>> &hatModTo,
+		const vector<DoubleNativeInt> &modBarretPrecon) const{
+
+	// Creates a DCRTPoly with towers from params, and initializes element to 0.
+	DCRTPolyType ans(paramsTo,m_format,true);
+
+    usint ringDimension = GetRingDimension();
+    usint nTowersFrom = (m_vectors.size() > paramsFrom->GetParams().size()) ?
+    					paramsFrom->GetParams().size() : m_vectors.size();
+    usint nTowersTo = ans.m_vectors.size();
+
+#pragma omp parallel for
+    for( usint rIndex = 0; rIndex < ringDimension; rIndex++ ) {
+    	vector<DoubleNativeInt> sum(nTowersTo);
+    	for( usint j = 0; j < nTowersFrom; j++ ) {
+    		const NativeInteger &ai = m_vectors[j].GetValues()[rIndex];
+    		NativeInteger tmp1 = ai.ModMulPreconOptimized(hatInvModFrom[j],
+    				paramsFrom->GetParams()[j]->GetModulus(),
+					hatInvModFromPrecon[j]);
+    		for (usint i = 0; i < nTowersTo; i ++ ) {
+    			sum[i] += Mul128(tmp1.ConvertToInt(), hatModTo[j][i].ConvertToInt());
+    		}
+    	}
+
+    	for ( usint i=0; i<nTowersTo; i++) {
+    		ans.m_vectors[i].at(rIndex) =
+    				NativeInteger(BarrettUint128ModUint64(
+    						sum[i],
+							paramsTo->GetParams()[i]->GetModulus().ConvertToInt(),
+							modBarretPrecon[i]));
+    	}
+    }
+
+    return std::move(ans);
+}
+
+template<typename VecType>
+DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::ApproxModUp(
+		const shared_ptr<Params> paramsQ,
+		const shared_ptr<Params> paramsP,
+		const vector<vector<NativeInteger>> &qHatInvModQj,
+		const vector<vector<NativeInteger>> &qHatInvModQjPrecon,
+		const vector<vector<vector<NativeInteger>>> &qHatModPi,
+		const vector<DoubleNativeInt> &modBarretPreconP) const{
+
+    // Creates a DCRTPoly with towers from params, and initializes element to 0.
+    auto paramsQP = GetExtendedCRTBasis(paramsP);
+
+    usint ringDimension = GetRingDimension();
+	usint nTowersQ = m_vectors.size();
+	usint nTowersQP = paramsQP->GetParams().size();
+
+	DCRTPolyType ansP = this->ApproxSwitchCRTBasis(paramsQ, paramsP,
+			qHatInvModQj[nTowersQ-1], qHatInvModQjPrecon[nTowersQ-1],
+			qHatModPi[nTowersQ-1], modBarretPreconP);
+
+    DCRTPolyType ans(paramsQP,m_format,true);
+
+#pragma omp parallel for
+    for( usint rIndex = 0; rIndex < ringDimension; rIndex++ ) {
+    	for ( usint i=0; i<nTowersQP; i++) {
+			if ( i < nTowersQ )
+				ans.m_vectors[i].at(rIndex) = m_vectors[i].at(rIndex);
+			else
+				ans.m_vectors[i].at(rIndex) = ansP.m_vectors[i-nTowersQ].at(rIndex);
+		}
+    }
+
+    return std::move(ans);
+
+}
+
+template<typename VecType>
+DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::ApproxModDown(
+		const shared_ptr<Params> paramsQ,
+		const shared_ptr<Params> paramsP,
+		const vector<NativeInteger> &pInvModQj,
+		const vector<NativeInteger> &pInvModQjPrecon,
+		const vector<NativeInteger> &pHatInvModPi,
+		const vector<NativeInteger> &pHatInvModPiPrecon,
+		const vector<vector<NativeInteger>> &pHatModQj,
+		const vector<DoubleNativeInt> &modBarretPreconQ) const{
+
+	// Get the part of the input DCRTPoly (this) that corresponds to basis P
+	usint ringDimension = GetRingDimension();
+	usint nTowersQP = m_vectors.size();
+	usint nTowersP = paramsP->GetParams().size();
+	usint nTowersQ = nTowersQP - nTowersP;
+
+	DCRTPolyType partP(paramsP, m_format, true);
+
+#pragma omp parallel for
+	for( usint rIndex = 0; rIndex < ringDimension; rIndex++ ) {
+		for ( usint i=nTowersQ; i<nTowersQP; i++) {
+			partP.m_vectors[i-nTowersQ].at(rIndex) = m_vectors[i].at(rIndex);
+		}
+	}
+
+	// Apply ApproxSwitchCRTBasis to the P part of this to translate it to basis Q
+	DCRTPolyType partPSwitchedToQ = partP.ApproxSwitchCRTBasis(paramsP, paramsQ,
+			pHatInvModPi, pHatInvModPiPrecon,
+			pHatModQj, modBarretPreconQ);
+
+	// Combine the switched DCRTPoly with the Q part of this to get the result
+	DCRTPolyType result(paramsQ, m_format, true);
+	uint32_t towerDiff = paramsQ->GetParams().size() - nTowersQ;
+	if (towerDiff > 0)
+		result.DropLastElements(towerDiff);
+
+#pragma omp parallel for
+	for( usint rIndex = 0; rIndex < ringDimension; rIndex++ ) {
+		for ( usint j=0; j<nTowersQ; j++) {
+			NativeInteger diff = m_vectors[j].at(rIndex).ModSubFast(
+					partPSwitchedToQ.m_vectors[j].at(rIndex), paramsQ->GetParams()[j]->GetModulus() );
+			result.m_vectors[j].at(rIndex) =
+					diff.ModMulPreconOptimized( pInvModQj[j],
+							paramsQ->GetParams()[j]->GetModulus(),
+							pInvModQjPrecon[j]);
+		}
+	}
+
+    return std::move(result);
+
+}
+
+
 
 /*
  * Source: Halevi S., Polyakov Y., and Shoup V. An Improved RNS Variant of the BFV Homomorphic Encryption Scheme. Cryptology ePrint Archive, Report 2018/117. (https://eprint.iacr.org/2018/117)
@@ -1752,6 +2072,7 @@ void DCRTPolyImpl<VecType>::FastBaseConvqToBskMontgomery(
         {
             // collapsing
             NativeInteger r_m_tilde = r_m_tildes[k]; // m_tilde < than all Bsk_i
+	    if (r_m_tilde >= mtilde/2) r_m_tilde += BskmtildeModuli[i] - mtilde; // centred remainder
             r_m_tilde.ModMulPreconOptimizedEq( currentqModBski, BskmtildeModuli[i], currentqModBskiPrecon ); // (r_mtilde) * q mod Bski
             r_m_tilde.ModAddFastOptimizedEq( m_vectors[numq+i][k], BskmtildeModuli[i] ); // (c``_m + (r_mtilde* q)) mod Bski
             m_vectors[numq+i][k] = r_m_tilde.ModMulPreconOptimized( mtildeInvModBskiTable[i], BskmtildeModuli[i], mtildeInvModBskiPreconTable[i] ); // (c``_m + (r_mtilde* q)) * mtilde mod Bski

@@ -25,7 +25,7 @@
  */
 
 #include "include/gtest/gtest.h"
-#include "../lib/signaturecontext.h"
+#include "signaturecontext.h"
 #include "encoding/encodings.h"
 
 using namespace lbcrypto;

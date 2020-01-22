@@ -1,13 +1,13 @@
 // See http://www.codeproject.com/Articles/1089905/A-Custom-STL-std-allocator-Replacement-Improves-Performance-
 
 #include <cassert>
-#include "xallocator.h"
-#include "blockAllocator.h"
+#include "utils/blockAllocator/xallocator.h"
+#include "utils/blockAllocator/blockAllocator.h"
 #include <iostream>
 #include <cstring> //for memcpy consider changing to copy
 #include <thread>
 #include <mutex>
-#include "../../utils/debug.h"
+#include "utils/debug.h"
 
 using namespace std;
 

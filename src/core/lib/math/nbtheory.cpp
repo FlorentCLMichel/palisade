@@ -24,13 +24,13 @@
  *
  */
 
-#include "nbtheory.h"
-#include "distributiongenerator.h"
+#include "math/nbtheory.h"
+#include "math/distributiongenerator.h"
 
 #include "time.h"
 #include <chrono>
 
-#include "../utils/debug.h"
+#include "utils/debug.h"
 
 
 #define _USE_MATH_DEFINES 
@@ -355,7 +355,6 @@ namespace lbcrypto {
 		}
 
 
-
 		return minRU;
 
 	}
@@ -507,7 +506,9 @@ namespace lbcrypto {
 			IntType r = IntType(2).ModExp(nBits, m);
 			DEBUG("r "<<r);
 			IntType qNew = (IntType(1) << nBits);
-			if( qNew == IntType(0) ) {
+			double d1 = qNew.ConvertToDouble();
+			double d2 = std::pow(2,double(nBits));
+			if( (qNew == IntType(0)) || (std::llround(std::log2(d1)) < std::llround(std::log2(d2))) ) {
 				// too big for IntType
 				PALISADE_THROW(math_error, "FirstPrime parameters are too large for this integer implementation");
 			}
@@ -517,17 +518,8 @@ namespace lbcrypto {
 			}
 			qNew = qNew2;
 
-			uint64_t i = 1; // same type as m
-
 			while (!MillerRabinPrimalityTest(qNew)) {
-				// Should this really add a steadily increasing value to qNew or just keep adding m?
-				uint64_t imProd = i*m;
-				if( imProd < m || imProd < i ) {
-					PALISADE_THROW(math_error, "FirstPrime overflow making increment");
-				}
-				IntType incr = IntType(imProd);
-				qNew2 = qNew + incr;
-				i++;
+				qNew2 = qNew + IntType(m);
 				if( qNew2 < qNew ) {
 					PALISADE_THROW(math_error, "FirstPrime overflow growing candidate");
 				}
@@ -738,13 +730,11 @@ namespace lbcrypto {
 	IntType ComputeMu(const IntType& q)
 	{
 		IntType temp(1);
-
-		if( typeid(IntType) == typeid(M2Integer) ) {
-			temp <<= 2 * q.GetMSB() + 3;
-			return temp.DividedBy(q);
-		}
+		temp <<= 2 * q.GetMSB() + 3;
+		return temp.DividedBy(q);
 
 		return temp;
+
 	}
 
 }

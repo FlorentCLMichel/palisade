@@ -24,13 +24,13 @@
  *
  */
 
-#include "nbtheory.h"
-#include "distributiongenerator.h"
+#include "math/nbtheory.h"
+#include "math/distributiongenerator.h"
 
 #include "time.h"
 #include <chrono>
 
-#include "../utils/debug.h"
+#include "utils/debug.h"
 
 
 #define _USE_MATH_DEFINES 
@@ -273,6 +273,32 @@ namespace lbcrypto {
 			k = (k * g) % m;
 
 		return k;
+
+	}
+
+	uint32_t FindAutomorphismIndex2nComplex(int32_t i, uint32_t m) {
+
+		if (i == int32_t(m-1)) // conjugation automorphism
+			return i;
+		else
+		{
+			// generator
+			int32_t g0;
+
+			if (i < 0)
+				g0 = NativeInteger(5).ModInverse(m).ConvertToInt();
+			else
+				g0 = 5;
+
+			uint32_t i_unsigned = (uint32_t)std::abs(i);
+
+			int32_t g = g0;
+			for (size_t j = 1; j < i_unsigned; j++)
+				g = (g * g0) % m;
+
+			return g;
+		}
+
 
 	}
 

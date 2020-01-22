@@ -24,15 +24,15 @@
  *
  */
 
-#include "../math/backend.h"
-#include "elemparams.cpp"
-#include "ildcrtparams.cpp"
-#include "../math/discretegaussiangenerator.cpp"
-#include "../math/discreteuniformgenerator.cpp"
-#include "../math/binaryuniformgenerator.cpp"
-#include "../math/ternaryuniformgenerator.cpp"
-#include "dcrtpoly.cpp"
-#include "poly.cpp"
+#include "math/backend.h"
+#include "lattice/elemparams.cpp"
+#include "lattice/ildcrtparams.cpp"
+#include "math/discretegaussiangenerator.cpp"
+#include "math/discreteuniformgenerator.cpp"
+#include "math/binaryuniformgenerator.cpp"
+#include "math/ternaryuniformgenerator.cpp"
+#include "lattice/dcrtpoly.cpp"
+#include "lattice/poly.cpp"
 
 // This creates all the necessary class implementations for DCRTPoly
 

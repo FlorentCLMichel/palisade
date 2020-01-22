@@ -24,7 +24,7 @@
  *
  */
 
-#include "ilparams.h"
+#include "lattice/ilparams.h"
 
 CEREAL_CLASS_VERSION( lbcrypto::ILParamsImpl<M2Integer>, lbcrypto::ILParamsImpl<M2Integer>::SerializedVersion() );
 CEREAL_CLASS_VERSION( lbcrypto::ILParamsImpl<M4Integer>, lbcrypto::ILParamsImpl<M4Integer>::SerializedVersion() );

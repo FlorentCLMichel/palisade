@@ -43,15 +43,8 @@ We configured parameters (namely the ring dimension and ciphertext modulus) to p
 #include <iterator>
 
 #include "palisade.h"
-#include "cryptocontexthelper.h"
 
-#include "encoding/encodings.h"
-
-#include "utils/debug.h"
-
-#include "math/nbtheory.h"
-#include "math/matrix.h"
-#include "math/matrix.cpp"
+#include "../../core/lib/math/matrix.cpp"
 
 using namespace std;
 using namespace lbcrypto;
@@ -74,9 +67,9 @@ int main() {
 
 	ArbBFVLinearRegressionPackedArray();
 
-	std::cout << "Please press any key to continue..." << std::endl;
+	//std::cout << "Please press any key to continue..." << std::endl;
 
-	std::cin.get();
+	//std::cin.get();
 	return 0;
 }
 

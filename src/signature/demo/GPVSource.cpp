@@ -24,7 +24,7 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include "../lib/signaturecontext.h"
+#include "signaturecontext.h"
 
 using namespace lbcrypto;
     int main(){

@@ -22,6 +22,10 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
+ *
+ * @section DESCRIPTION
+ * Demo software for PKE multiparty fusion operations for various schemes.
+ *
  */
 
 #include <iostream>
@@ -31,8 +35,6 @@
 #include <iterator>
 
 #include "palisade.h"
-#include "cryptocontexthelper.h"
-#include "utils/debug.h"
 
 using namespace std;
 using namespace lbcrypto;
@@ -41,9 +43,31 @@ using namespace lbcrypto;
 //static const usint PTM = 256;
 //double currentDateTime();
 
+int run_demo_fusion(string input);
+
 void usage()
 {
-	cout << "No args are needed." << endl;
+  std::cout << "-i (optional) run interactively to select parameters" << std::endl
+			<< " <PARAMETER SET> to run with that parameter set" <<std::endl;
+}
+
+// trim whitespace from string from start (in place)
+// code from to https://stackoverflow.com/a/44973498/524503 
+static inline void ltrim(std::string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+        return !std::isspace(ch);
+    }));
+}
+// trim from end (in place)
+static inline void rtrim(std::string &s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+        return !std::isspace(ch);
+    }).base(), s.end());
+}
+// trim from both ends (in place)
+static inline void trim(std::string &s) {
+    ltrim(s);
+    rtrim(s);
 }
 
 int main(int argc, char *argv[]) {
@@ -51,10 +75,9 @@ int main(int argc, char *argv[]) {
 	////////////////////////////////////////////////////////////
 	// Set-up of parameters
 	////////////////////////////////////////////////////////////
-
-	//Generate parameters.
-	double diff, start, finish;
-
+    bool interactive = false;
+	string input = "";
+	string progname = *argv;
 	while( argc-- > 1 ) {
 		string arg(*++argv);
 
@@ -62,24 +85,111 @@ int main(int argc, char *argv[]) {
 			usage();
 			return 0;
 		}
+		else if (arg == "-i"){
+  		    interactive = true;
+		}
 		else if( arg[0] == '-' ) {
 			usage();
 			return(0);
+			
+		}else{
+		  input = arg;
 		}
 	}
+	std::cout << "This code shows how to use schemes and pre-computed parameters for those schemes that can be selected during run-time. " << std::endl;
+	if (input.compare("") == 0) {
+	  std::cout << "\nThis code demonstrates the use of multiple schemes for basic public key encryption fusion operations. " ;
+	  std::cout << "This code shows how to use schemes and pre-computed parameters for those schemes can be selected during run-time. " ;
+	  std::cout << "In this demonstration we encrypt data and then proxy re-encrypt it. " ;
 
-	std::cout << "Choose parameter set: ";
-	CryptoContextHelper::printParmSetNamesByExcludeFilter(std::cout,"BFVrns");
+	  std::cout << "\nThis demo can be run as "<<progname<<" <PARAMETER SET> " <<std::endl;
+	  std::cout << "\nRunning this demo as "<<progname<<" ALL or without any parameters will run all schemes " <<std::endl;
+	  std::cout << "\nRunning this demo as "<<progname<<" -i enters interactive mode " <<std::endl;
+	  
+	}
+	std::cout << "time using Math backend "<<MATHBACKEND <<std::endl;
 
-	string input;
-	std::cin >> input;
+	std::ostringstream stream;
+	//CryptoContextHelper::printParmSetNamesByExcludeFilter(stream,"BFVrns");
+	CryptoContextHelper::printParmSetNamesByExcludeFilter(stream,"BFVrns");
+	string parameter_set_list =  stream.str();
+
+	
+	//tokenize the string that lists parameters, separated by commas
+	char delim = ','; // our delimiter
+	std::istringstream ss(stream.str());
+	std::string token;
+	
+	std::vector<std::string> tokens;
+	while(std::getline(ss, token, delim)) {
+	  //remove any leading or trailing whitespace from token
+	  trim(token);
+	  if (token.find("StSt") != std::string::npos){
+		  //this is a kludge CryptoContextHelper::printParmSetNamesByExcludeFilter() needs to handle multiple exclusions. 
+		  continue;
+	  }
+	  tokens.push_back(token);
+	}
+	
+
+	if (interactive){ 
+	  std::cout << "Choose parameter set: "<< parameter_set_list;
+	  std::cout << "or enter ALL to run every set."<<std::endl;
+ 	  std::cin >> input;
+
+	  
+	  
+	} else if (input.compare("")==0){ //input can be specified on the command line
+	  input = "ALL";
+	}
+
+	if (input.compare("ALL")!=0) { //run a particular parameter set
+
+	  //validate input
+	  bool valid = false;
+	  for(string param : tokens) {
+		if (input.compare(param) == 0){
+		  valid = true;
+		  break;
+		}
+	  }
+	  if (!valid) {
+		std::cout<<"Error: "<< input <<" is not a valid parameter set."<<std::endl;
+		std::cout<<"Valid sets are: "<<parameter_set_list;
+		exit(1);
+	  }
+	  std::cout << "Running using parameter set: "<<input<<std::endl;
+	  
+	  
+	  int rc= run_demo_fusion(input);
+
+	  if (rc) { //there could be an error
+		exit(1);
+	  }
+	} else { //run ALL parameter sets
+	  // tokens contain the array of parameter name strings
+	  for(string param : tokens) {
+		std::cout << "Running using parameter set: "<<param<<std::endl;
+		int rc= run_demo_fusion(param);
+
+		if (rc) { //there could be an error
+		  exit(1);	
+		}
+	  }
+	}
+	exit (0); //successful return
+}
+
+int run_demo_fusion(string input){
+	//Generate parameters.
+	double diff, start, finish;
 
 	start = currentDateTime();
 
 	CryptoContext<Poly> cc = CryptoContextHelper::getNewContext(input);
 	if( !cc ) {
-		cout << "Error on " << input << endl;
-		return 0;
+		cout << "Error using " << input << endl;
+		return 1;
 	}
 
 	finish = currentDateTime();
@@ -92,7 +202,6 @@ int main(int argc, char *argv[]) {
 	cc->Enable(SHE);
 	cc->Enable(PRE);
 	cc->Enable(MULTIPARTY);
-
 
 	std::cout << "p = " << cc->GetCryptoParameters()->GetPlaintextModulus() << std::endl;
 	std::cout << "n = " << cc->GetCryptoParameters()->GetElementParams()->GetCyclotomicOrder() / 2 << std::endl;
@@ -325,7 +434,7 @@ int main(int argc, char *argv[]) {
 
 	//std::cin.get();
 
-	cout << "\n Original Plaintext: \n" << endl;
+	cout << "\n Original Plaintext (note trailing zero terms are elided): \n" << endl;
 	cout << plaintext1 << endl;
 	cout << plaintext2 << endl;
 	cout << plaintext3 << endl;
@@ -341,9 +450,10 @@ int main(int argc, char *argv[]) {
 	// Done
 	////////////////////////////////////////////////////////////
 
-	std::cout << "Execution Completed. Press any key to continue." << std::endl;
+	//std::cout << "Execution Completed. Press any key to continue." << std::endl;
 
-	std::cin.get();
+	//std::cin.get();
 
 	return 0;
+
 }

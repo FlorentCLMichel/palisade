@@ -35,16 +35,16 @@
 #define FASTNLOOSE
 #define FORCE_NORMALIZATION
 
-#include "../../utils/serializable.h"
+#include "utils/serializable.h"
 
-#include "../backend.h"
+#include "math/backend.h"
 
-#include "mgmpintvec.h"
+#include "math/gmp_int/mgmpintvec.h"
 
 #include "time.h"
 #include <chrono>
 
-#include "../../utils/debug.h"
+#include "utils/debug.h"
 
 namespace NTL {
 

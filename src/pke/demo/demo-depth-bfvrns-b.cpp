@@ -1,5 +1,5 @@
 /*
- * @file demo_she.cpp - PALISADE library.
+ * @file demo-depth-bfvrns.cpp  - PALISADE library.
  * @author  TPOC: contact@palisade-crypto.org
  *
  * @section LICENSE

@@ -38,8 +38,9 @@
 #include "math/nbtheory.h"
 #include "utils/utilities.h"
 #include "utils/debug.h"
+#include <thread>
 
-#include "../lib/lattice/dcrtpoly.h"
+#include "lattice/dcrtpoly.h"
 using namespace std;
 using namespace lbcrypto;
 
@@ -639,4 +640,23 @@ void Karney_Variance(const string& msg) {
 TEST(UTDistrGen, Karney_Variance) {
 	RUN_ALL_BACKENDS(Karney_Variance, "Karney_Variance")
 }
+
+void ThreadSafetyTestHelper() {
+	PRNG &engine = PseudoRandomNumberGenerator::GetPRNG();
+	engine();
+}
+
+template <typename V>
+void ThreadSafetyInGetPRNG(const string &msg)
+{
+	thread t1(ThreadSafetyTestHelper);
+	t1.join();
+
+	ThreadSafetyTestHelper();
+}
+
+TEST(UTDistrGen, ThreadSafetyInGetPRNG) {
+	RUN_ALL_BACKENDS(ThreadSafetyInGetPRNG, "Thread safety in getPRNG")
+}
+
 

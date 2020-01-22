@@ -36,18 +36,20 @@
 #include <iterator>
 
 #include "palisade.h"
-#include "cryptocontexthelper.h"
-#include "utils/debug.h"
 
 using namespace std;
 using namespace lbcrypto;
 
 int main(int argc, char *argv[]) {
 
+#ifdef NO_QUADMATH
+  std::cout << "this demo is not working on this architecture"<<std::endl;
+  exit(0);
+#endif
+  
 	////////////////////////////////////////////////////////////
 	// Set-up of parameters
 	////////////////////////////////////////////////////////////
-
 
 	std::cout << "\nThis code demonstrates the use of the BFV scheme for basic homomorphic encryption operations. " << std::endl;
 	std::cout << "This code shows how to auto-generate parameters during run-time based on desired plaintext moduli and security levels. " << std::endl;

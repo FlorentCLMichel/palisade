@@ -25,7 +25,7 @@
  *
  */
 
-#include "fractionalencoding.h"
+#include "encoding/fractionalencoding.h"
 
 namespace lbcrypto {
 

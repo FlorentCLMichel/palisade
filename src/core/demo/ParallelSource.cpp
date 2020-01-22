@@ -32,8 +32,7 @@
 #include "time.h"
 #include <chrono>
 #include <thread>
-#include "utils/debug.h"
-#include "utils/parallel.h"
+#include "palisadecore.h"
 
 //function to verify our generated array
 void verify(float *foo, uint32_t array_size){

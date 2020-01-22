@@ -29,7 +29,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "../lib/cryptocontext.h"
+#include "cryptocontext.h"
 
 #include "encoding/encodings.h"
 

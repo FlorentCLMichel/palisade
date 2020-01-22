@@ -1,3 +1,13 @@
+01/22/2020: PALISADE v1.7.4 is released (includes all changes from development releases v1.7.a to v1.7.d)
+
+* Adds an optimized implementation of the CKKS scheme for approximate (real-number) homomorphic encryption. The implementation features automated rescaling/modswitching and hybrid key switching.
+* Adds an optimized implementation of the FHEW scheme for Boolean-circuit homomorphic encryption, supporting standard HE parameters. Performs bootstrapping for each binary gate, and hence supports the evaluation of arbitrary Boolean circuits.
+* Simplifies the development of applications using PALISADE (only one header file is now needed for most applications).
+* Replaces the Mersenne Twister PRNG Engine with a cryptographically secure BLAKE2-based PRNG.
+* Adds the ring dimension as an option when generating crypto contexts for BFV variants.
+* Improves the noise growth of the BEHZ variant of BFV (referred to as the BFVrnsB scheme in PALISADE).
+* Fixes several bugs.
+
 9/12/2019: PALISADE v1.6.0 is released
 
 * Significantly simplifies/automates the PALISADE build/installation process. Now we use CMake.

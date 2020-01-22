@@ -1,5 +1,5 @@
 /*
- * @file
+ * @file  demo-simple-example.cpp - Simple demo for BFVrns.
  * @author  TPOC: contact@palisade-crypto.org
  *
  * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
@@ -25,14 +25,18 @@
  */
 
 #include "palisade.h"
-#include "cryptocontexthelper.h"
-#include "lattice/stdlatticeparms.h"
 
 using namespace lbcrypto;
 
 int main()
 {
-	// Sample Program: Step 1 – Set CryptoContext
+#ifdef NO_QUADMATH
+  std::cout << "This demo uses BFVrns which is currently not available for this architecture"<<std::endl;
+  exit(0);
+#endif
+
+
+	// Sample Program: Step 1 ï¿½ Set CryptoContext
 
 	//Set the main parameters
 	int plaintextModulus = 65537;
@@ -48,7 +52,7 @@ int main()
 	cryptoContext->Enable(ENCRYPTION);
 	cryptoContext->Enable(SHE);
 
-	//Sample Program: Step 2 – Key Generation
+	//Sample Program: Step 2 ï¿½ Key Generation
 
 	// Initialize Public Key Containers
 	LPKeyPair<DCRTPoly> keyPair;
@@ -62,7 +66,7 @@ int main()
 	// Generate the rotation evaluation keys
 	cryptoContext->EvalAtIndexKeyGen(keyPair.secretKey,{1,2,-1,-2});
 
-	//Sample Program: Step 3 – Encryption
+	//Sample Program: Step 3 ï¿½ Encryption
 
 	// First plaintext vector is encoded
 	std::vector<int64_t> vectorOfInts1 = {1,2,3,4,5,6,7,8,9,10,11,12};
@@ -79,7 +83,7 @@ int main()
 	auto ciphertext2 = cryptoContext->Encrypt(keyPair.publicKey, plaintext2);
 	auto ciphertext3 = cryptoContext->Encrypt(keyPair.publicKey, plaintext3);
 
-	//Sample Program: Step 4 – Evaluation
+	//Sample Program: Step 4 ï¿½ Evaluation
 
 	// Homomorphic additions
 	auto ciphertextAdd12 = cryptoContext->EvalAdd(ciphertext1,ciphertext2);
@@ -95,7 +99,7 @@ int main()
 	auto ciphertextRot3 = cryptoContext->EvalAtIndex(ciphertext1,-1);
 	auto ciphertextRot4 = cryptoContext->EvalAtIndex(ciphertext1,-2);
 
-	//Sample Program: Step 5 – Decryption
+	//Sample Program: Step 5 ï¿½ Decryption
 
 	// Decrypt the result of additions
 	Plaintext plaintextAddResult;

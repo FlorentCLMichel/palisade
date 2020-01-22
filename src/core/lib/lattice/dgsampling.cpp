@@ -28,7 +28,7 @@
 #ifndef _SRC_LIB_TRAPDOOR_DGSAMPLING_CPP
 #define _SRC_LIB_TRAPDOOR_DGSAMPLING_CPP
 
-#include "dgsampling.h"
+#include "lattice/dgsampling.h"
 
 namespace lbcrypto {
 
@@ -223,7 +223,7 @@ namespace lbcrypto {
 
 		std::normal_distribution<> d(0, sigma);
 
-		std::mt19937 &g = PseudoRandomNumberGenerator::GetPRNG();
+		PRNG &g = PseudoRandomNumberGenerator::GetPRNG();
 
 		std::vector<double> z(k);
 

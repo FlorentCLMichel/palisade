@@ -1,3 +1,8 @@
+include_directories( ../src/core/include )
+include_directories( ../src/core/lib )
+include_directories( ../src/pke/include )
+include_directories( ../src/binfhe/include )
+
 set( REGEX_FLAG -DHAVE_STD_REGEX )
 
 if ( APPLE )
@@ -6,7 +11,7 @@ else()
 	set( WARNING_FLAG -Wno-unused-but-set-variable )
 endif()
 
-set (BMLIBS PUBLIC PALISADEpke PUBLIC PALISADEcore ${THIRDPARTYLIBS} PUBLIC benchmark ${OpenMP_CXX_FLAGS})
+set (BMLIBS PUBLIC PALISADEpke PUBLIC PALISADEbinfhe PUBLIC PALISADEcore ${THIRDPARTYLIBS} PUBLIC benchmark ${OpenMP_CXX_FLAGS})
 
 set (BMAPPS "")
 file (GLOB BMARK_SRC_FILES CONFIGURE_DEPENDS src/*.cpp)

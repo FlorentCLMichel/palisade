@@ -1,5 +1,5 @@
 /*
- * @file 
+ * @file run-bfvrns.cpp - benchmark for BFVrns (it was used to generate Table 3 in https://eprint.iacr.org/2018/117)
  * @author  TPOC: contact@palisade-crypto.org
  *
  * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
@@ -35,21 +35,12 @@ BFV RNS testing programs
 
 #include "palisade.h"
 
-
-#include "cryptocontexthelper.h"
-
-#include "encoding/encodings.h"
-
-#include "utils/debug.h"
 #include <random>
-
-#include "math/nbtheory.h"
 
 typedef std::numeric_limits< double > dbl;
 
 using namespace std;
 using namespace lbcrypto;
-
 
 #include <iterator>
 
@@ -58,7 +49,10 @@ void SHERun();
 
 int main() {
 
-
+#ifdef NO_QUADMATH
+    std::cout << "This demo uses BFVrns which is currently not available for this architecture"<<std::endl;
+    exit(0);
+#endif
 	SHERun();
 
 	//cin.get();

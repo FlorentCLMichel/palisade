@@ -28,7 +28,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "../lib/cryptocontext.h"
+#include "cryptocontext.h"
 #include "encoding/encodings.h"
 #include "utils/debug.h"
 #include "math/matrix.h"
@@ -47,7 +47,7 @@ protected:
 public:
 };
 
-#include "../lib/cryptocontexthelper.h"
+#include "cryptocontexthelper.h"
 
 /** Tests linear regression for the Null scheme
 * based on of a design matrix of 2x2 and response vector of 2x1

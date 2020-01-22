@@ -24,7 +24,7 @@
  *
  */
 
-#include "elemparams.h"
+#include "lattice/elemparams.h"
 
 CEREAL_CLASS_VERSION( lbcrypto::ElemParams<M2Integer>, lbcrypto::ElemParams<M2Integer>::SerializedVersion() );
 CEREAL_CLASS_VERSION( lbcrypto::ElemParams<M4Integer>, lbcrypto::ElemParams<M4Integer>::SerializedVersion() );

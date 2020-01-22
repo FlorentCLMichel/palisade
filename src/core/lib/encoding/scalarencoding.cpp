@@ -24,7 +24,7 @@
  *
  */
 
-#include "scalarencoding.h"
+#include "encoding/scalarencoding.h"
 
 namespace lbcrypto {
 

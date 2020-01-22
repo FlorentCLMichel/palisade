@@ -24,7 +24,7 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include "binaryuniformgenerator.h"
+#include "math/binaryuniformgenerator.h"
 #include <random>
 
 namespace lbcrypto {
