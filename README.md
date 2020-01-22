@@ -36,7 +36,7 @@ Further information about PALISADE:
 
 [License Information](License.md)
 
-[Library Wiki with documentation](https://gitlab.com/palisade/palisade-development/wikis/home)
+[Library Wiki with documentation](https://gitlab.com/palisade/palisade-release/wikis/home)
 
 [Code of Conduct](Code-of-conduct.md)
 
@@ -108,14 +108,14 @@ Detailed information about building PALISADE
 	
 More detailed steps for some common platforms are provided in the following Wiki articles:
 
-[Instructions for building PALISADE in Linux](https://gitlab.com/palisade/palisade-development/wikis/Instructions-for-building-PALISADE-in-Linux)
+[Instructions for building PALISADE in Linux](https://gitlab.com/palisade/palisade-release/wikis/Instructions-for-building-PALISADE-in-Linux)
 
-[Instructions for building PALISADE in Windows](https://gitlab.com/palisade/palisade-development/wikis/Instructions-for-building-PALISADE-in-Windows)
+[Instructions for building PALISADE in Windows](https://gitlab.com/palisade/palisade-release/wikis/Instructions-for-building-PALISADE-in-Windows)
 
-[Instructions for building PALISADE in macOS](https://gitlab.com/palisade/palisade-development/wikis/Instructions-for-building-PALISADE-in-macOS)
+[Instructions for building PALISADE in macOS](https://gitlab.com/palisade/palisade-release/wikis/Instructions-for-building-PALISADE-in-macOS)
 
 PALISADE provides many CMake/make configuration options, such as installing specific modules of the library, compiling only libraries w/o any unit tests and demos, choosing the Debug mode for compilation, turning on/off NTL/GMP. These options are described in detail in the following Wiki article:
 
-[Configuration flags to customize the build](https://gitlab.com/palisade/palisade-development/wikis/Configuration-flags-to-customize-the-build)
+[Configuration flags to customize the build](https://gitlab.com/palisade/palisade-release/wikis/Configuration-flags-to-customize-the-build)
 
-[Instructions for building C++ projects that use PALISADE](https://gitlab.com/palisade/palisade-development/wikis/Instructions-for-building-projects-that-use-PALISADE) 
+[Instructions for building C++ projects that use PALISADE](https://gitlab.com/palisade/palisade-release/wikis/Instructions-for-building-projects-that-use-PALISADE) 
