@@ -38,7 +38,6 @@
 #include <type_traits>
 #include <typeinfo>
 #include <limits>
-#include <stdexcept>
 #include <functional>
 #include <cstdlib>
 #include <memory>
@@ -70,28 +69,27 @@
 // note that we #define how many bits the underlying integer can store as a guide for users of the backends
 
 // MATHBACKEND 2
-// 		Uses cpu_int:: definition as default
+// 		Uses bigintfxd:: definition as default
 //		Implemented as a vector of integers
 //		Configurable maximum bit length and type of underlying integer
 
 // MATHBACKEND 4
-// 		This uses exp_int:: definition as default
+// 		This uses bigintdyn:: definition as default
 // 		This backend supports arbitrary bitwidths; no memory pool is used; can grow up to RAM limitation
 //		Configurable type of underlying integer (either 32 or 64 bit)
 
-// passes all tests with UBINT_32
-// fails tests with UBINT_64
+// passes all tests with UBINTDYN_32
+// fails tests with UBINTDYN_64
 // there is a bug in the way modulus is computed. do not use.
 
 // MATHBACKEND 6
-//		This uses gmp_int:: definition as default
+//		This uses bigintntl:: definition as default
 // 		GMP 6.1.2 / NTL 10.3.0 backend
 
 //To select backend, please UNCOMMENT the appropriate line rather than changing the number on the
 //uncommented line (and breaking the documentation of the line)
 
-namespace native_int
-{
+namespace bigintnat {
 	class NativeInteger;
 }
 
@@ -105,7 +103,7 @@ namespace native_int
 #error "MATHBACKEND value is not valid"
 #endif
 
-////////// cpu_int code
+////////// bigintfxd code
 typedef uint32_t integral_dtype;
 
 	/** Define the mapping for BigInteger
@@ -127,11 +125,11 @@ inline const std::string& GetMathBackendParameters() {
 	return id;
 }
 
-#include "cpu_int/binint.h"
-#include "cpu_int/binvect.h"
-static_assert(cpu_int::DataTypeChecker<integral_dtype>::value,"Data type provided is not supported in BigInteger");
+#include "bigintfxd/ubintfxd.h"
+#include "bigintfxd/mubintvecfxd.h"
+static_assert(bigintfxd::DataTypeChecker<integral_dtype>::value,"Data type provided is not supported in BigInteger");
 
-////////// for exp_int, decide if you want 32 bit or 64 bit underlying integers in the implementation
+////////// for bigintdyn, decide if you want 32 bit or 64 bit underlying integers in the implementation
 #define UBINT_32
 //#define UBINT_64
 
@@ -147,10 +145,10 @@ typedef uint64_t expdtype;
 #undef UBINT_32 //cant have both accidentally
 #endif
 
-#include "exp_int/ubint.h" //dynamically sized  unsigned big integers or ubints
-#include "exp_int/mubintvec.h" //rings of ubints
+#include "bigintdyn/ubintdyn.h" //dynamically sized  unsigned big integers or ubints
+#include "bigintdyn/mubintvecdyn.h" //rings of ubints
 
-namespace exp_int {
+namespace bigintdyn {
 /** Define the mapping for ExpBigInteger (experimental) */
 typedef ubint<expdtype> xubint;
 
@@ -160,10 +158,10 @@ typedef mubintvec<xubint> xmubintvec;
 
 #ifdef WITH_NTL
 
-#include "gmp_int/gmpint.h" //experimental gmp unsigned big ints
-#include "gmp_int/mgmpintvec.h" //rings of such
+#include "bigintntl/ubintntl.h" //experimental gmp unsigned big ints
+#include "bigintntl/mubintvecntl.h" //rings of such
 
-namespace gmp_int {
+namespace bigintntl {
 typedef NTL::myZZ ubint;
 }
 
@@ -173,10 +171,10 @@ using M6Vector = NTL::myVecP<M6Integer>;
 #endif
 
 // typedefs for the known math backends
-using M2Integer = cpu_int::BigInteger<integral_dtype,BigIntegerBitLength>;
-using M2Vector = cpu_int::BigVectorImpl<M2Integer>;
-using M4Integer = exp_int::xubint;
-using M4Vector = exp_int::xmubintvec;
+using M2Integer = bigintfxd::BigInteger<integral_dtype,BigIntegerBitLength>;
+using M2Vector = bigintfxd::BigVectorImpl<M2Integer>;
+using M4Integer = bigintdyn::xubint;
+using M4Vector = bigintdyn::xmubintvec;
 
 
 /**
@@ -229,12 +227,12 @@ typedef BigInteger DoubleNativeInt;
 }
 
 ////////// definitions for native integer and native vector
-#include "native_int/binint.h"
-#include "native_int/binvect.h"
+#include "bigintnat/ubintnat.h"
+#include "bigintnat/mubintvecnat.h"
 #include <initializer_list>
 
-typedef native_int::NativeInteger NativeInteger;
-typedef native_int::NativeVector<NativeInteger>		NativeVector;
+typedef bigintnat::NativeInteger NativeInteger;
+typedef bigintnat::NativeVector<NativeInteger>		NativeVector;
 
 // COMMON TESTING DEFINITIONS
 extern bool TestB2;

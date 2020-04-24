@@ -80,7 +80,7 @@ namespace lbcrypto {
 			 * @param relinWindow The size of the relinearization window.  This is relevant when using this scheme for proxy re-encryption, and the value is denoted as r in the literature.
 			 * @param mode optimization setting (RLWE vs OPTIMIZED)
 			 * @param depth is the depth of computation circuit supported for these parameters (not used now; for future use).
-			 * @param maxDepth is the maximum homomorphic multiplication depth before performing relinearization
+			 * @param maxDepth the maximum power of secret key for which the relinearization key is generated
 			 */
 			LPCryptoParametersBFVrnsB(shared_ptr<typename Element::Params> params,
 				const PlaintextModulus &plaintextModulus,
@@ -103,7 +103,7 @@ namespace lbcrypto {
 			* @param relinWindow the size of the relinearization window.
 			* @param mode optimization setting (RLWE vs OPTIMIZED)
 			* @param depth is the depth of computation circuit supported for these parameters (not used now; for future use).
-			* @param maxDepth is the maximum homomorphic multiplication depth before performing relinearization
+			* @param maxDepth the maximum power of secret key for which the relinearization key is generated
 			*/
 			LPCryptoParametersBFVrnsB(shared_ptr<typename Element::Params> params,
 				EncodingParams encodingParams,
@@ -126,7 +126,7 @@ namespace lbcrypto {
 			* @param relinWindow the size of the relinearization window.
 			* @param mode optimization setting (RLWE vs OPTIMIZED)
 			* @param depth is the depth of computation circuit supported for these parameters (not used now; for future use).
-			* @param maxDepth is the maximum homomorphic multiplication depth before performing relinearization
+			* @param maxDepth the maximum power of secret key for which the relinearization key is generated
 			*/
 			LPCryptoParametersBFVrnsB(shared_ptr<typename Element::Params> params,
 				EncodingParams encodingParams,

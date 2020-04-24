@@ -433,12 +433,12 @@ void poly_other_methods(const string& msg) {
 		EXPECT_EQ(Format::EVALUATION, ilv.GetFormat())
 			<< msg << " Failure: SwitchFormat() ilv format";
 		Element expected(ilparams);
-		expected = {"69","44","65","49"};
+		expected = {"69","65","44","49"};
 		EXPECT_EQ(expected, ilv)
 			<< msg << " Failure: ivl.SwitchFormat() values";
 
 		Element ilv1(ilparams, EVALUATION);
-		ilv1 = {"2","1","3","2"};
+		ilv1 = {"2","3","1","2"};
 
 		ilv1.SwitchFormat();
 
@@ -470,23 +470,6 @@ void poly_other_methods(const string& msg) {
 		}
 	}
 
-	DEBUG("Decompose");
-	{
-	        Element ilv(ilparams,COEFFICIENT);
-		ilv = {"2","1","3","2"};
-
-		ilv.Decompose();
-
-		EXPECT_EQ(2U, ilv.GetLength())
-			<< msg << " Failure: Decompose() length";
-
-		EXPECT_EQ(ilv.at(0), typename Element::Integer(2))
-			<< msg << " Failure: Decompose(): mismatch between original and decomposed elements at index 0.";
-		
-		EXPECT_EQ(ilv.at(1), typename Element::Integer(3))
-			<< msg << " Failure: Decompose(): mismatch between original and decomposed elements at index 1.";
-	}
-
 	DEBUG("Norm");
 	{
 	        Element ilv(ilparams, COEFFICIENT);
@@ -504,7 +487,7 @@ TEST(UTPoly, poly_other_methods) {
 TEST(UTDCRTPoly, poly_other_methods) {
 //std::cerr<<"*** skipping DCRT poly_other_methods till these functions are coded"<<std::endl;
 // 	RUN_BIG_DCRTPOLYS(poly_other_methods, "DCRT poly_other_methods");
- }
+}
 
 // Signed mod must handle the modulo operation for both positive and negative numbers
 // It is used in decoding/decryption of homomorphic encryption schemes

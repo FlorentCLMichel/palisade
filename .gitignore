@@ -55,7 +55,10 @@ android/libs
 
 # vagrant output
 .vagrant/
-*.log 
+*.log
 
 # gtest output files
 test_detail.xml
+
+# Visual Studio Code
+.vscode

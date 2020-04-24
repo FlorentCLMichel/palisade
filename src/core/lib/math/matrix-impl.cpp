@@ -100,7 +100,7 @@ namespace lbcrypto {
 #define NONORM_FOR_TYPE(T)					\
   template<>							\
   double Matrix<T>::Norm() const {				\
-    throw std::logic_error("Norm not defined for this type");	\
+    PALISADE_THROW(not_available_error, "Norm not defined for this type");	\
   }
 
   NONORM_FOR_TYPE(double)
@@ -116,7 +116,7 @@ namespace lbcrypto {
   Matrix<double> Cholesky(const Matrix<int32_t> &input) {
     //  http://eprint.iacr.org/2013/297.pdf
     if (input.GetRows() != input.GetCols()) {
-      throw invalid_argument("not square");
+      PALISADE_THROW(math_error, "not square");
     }
     size_t rows = input.GetRows();
     Matrix<double> result([]() { return 0; }, rows, rows);
@@ -152,7 +152,7 @@ namespace lbcrypto {
   void Cholesky(const Matrix<int32_t> &input, Matrix<double> &result) {
     //  http://eprint.iacr.org/2013/297.pdf
     if (input.GetRows() != input.GetCols()) {
-      throw invalid_argument("not square");
+      PALISADE_THROW(math_error, "not square");
     }
     size_t rows = input.GetRows();
     //	Matrix<LargeFloat> result([]() { return make_unique<LargeFloat>(); }, rows, rows);

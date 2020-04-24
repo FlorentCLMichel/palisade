@@ -87,34 +87,6 @@ TEST(UTSignatureGPV,simple_sign_verify_native_below_sixty_bits) {
     
 	EXPECT_EQ(true, result1)
 		<<"Failed verification";
- 
-
-}
-
-//TEST FOR BASIC SIGNING & VERIFICATION PROCESS FOR NATIVEPOLY WITH MODULUS SIZE >60 BITS
-
-TEST(UTSignatureGPV,simple_sign_verify_native_above_sixty_bits) {
-  
-  DEBUG_FLAG(false);
-
-  DEBUG("Context Generation");
-	SignatureContext<NativePoly> context;
-  context.GenerateGPVContext(1024,61,64);
-  DEBUG("Key Generation");
-  GPVVerificationKey<NativePoly> vk;
-  GPVSignKey<NativePoly> sk;
-  context.KeyGen(&sk,&vk);
-  string pt = "This is a test";
-  GPVPlaintext<NativePoly> plaintext(pt);
-  DEBUG("Signing");
-  GPVSignature<NativePoly> signature;
-  context.Sign(plaintext,sk,vk,&signature);
-  DEBUG("Verification");
-  bool result1 = context.Verify(plaintext,signature,vk);
-    
-	EXPECT_EQ(true, result1)
-		<<"Failed verification";
-
 }
 
 //TEST FOR BASIC SIGNING & VERIFICATION PROCESS - TWO STEP PROCESS

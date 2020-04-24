@@ -62,7 +62,7 @@ enum OpType {
 	OpEvalAutomorphismI,
 	OpEvalAutomorphismK,
 	OpLinRegression, OpKeySwitch,
-	OpModReduce, OpModReduceRational, OpModReduceMatrix, OpLevelReduce, OpRingReduce, OpComposedEvalMult,
+	OpModReduce, OpModReduceRational, OpModReduceMatrix, OpLevelReduce, OpComposedEvalMult,
 	OpEvalSumKeyGen, OpEvalSum, OpEvalInnerProduct, OpEvalCrossCorrelation, OpEvalLinRegressionBatched,
 	OpEvalSumRowsKeyGen, OpEvalSumRows,OpEvalSumColsKeyGen, OpEvalSumCols,
 	OpEvalAtIndexKeyGen, OpEvalAtIndex, OpEvalAtIndexBGStep,

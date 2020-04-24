@@ -252,7 +252,7 @@ public:
 	 * resize the plaintext; only works for plaintexts that support a resizable vector (coefpacked)
 	 * @param newSize
 	 */
-	virtual void SetLength(size_t newSize) { throw std::logic_error("resize not supported"); }
+	virtual void SetLength(size_t newSize) { PALISADE_THROW(not_implemented_error, "resize not supported"); }
 
 	/*
 	 * Method to get the depth of a plaintext.
@@ -278,17 +278,17 @@ public:
 	 */
 	void SetLevel(size_t l) { level = l; }
 
-	virtual const std::string&		GetStringValue() const { throw std::logic_error("not a string"); }
-	virtual const int64_t			GetIntegerValue() const { throw std::logic_error("not an integer"); }
-	virtual const int64_t			GetScalarValue() const { throw std::logic_error("not a scalar"); }
-	virtual const vector<int64_t>&	GetCoefPackedValue() const { throw std::logic_error("not a packed coefficient vector"); }
-	virtual const vector<int64_t>&	GetPackedValue() const { throw std::logic_error("not a packed coefficient vector"); }
-	virtual const std::vector<std::complex<double>>& GetCKKSPackedValue() const { throw std::logic_error("not a packed vector of complex numbers"); }
+	virtual const std::string&		GetStringValue() const { PALISADE_THROW(type_error, "not a string"); }
+	virtual const int64_t			GetIntegerValue() const { PALISADE_THROW(type_error, "not an integer"); }
+	virtual const int64_t			GetScalarValue() const { PALISADE_THROW(type_error, "not a scalar"); }
+	virtual const vector<int64_t>&	GetCoefPackedValue() const { PALISADE_THROW(type_error, "not a packed coefficient vector"); }
+	virtual const vector<int64_t>&	GetPackedValue() const { PALISADE_THROW(type_error, "not a packed coefficient vector"); }
+	virtual const std::vector<std::complex<double>>& GetCKKSPackedValue() const { PALISADE_THROW(type_error, "not a packed vector of complex numbers"); }
 
-	virtual void SetStringValue(const std::string&) { throw std::logic_error("does not support a string"); }
-	virtual void SetIntegerValue(const int64_t) { throw std::logic_error("does not support an integer"); }
-	virtual void SetIntVectorValue(const vector<int64_t>&) { throw std::logic_error("does not support an int vector"); }
-	virtual void SetFractionalValues(int64_t scalar, size_t divisorBits = 0) { throw std::logic_error("does not support a fractional value"); }
+	virtual void SetStringValue(const std::string&) { PALISADE_THROW(type_error, "does not support a string"); }
+	virtual void SetIntegerValue(const int64_t) { PALISADE_THROW(type_error, "does not support an integer"); }
+	virtual void SetIntVectorValue(const vector<int64_t>&) { PALISADE_THROW(type_error, "does not support an int vector"); }
+	virtual void SetFractionalValues(int64_t scalar, size_t divisorBits = 0) { PALISADE_THROW(type_error, "does not support a fractional value"); }
 
 	/**
 	 * Method to compare two plaintext to test for equivalence.

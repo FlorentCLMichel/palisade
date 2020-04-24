@@ -2,7 +2,7 @@
  * @file lwe.cpp - LWE Encryption Scheme implementation as described in https://eprint.iacr.org/2014/816
  * Full reference:
  * @misc{cryptoeprint:2014:816,
- *   author = {Léo Ducas and Daniele Micciancio},
+ *   author = {Leo Ducas and Daniele Micciancio},
  *   title = {FHEW: Bootstrapping Homomorphic Encryption in less than a second},
  *   howpublished = {Cryptology ePrint Archive, Report 2014/816},
  *   year = {2014},
@@ -67,7 +67,7 @@ namespace lbcrypto {
 
 		const NativeVector &s = sk->GetElement();
 		for (uint32_t i = 0; i < n; ++i)	{
-			b += a[i].ModMulFastOptimized(s[i],q,mu);
+			b += a[i].ModMulFast(s[i], q, mu);
 		}
 		b.ModEq(q);
 
@@ -80,7 +80,7 @@ namespace lbcrypto {
 	void LWEEncryptionScheme::Decrypt(const std::shared_ptr<LWECryptoParams> params, const std::shared_ptr<const LWEPrivateKeyImpl> sk,
 				const std::shared_ptr<const LWECiphertextImpl> ct, LWEPlaintext* result) const {
 
-		// in the future we should add a check to make sure sk parameters match the ct parameters
+		// TODO in the future we should add a check to make sure sk parameters match the ct parameters
 
 		// Create local variables to speed up the computations
 		NativeVector a = ct->GetA();
@@ -92,7 +92,7 @@ namespace lbcrypto {
 
 		NativeInteger inner(0);
 		for (uint32_t i = 0; i < n; ++i)	{
-			inner += a[i].ModMulFastOptimized(s[i],q,mu);
+			inner += a[i].ModMulFast(s[i], q, mu);
 		}
 		inner.ModEq(q);
 
@@ -104,7 +104,7 @@ namespace lbcrypto {
 		//*result = (r.MultiplyAndRound(NativeInteger(4),q)).ConvertToInt();
 		// But the method below is a more efficient way of doing the rounding
 		// the idea is that Round(4/q x) = q/8 + Floor(4/q x)
-		r.ModAddFastOptimizedEq((q>>3),q);
+		r.ModAddFastEq((q>>3),q);
 		*result = ((NativeInteger(4)*r)/q).ConvertToInt();
 
 	    return;
@@ -176,7 +176,7 @@ namespace lbcrypto {
 
 						for (uint32_t i = 0; i < n; ++i)
 						{
-							b += a[i].ModMulFastOptimized(newSK[i],Q,mu);
+							b += a[i].ModMulFast(newSK[i],Q,mu);
 						}
 						b.ModEq(Q);
 

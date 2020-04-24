@@ -18,16 +18,20 @@ add_library (PALISADEcore SHARED $<TARGET_OBJECTS:coreobj>)
 set_property(TARGET PALISADEcore PROPERTY VERSION ${CORE_VERSION})
 set_property(TARGET PALISADEcore PROPERTY SOVERSION ${CORE_VERSION_MAJOR})
 set_property(TARGET PALISADEcore PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-install(TARGETS PALISADEcore DESTINATION lib)
+install(TARGETS PALISADEcore
+	EXPORT PalisadeTargets
+	DESTINATION lib)
+
 if( ${BUILD_STATIC} MATCHES "YES" )
 	add_library (PALISADEcore_static STATIC $<TARGET_OBJECTS:coreobj>)
 	set_property(TARGET PALISADEcore_static PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-	install(TARGETS PALISADEcore_static DESTINATION lib)
+	install(TARGETS PALISADEcore_static
+		EXPORT PalisadeTargets
+		DESTINATION lib)
 endif()
 
-install(DIRECTORY include/ DESTINATION include/palisade/core)
-
-target_include_directories (PALISADEcore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+install(DIRECTORY include/
+	DESTINATION include/palisade/core)
 
 set (CORELIBS PUBLIC PALISADEcore ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
 
@@ -45,20 +49,34 @@ target_link_libraries ( core_tests ${CORELIBS} )
 endif()
 
 set( COREAPPS "" )
-file (GLOB CORE_DEMO_SRC_FILES CONFIGURE_DEPENDS demo/*.cpp)
-foreach (app ${CORE_DEMO_SRC_FILES})
+file (GLOB CORE_EXAMPLES_SRC_FILES CONFIGURE_DEPENDS examples/*.cpp)
+foreach (app ${CORE_EXAMPLES_SRC_FILES})
 	get_filename_component ( exe ${app} NAME_WE )
 	add_executable ( ${exe} ${app} )
-	set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/demo/core)
+	set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/examples/core)
 	set( COREAPPS ${COREAPPS} ${exe} )
 	target_link_libraries ( ${exe} ${CORELIBS} )
 endforeach()
 
-add_custom_target( allcoredemos )
-add_dependencies( allcoredemos ${COREAPPS} )
+set( COREEXTRAS "" )
+file (GLOB CORE_EXTRAS_SRC_FILES CONFIGURE_DEPENDS extras/*.cpp)
+foreach (app ${CORE_EXTRAS_SRC_FILES})
+	get_filename_component ( exe ${app} NAME_WE )
+	add_executable ( ${exe} ${app} )
+	set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/extras/core)
+	set_property(TARGET ${exe} PROPERTY EXCLUDE_FROM_ALL True)
+	set( COREEXTRAS ${COREEXTRAS} ${exe} )
+	target_link_libraries ( ${exe} ${CORELIBS} )
+endforeach()
+
+add_custom_target( allcoreexamples )
+add_dependencies( allcoreexamples ${COREAPPS} )
+
+add_custom_target( allcoreextras )
+add_dependencies( allcoreextras ${COREEXTRAS} )
 
 add_custom_target( allcore )
-add_dependencies( allcore PALISADEcore allcoredemos )
+add_dependencies( allcore PALISADEcore allcoreexamples )
 
 if( ${BUILD_UNITTESTS} )
 add_dependencies( allcore core_tests )

@@ -450,7 +450,7 @@ template<typename VecType>
 const VecType &PolyImpl<VecType>::GetValues() const
 {
 	if (m_values == 0)
-		throw std::logic_error("No values in PolyImpl");
+		PALISADE_THROW(not_available_error, "No values in PolyImpl");
 	return *m_values;
 }
 
@@ -464,7 +464,7 @@ template<typename VecType>
 typename PolyImpl<VecType>::Integer& PolyImpl<VecType>::at(usint i)
 {
 	if (m_values == 0)
-		throw std::logic_error("No values in PolyImpl");
+		PALISADE_THROW(not_available_error, "No values in PolyImpl");
 	return m_values->at(i);
 }
 
@@ -472,7 +472,7 @@ template<typename VecType>
 const typename PolyImpl<VecType>::Integer& PolyImpl<VecType>::at(usint i) const
 {
 	if (m_values == 0)
-		throw std::logic_error("No values in PolyImpl");
+		PALISADE_THROW(not_available_error, "No values in PolyImpl");
 	return m_values->at(i);
 }
 
@@ -492,7 +492,7 @@ template<typename VecType>
 usint PolyImpl<VecType>::GetLength() const
 {
 	if (m_values == 0)
-		throw std::logic_error("No values in PolyImpl");
+		PALISADE_THROW(not_available_error, "No values in PolyImpl");
 	return m_values->GetLength();
 }
 
@@ -591,7 +591,7 @@ template<typename VecType>
 PolyImpl<VecType> PolyImpl<VecType>::Negate() const
 {
 	//		if (m_format != Format::EVALUATION)
-	//			throw std::logic_error("Negate for PolyImpl is supported only in EVALUATION format.\n");
+	//			PALISADE_THROW(not_implemented_error, "Negate for PolyImpl is supported only in EVALUATION format.\n");
 
 	PolyImpl<VecType> tmp( *this );
 	*tmp.m_values = m_values->ModMul(this->m_params->GetModulus() - Integer(1));
@@ -620,13 +620,13 @@ template<typename VecType>
 PolyImpl<VecType> PolyImpl<VecType>::Times(const PolyImpl &element) const
 {
 	if (m_format != Format::EVALUATION || element.m_format != Format::EVALUATION)
-		throw std::logic_error("operator* for PolyImpl is supported only in EVALUATION format.\n");
+		PALISADE_THROW(not_implemented_error, "operator* for PolyImpl is supported only in EVALUATION format.\n");
 
 	if (!(*this->m_params == *element.m_params))
-		throw std::logic_error("operator* called on PolyImpl's with different params.");
+		PALISADE_THROW(type_error, "operator* called on PolyImpl's with different params.");
 
 	PolyImpl<VecType> tmp = CloneParametersOnly();
-	tmp.SetValues( GetValues().ModMul(*element.m_values), this->m_format );
+	tmp.SetValues( this->m_values->ModMul(*element.m_values), this->m_format );
 	return std::move( tmp );
 }
 
@@ -639,7 +639,7 @@ const PolyImpl<VecType>& PolyImpl<VecType>::operator+=(const PolyImpl &element)
 	if (!(*this->m_params == *element.m_params)){
 		DEBUGEXP(*this->m_params);
 		DEBUGEXP(*element.m_params);
-		throw std::logic_error("operator+= called on PolyImpl's with different params.");
+		PALISADE_THROW(type_error, "operator+= called on PolyImpl's with different params.");
 	}
   
 	if (m_values == nullptr) {
@@ -657,7 +657,7 @@ template<typename VecType>
 const PolyImpl<VecType>& PolyImpl<VecType>::operator-=(const PolyImpl &element)
 {
 	if (!(*this->m_params == *element.m_params))
-		throw std::logic_error("operator-= called on PolyImpl's with different params.");
+		PALISADE_THROW(type_error, "operator-= called on PolyImpl's with different params.");
 	if (m_values == nullptr) {
 		// act as tho this is 0
 		m_values = make_unique<VecType>(m_params->GetRingDimension(), m_params->GetModulus());
@@ -670,10 +670,10 @@ template<typename VecType>
 const PolyImpl<VecType>& PolyImpl<VecType>::operator*=(const PolyImpl &element)
 {
 	if (m_format != Format::EVALUATION || element.m_format != Format::EVALUATION)
-		throw std::logic_error("operator*= for PolyImpl is supported only in EVALUATION format.\n");
+		PALISADE_THROW(not_implemented_error, "operator*= for PolyImpl is supported only in EVALUATION format.\n");
 
 	if (!(*this->m_params == *element.m_params))
-		throw std::logic_error("operator*= called on PolyImpl's with different params.");
+		PALISADE_THROW(type_error, "operator*= called on PolyImpl's with different params.");
 
 	if (m_values == nullptr){
 		// act as tho it's 0
@@ -698,20 +698,18 @@ void PolyImpl<VecType>::AddILElementOne()
 }
 
 template<typename VecType>
-PolyImpl<VecType> PolyImpl<VecType>::AutomorphismTransform(const usint &k) const
-{
+PolyImpl<VecType> PolyImpl<VecType>::AutomorphismTransform(const usint &k) const {
 	PolyImpl result(*this);
 
 	usint m = this->m_params->GetCyclotomicOrder();
 	usint n = this->m_params->GetRingDimension();
 
 	if (this->m_format == EVALUATION) {
-
 		if (m_params->OrderIsPowerOfTwo() == false) {
 
 			//Add a test based on the inverse totient hash table
 			//if (i % 2 == 0)
-			//	throw std::runtime_error("automorphism index should be odd\n");
+			//	PALISADE_THROW(math_error, "automorphism index should be odd\n");
 
 			const auto &modulus = this->m_params->GetModulus();
 
@@ -729,63 +727,51 @@ PolyImpl<VecType> PolyImpl<VecType>::AutomorphismTransform(const usint &k) const
 			for (usint i = 0; i < n; i++) {
 
 				//determines which power of primitive root unity we should switch to
-				usint idx = totientList.operator[](i)*k % m;
-
+				usint idx = totientList.operator[](i) * k % m;
 				result.m_values->operator[](i)= expanded.operator[](idx);
-
 			}
 		} else { // power of two cyclotomics
-			if (k % 2 == 0)
-				throw std::runtime_error("automorphism index should be odd\n");
-
-			usint logm = std::round(log2(m));
-
-			for (usint j = 1; j < m; j = j + 2) {
-
-				//determines which power of primitive root unity we should switch to
-				// computes (j*k) % m more efficiently
-				usint idx = (j*k) - (((j*k)>>logm)<<logm);
-				result.m_values->operator[](j >> 1)= GetValues().operator[](idx >> 1);
-
+			if (k % 2 == 0) {
+				PALISADE_THROW(math_error, "automorphism index should be odd\n");
 			}
-
+			usint logm = std::round(log2(m));
+			usint logn = std::round(log2(n));
+			for (usint j = 1; j < m; j += 2) {
+				usint idx = (j * k) - (((j * k) >> logm) << logm);
+				usint jrev = ReverseBits(j / 2, logn);
+				usint idxrev = ReverseBits(idx / 2, logn);
+				result.m_values->operator[](jrev) = GetValues().operator[](idxrev);
+			}
 		}
-	}
-	else // automorphism in coefficient representation
-	{
+	} else {
+		// automorphism in coefficient representation
 		if (m_params->OrderIsPowerOfTwo() == false) {
-
-			PALISADE_THROW( lbcrypto::math_error, "Automorphism in coefficient representation is not currently supported for non-power-of-two polynomials");
-
-		}
-		else { // power of two cyclotomics
-			if (k % 2 == 0)
-				throw std::runtime_error("automorphism index should be odd\n");
+			PALISADE_THROW(not_implemented_error, "Automorphism in coefficient representation is not currently supported for non-power-of-two polynomials");
+		} else { // power of two cyclotomics
+			if (k % 2 == 0) {
+				PALISADE_THROW(math_error, "automorphism index should be odd\n");
+			}
 
 			for (usint j = 1; j < n; j++) {
-
-				usint temp = j*k;
+				usint temp = j * k;
 				usint newIndex = temp % n;
 
-				if ((temp/n) % 2 == 1)
+				if ((temp / n) % 2 == 1) {
 					result.m_values->operator[](newIndex) = m_params->GetModulus() - m_values->operator[](j);
-				else
+				} else {
 					result.m_values->operator[](newIndex) = m_values->operator[](j);
-
+				}
 			}
 		}
-
 	}
-
 	return result;
-
 }
 
 template<typename VecType>
 PolyImpl<VecType> PolyImpl<VecType>::Transpose() const
 {
 	if (m_format == COEFFICIENT)
-		throw std::logic_error("PolyImpl element transposition is currently implemented only in the Evaluation representation.");
+		PALISADE_THROW(not_implemented_error, "PolyImpl element transposition is currently implemented only in the Evaluation representation.");
 	else {
 		usint m = m_params->GetCyclotomicOrder();
 		return AutomorphismTransform(m - 1);
@@ -800,7 +786,7 @@ PolyImpl<VecType> PolyImpl<VecType>::MultiplicativeInverse() const
 		tmp.SetValues( GetValues().ModInverse(), this->m_format );
 		return std::move( tmp );
 	} else {
-		throw std::logic_error("PolyImpl has no inverse\n");
+		PALISADE_THROW(math_error, "PolyImpl has no inverse\n");
 	}
 }
 
@@ -837,7 +823,7 @@ void PolyImpl<VecType>::SwitchFormat()
 	DEBUG_FLAG(false);
 	if (m_values == nullptr) {
 		std::string errMsg = "Poly switch format to empty values";
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(not_available_error, errMsg);
 	}
 
 	if (m_params->OrderIsPowerOfTwo() == false ) {
@@ -852,13 +838,13 @@ void PolyImpl<VecType>::SwitchFormat()
 
 		DEBUG("transform to evaluation m_values was"<< *m_values);
 
-		ChineseRemainderTransformFTT<VecType>::ForwardTransform(*m_values, m_params->GetRootOfUnity(), m_params->GetCyclotomicOrder(), &newValues);
+		ChineseRemainderTransformFTT<VecType>::ForwardTransformToBitReverse(*m_values, m_params->GetRootOfUnity(), m_params->GetCyclotomicOrder(), &newValues);
 		DEBUG("m_values now "<< newValues);
 	} else {
 		m_format = COEFFICIENT;
 		DEBUG("transform to coefficient m_values was"<< *m_values);
 
-		ChineseRemainderTransformFTT<VecType>::InverseTransform(*m_values, m_params->GetRootOfUnity(), m_params->GetCyclotomicOrder(), &newValues);
+		ChineseRemainderTransformFTT<VecType>::InverseTransformFromBitReverse(*m_values, m_params->GetRootOfUnity(), m_params->GetCyclotomicOrder(), &newValues);
 		DEBUG("m_values now "<< newValues);
 	}
 
@@ -872,7 +858,7 @@ void PolyImpl<VecType>::ArbitrarySwitchFormat()
 	DEBUG_FLAG(false);
 	if (m_values == nullptr) {
 		std::string errMsg = "Poly switch format to empty values";
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(not_available_error, errMsg);
 	}
 
 	if (m_format == COEFFICIENT) {
@@ -922,36 +908,6 @@ void PolyImpl<VecType>::MakeSparse(const uint32_t &wFactor)
 			}
 		}
 	}
-}
-
-// This function modifies PolyImpl to keep all the even indices. It reduces the ring dimension by half.
-template<typename VecType>
-void PolyImpl<VecType>::Decompose()
-{
-
-	if( m_params->OrderIsPowerOfTwo() == false ) {
-		throw std::logic_error("Cannot decompose if cyclotomic order is not a power of 2");
-	}
-
-	Format format(m_format);
-
-	if (format != Format::COEFFICIENT) {
-		std::string errMsg = "PolyImpl not in COEFFICIENT format to perform Decompose.";
-		throw std::runtime_error(errMsg);
-	}
-
-	usint decomposedCyclotomicOrder = m_params->GetCyclotomicOrder() / 2;
-	//Using the halving lemma propety of roots of unity to calculate the root of unity at half the cyclotomic order
-
-	m_params.reset(new PolyImpl::Params(decomposedCyclotomicOrder, m_params->GetModulus(), m_params->GetRootOfUnity()));
-
-	//Interleaving operation.
-	VecType decomposeValues(GetLength() / 2, GetModulus());
-	for (usint i = 0; i < GetLength(); i = i + 2) {
-		decomposeValues.operator[](i / 2)= GetValues().operator[](i);
-	}
-
-	SetValues(decomposeValues, m_format);
 }
 
 template<typename VecType>

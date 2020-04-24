@@ -53,7 +53,7 @@ public:
 		m_relinWindow = 1;
 		m_dgg.SetStd(m_distributionParameter);
 		m_depth = 0;
-		m_maxDepth = 1;
+		m_maxDepth = 2;
 		m_mode = RLWE;
 		m_stdLevel = HEStd_NotSet;
 	}
@@ -84,7 +84,7 @@ public:
 	* @param securityLevel security level.
 	* @param relinWindow the size of the relinearization window.
 	* @param depth is the depth of computation circuit supported for these parameters (not used now; for future use).
-	* @param maxDepth is the maximum homomorphic multiplication depth before performing relinearization
+	* @param maxDepth the maximum power of secret key for which the relinearization key is generated
 	* @param mode mode for secret polynomial, defaults to RLWE.
 	*/
 	LPCryptoParametersRLWE(
@@ -95,7 +95,7 @@ public:
 		float securityLevel,
 		usint relinWindow,
 		int depth = 1,
-		int maxDepth = 1,
+		int maxDepth = 2,
 		MODE mode = RLWE) : LPCryptoParameters<Element>(params, encodingParams)
 	{
 		m_distributionParameter = distributionParameter;
@@ -119,7 +119,7 @@ public:
 	* @param securityLevel security level.
 	* @param relinWindow the size of the relinearization window.
 	* @param depth is the depth of computation circuit supported for these parameters (not used now; for future use).
-	* @param maxDepth is the maximum homomorphic multiplication depth before performing relinearization
+	* @param maxDepth the maximum power of secret key for which the relinearization key is generated
 	* @param mode mode for secret polynomial, defaults to RLWE.
 	*/
 	LPCryptoParametersRLWE(
@@ -130,7 +130,7 @@ public:
 		SecurityLevel stdLevel,
 		usint relinWindow,
 		int depth = 1,
-		int maxDepth = 1,
+		int maxDepth = 2,
 		MODE mode = RLWE) : LPCryptoParameters<Element>(params, encodingParams)
 	{
 		m_distributionParameter = distributionParameter;
@@ -254,7 +254,7 @@ public:
 	void SetDepth(int depth) {m_depth = depth;}
 
 	/**
-	 * Sets the value of maximum homomorphic multiplication depth before performing relinearization
+	 * Sets the value of the maximum power of secret key for which the relinearization key is generated
 	 * @param depth
 	 */
 	void SetMaxDepth(size_t maxDepth) {m_maxDepth = maxDepth;}
@@ -341,6 +341,7 @@ protected:
 	//depth of computations; used for FHE
 	int m_depth;
 	//maximum depth support of a ciphertext without keyswitching
+	//corresponds to the highest power of secret key for which evaluation keys are genererated
 	size_t m_maxDepth;
 	// specifies whether the secret polynomials are generated from discrete
 	// Gaussian distribution or ternary distribution with the norm of unity

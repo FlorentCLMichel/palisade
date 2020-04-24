@@ -326,7 +326,7 @@ namespace lbcrypto {
 		*/
 
 		virtual void SetAVector(const std::vector<Element> &a) {
-			throw std::runtime_error("SetAVector copy operation not supported");
+			PALISADE_THROW(not_implemented_error, "SetAVector copy operation not supported");
 		}
 
 		/**
@@ -337,7 +337,7 @@ namespace lbcrypto {
 		*/
 
 		virtual void SetAVector(std::vector<Element> &&a) {
-			throw std::runtime_error("SetAVector move operation not supported");
+			PALISADE_THROW(not_implemented_error, "SetAVector move operation not supported");
 		}
 
 		/**
@@ -348,7 +348,7 @@ namespace lbcrypto {
 		*/
 
 		virtual const std::vector<Element> &GetAVector() const {
-			throw std::runtime_error("GetAVector operation not supported");
+			PALISADE_THROW(not_implemented_error, "GetAVector operation not supported");
 		}
 
 		/**
@@ -359,7 +359,7 @@ namespace lbcrypto {
 		*/
 
 		virtual void SetBVector(const std::vector<Element> &b) {
-			throw std::runtime_error("SetBVector copy operation not supported");
+			PALISADE_THROW(not_implemented_error, "SetBVector copy operation not supported");
 		}
 
 		/**
@@ -370,7 +370,7 @@ namespace lbcrypto {
 		*/
 
 		virtual void SetBVector(std::vector<Element> &&b) {
-			throw std::runtime_error("SetBVector move operation not supported");
+			PALISADE_THROW(not_implemented_error, "SetBVector move operation not supported");
 		}
 
 		/**
@@ -381,7 +381,7 @@ namespace lbcrypto {
 		*/
 
 		virtual const std::vector<Element> &GetBVector() const {
-			throw std::runtime_error("GetBVector operation not supported");
+			PALISADE_THROW(not_implemented_error, "GetBVector operation not supported");
 		}
 
 		/**
@@ -392,7 +392,7 @@ namespace lbcrypto {
 		*/
 
 		virtual void SetA(const Element &a) {
-			throw std::runtime_error("SetA copy operation not supported");
+			PALISADE_THROW(not_implemented_error, "SetA copy operation not supported");
 		}
 
 		/**
@@ -402,7 +402,7 @@ namespace lbcrypto {
 		* @param &&a is the Element to be moved.
 		*/
 		virtual void SetA(Element &&a) {
-			throw std::runtime_error("SetA move operation not supported");
+			PALISADE_THROW(not_implemented_error, "SetA move operation not supported");
 		}
 
 		/**
@@ -413,7 +413,7 @@ namespace lbcrypto {
 		*/
 
 		virtual const Element &GetA() const {
-			throw std::runtime_error("GetA operation not supported");
+			PALISADE_THROW(not_implemented_error, "GetA operation not supported");
 		}
 
 		/**
@@ -424,7 +424,7 @@ namespace lbcrypto {
 		*/
 
 		virtual void SetAinDCRT(const DCRTPoly &a) {
-			throw std::runtime_error("SetAinDCRT copy operation not supported");
+			PALISADE_THROW(not_implemented_error, "SetAinDCRT copy operation not supported");
 		}
 
 		/**
@@ -434,7 +434,7 @@ namespace lbcrypto {
 		* @param &&a is the Element to be moved.
 		*/
 		virtual void SetAinDCRT(DCRTPoly &&a) {
-			throw std::runtime_error("SetAinDCRT move operation not supported");
+			PALISADE_THROW(not_implemented_error, "SetAinDCRT move operation not supported");
 		}
 
 		/**
@@ -445,7 +445,7 @@ namespace lbcrypto {
 		*/
 
 		virtual const DCRTPoly &GetAinDCRT() const {
-			throw std::runtime_error("GetAinDCRT operation not supported");
+			PALISADE_THROW(not_implemented_error, "GetAinDCRT operation not supported");
 		}
 
 		/**
@@ -456,7 +456,7 @@ namespace lbcrypto {
 		*/
 
 		virtual void SetBinDCRT(const DCRTPoly &b) {
-			throw std::runtime_error("SetAinDCRT copy operation not supported");
+			PALISADE_THROW(not_implemented_error, "SetAinDCRT copy operation not supported");
 		}
 
 		/**
@@ -466,7 +466,7 @@ namespace lbcrypto {
 		* @param &&b is the Element to be moved.
 		*/
 		virtual void SetBinDCRT(DCRTPoly &&b) {
-			throw std::runtime_error("SetAinDCRT move operation not supported");
+			PALISADE_THROW(not_implemented_error, "SetAinDCRT move operation not supported");
 		}
 
 		/**
@@ -477,11 +477,11 @@ namespace lbcrypto {
 		*/
 
 		virtual const DCRTPoly &GetBinDCRT() const {
-			throw std::runtime_error("GetAinDCRT operation not supported");
+			PALISADE_THROW(not_implemented_error, "GetAinDCRT operation not supported");
 		}
 
 		virtual void ClearKeys() {
-			throw std::runtime_error("ClearKeys operation is not supported");
+			PALISADE_THROW(not_implemented_error, "ClearKeys operation is not supported");
 		}
 
 
@@ -1229,7 +1229,7 @@ namespace lbcrypto {
                                KeySwitchTechnique ksTech,
                                usint firstModSize,
                                RescalingTechnique) const {
-			throw std::logic_error("This signature for ParamsGen is not supported for this scheme.");
+			PALISADE_THROW(config_error, "This signature for ParamsGen is not supported for this scheme.");
 		}
 
 		/**
@@ -1255,7 +1255,7 @@ namespace lbcrypto {
 					   usint firstModSize = 60,
 					   RescalingTechnique = APPROXRESCALE,
 					   uint32_t numLargeDigits = 4) const {
-			throw std::logic_error("This signature for ParamsGen is not supported for this scheme.");
+			PALISADE_THROW(config_error, "This signature for ParamsGen is not supported for this scheme.");
 		}
 
 		template <class Archive>
@@ -1320,7 +1320,7 @@ namespace lbcrypto {
 			virtual DecryptResult Decrypt(const LPPrivateKey<Element> privateKey,
 				ConstCiphertext<Element> ciphertext,
 				Poly *plaintext) const {
-					throw std::logic_error("Decryption to Poly is not supported");
+					PALISADE_THROW(config_error, "Decryption to Poly is not supported");
 			}
 
 			/**
@@ -1357,16 +1357,8 @@ namespace lbcrypto {
 			* @return ciphertext after the modulus reduction performed.
 			*/
 			virtual Ciphertext<Element> ModReduceInternal(ConstCiphertext<Element> cipherText) const {
-					throw std::logic_error("ModReduceInternal is not supported for this scheme");
+					PALISADE_THROW(config_error, "ModReduceInternal is not supported for this scheme");
 			}
-
-			/**
-			 * Method for Ring Reduction.
-			 *
-			 * @param &cipherText Ciphertext to perform ring reduce on.
-			 * @param &privateKey Private key used to encrypt the first argument.
-			 */
-			virtual Ciphertext<Element> RingReduce(ConstCiphertext<Element> cipherText, const LPEvalKey<Element> keySwitchHint) const = 0;
 
 			/**
 			 * Method for Composed EvalMult
@@ -1402,17 +1394,8 @@ namespace lbcrypto {
 			*/
 			virtual Ciphertext<Element> LevelReduceInternal(ConstCiphertext<Element> cipherText1,
 				const LPEvalKey<Element> linearKeySwitchHint, size_t levels) const {
-					throw std::logic_error("LevelReduceInternal is not supported for this scheme");
+					PALISADE_THROW(config_error, "LevelReduceInternal is not supported for this scheme");
 			}
-
-			/**
-			* Function that determines if security requirements are met if ring dimension is reduced by half.
-			*
-			* @param ringDimension is the original ringDimension
-			* @param &moduli is the vector of moduli that is used
-			* @param rootHermiteFactor is the security threshold
-			*/
-			virtual bool CanRingReduce(usint ringDimension, const std::vector<BigInteger> &moduli, const double rootHermiteFactor) const = 0;
 
 			template <class Archive>
 			void save( Archive & ar, std::uint32_t const version ) const {}
@@ -1541,7 +1524,7 @@ namespace lbcrypto {
 			 */
 			virtual DecryptResult MultipartyDecryptFusion(const vector<Ciphertext<Element>>& ciphertextVec,
 				Poly *plaintext) const {
-					throw std::logic_error("Decryption to Poly is not supported");
+					PALISADE_THROW(config_error, "Decryption to Poly is not supported");
 			}
 
 			template <class Archive>
@@ -1584,7 +1567,7 @@ namespace lbcrypto {
 			*/
 			virtual Ciphertext<Element> EvalAddMutable(Ciphertext<Element> &ciphertext1,
 					Ciphertext<Element> &ciphertext2) const {
-				throw std::logic_error("EvalAddMutable is not implemented for this scheme");
+				PALISADE_THROW(not_implemented_error, "EvalAddMutable is not implemented for this scheme");
 			}
 
 			/**
@@ -1608,7 +1591,7 @@ namespace lbcrypto {
 			*/
 			virtual Ciphertext<Element> EvalAddMutable(Ciphertext<Element> &ciphertext,
 					Plaintext plaintext) const {
-				throw std::logic_error("EvalAddMutable is not implemented for this scheme");
+				PALISADE_THROW(not_implemented_error, "EvalAddMutable is not implemented for this scheme");
 			}
 
 			/**
@@ -1620,7 +1603,7 @@ namespace lbcrypto {
 			*/
 			virtual Ciphertext<Element> EvalAdd(ConstCiphertext<Element> ciphertext,
 					double constant) const {
-				throw std::logic_error("Scalar addition is not implemented for this scheme");
+				PALISADE_THROW(not_implemented_error, "Scalar addition is not implemented for this scheme");
 			}
 
 			/**
@@ -1635,7 +1618,7 @@ namespace lbcrypto {
 				vector<Ciphertext<Element>> ciphertexts,
 				vector<double> constants) const {
 				std::string errMsg = "EvalLinearWSum is not implemented for this scheme.";
-				throw std::runtime_error(errMsg);
+				PALISADE_THROW(not_implemented_error, errMsg);
 			}
 
 			/**
@@ -1651,7 +1634,7 @@ namespace lbcrypto {
 				vector<Ciphertext<Element>> ciphertexts,
 				vector<double> constants) const {
 				std::string errMsg = "EvalLinearWSumMutable is not implemented for this scheme.";
-				throw std::runtime_error(errMsg);
+				PALISADE_THROW(not_implemented_error, errMsg);
 			}
 
 			/**
@@ -1675,7 +1658,7 @@ namespace lbcrypto {
 			*/
 			virtual Ciphertext<Element> EvalSubMutable(Ciphertext<Element> &ciphertext1,
 				Ciphertext<Element> &ciphertext2) const {
-				throw std::logic_error("EvalSubMutable is not implemented for this scheme");
+				PALISADE_THROW(not_implemented_error, "EvalSubMutable is not implemented for this scheme");
 			}
 
 			/**
@@ -1699,7 +1682,7 @@ namespace lbcrypto {
 			 */
 			virtual Ciphertext<Element> EvalSubMutable(Ciphertext<Element> &ciphertext,
 					Plaintext plaintext) const {
-				throw std::logic_error("EvalSubMutable is not implemented for this scheme");
+				PALISADE_THROW(not_implemented_error, "EvalSubMutable is not implemented for this scheme");
 			}
 
 			/**
@@ -1711,7 +1694,7 @@ namespace lbcrypto {
 			*/
 			virtual Ciphertext<Element> EvalSub(ConstCiphertext<Element> ciphertext,
 					double constant) const {
-				throw std::logic_error("Scalar subtraction is not implemented for this scheme");
+				PALISADE_THROW(not_implemented_error, "Scalar subtraction is not implemented for this scheme");
 			}
 
 			/**
@@ -1735,7 +1718,7 @@ namespace lbcrypto {
 			 */
 			virtual Ciphertext<Element> EvalMultMutable(Ciphertext<Element> &ciphertext1,
 					Ciphertext<Element> &ciphertext2) const {
-				throw std::logic_error("EvalMultMutable is not implemented for this scheme");
+				PALISADE_THROW(not_implemented_error, "EvalMultMutable is not implemented for this scheme");
 			}
 
 			/**
@@ -1759,7 +1742,7 @@ namespace lbcrypto {
 			 */
 			virtual Ciphertext<Element> EvalMultMutable(Ciphertext<Element> &ciphertext,
 					ConstPlaintext plaintext) const {
-				throw std::logic_error("EvalMultMutable is not implemented for this scheme");
+				PALISADE_THROW(not_implemented_error, "EvalMultMutable is not implemented for this scheme");
 			}
 
 			/**
@@ -1771,7 +1754,7 @@ namespace lbcrypto {
 			*/
 			virtual Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext,
 					double constant) const {
-				throw std::logic_error("Scalar multiplication is not implemented for this scheme");
+				PALISADE_THROW(not_implemented_error, "Scalar multiplication is not implemented for this scheme");
 			}
 
 			/**
@@ -1785,7 +1768,7 @@ namespace lbcrypto {
 			*/
 			virtual Ciphertext<Element> EvalMultMutable(Ciphertext<Element> &ciphertext,
 					double constant) const {
-				throw std::logic_error("EvalMultMutable is not implemented for this scheme");
+				PALISADE_THROW(not_implemented_error, "EvalMultMutable is not implemented for this scheme");
 			}
 
 			/**
@@ -1811,7 +1794,7 @@ namespace lbcrypto {
 			 */
 			virtual Ciphertext<Element> EvalMultMutable(Ciphertext<Element> &ciphertext1,
 								Ciphertext<Element> &ciphertext2, const LPEvalKey<Element> ek) const {
-				throw std::logic_error("EvalMultMutable is not implemented for this scheme");
+				PALISADE_THROW(not_implemented_error, "EvalMultMutable is not implemented for this scheme");
 			}
 
 		/**
@@ -1905,7 +1888,7 @@ namespace lbcrypto {
 			ConstCiphertext<Element> ct2, const vector<LPEvalKey<Element>> &ek) const = 0;
 
 		virtual Ciphertext<Element> Relinearize(ConstCiphertext<Element> ciphertext, const vector<LPEvalKey<Element>> &ek) const {
-			throw std::runtime_error("Relinearize operation not supported");
+			PALISADE_THROW(config_error, "Relinearize operation not supported");
 		}
 
 		/**
@@ -1914,7 +1897,7 @@ namespace lbcrypto {
 		* @param y - vector of dependent variables
 		* @return the parameter vector using (x^T x)^{-1} x^T y (using least squares method)
 		*/
-		shared_ptr<Matrix<RationalCiphertext<Element>>>
+		virtual shared_ptr<Matrix<RationalCiphertext<Element>>>
 			EvalLinRegression(const shared_ptr<Matrix<RationalCiphertext<Element>>> x,
 				const shared_ptr<Matrix<RationalCiphertext<Element>>> y) const
 		{
@@ -1954,7 +1937,7 @@ namespace lbcrypto {
 		* @param &ciphertext the input ciphertext.
 		* @return modified ciphertext
 		*/
-		Ciphertext<Element> AddRandomNoise(ConstCiphertext<Element> ciphertext) const {
+		virtual Ciphertext<Element> AddRandomNoise(ConstCiphertext<Element> ciphertext) const {
 
 			std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
@@ -2097,7 +2080,7 @@ namespace lbcrypto {
 				) const {
 
 			std::string errMsg = "LPSHEAlgorithm::EvalFastRotationPrecompute is not implemented for this Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 
@@ -2120,7 +2103,7 @@ namespace lbcrypto {
 				) const {
 
 			std::string errMsg = "LPSHEAlgorithm::EvalFastRotation is not implemented for this Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -2132,7 +2115,7 @@ namespace lbcrypto {
 		 * @param indexList list of indices to be computed
 		 * @return returns the evaluation keys
 		 */
-		shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAtIndexKeyGen(const LPPublicKey<Element> publicKey,
+		virtual shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAtIndexKeyGen(const LPPublicKey<Element> publicKey,
 			const LPPrivateKey<Element> origPrivateKey,
 			const std::vector<int32_t> &indexList) const
 		{
@@ -2190,7 +2173,7 @@ namespace lbcrypto {
 		* @param &evalAtIndexKeys - reference to the map of evaluation keys generated by EvalAtIndexKeyGen.
 		* @return resulting ciphertext
 		*/
-		Ciphertext<Element> EvalAtIndex(ConstCiphertext<Element> ciphertext,
+		virtual Ciphertext<Element> EvalAtIndex(ConstCiphertext<Element> ciphertext,
 			int32_t index, const std::map<usint, LPEvalKey<Element>> &evalAtIndexKeys) const {
 
 			const auto cryptoParams = ciphertext->GetCryptoParameters();
@@ -2230,7 +2213,7 @@ namespace lbcrypto {
 		* @param privateKey private key.
 		* @return returns the evaluation keys
 		*/
-		shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalSumKeyGen(const LPPrivateKey<Element> privateKey,
+		virtual shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalSumKeyGen(const LPPrivateKey<Element> privateKey,
 			const LPPublicKey<Element> publicKey) const
 		{
 
@@ -2282,7 +2265,7 @@ namespace lbcrypto {
 		* @param colSize size of columns in the matrix
 		* @return returns the evaluation keys
 		*/
-		shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalSumRowsKeyGen(const LPPrivateKey<Element> privateKey,
+		virtual shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalSumRowsKeyGen(const LPPrivateKey<Element> privateKey,
 			const LPPublicKey<Element> publicKey, usint rowSize) const
 		{
 
@@ -2303,11 +2286,11 @@ namespace lbcrypto {
                 if (ccInst->getSchemeId() == "CKKS")
 					indices = GenerateIndices2nComplexRows(rowSize, m);
 				else
-					throw std::runtime_error("Matrix summation of row-vectors is only supported for CKKSPackedEncoding.");
+					PALISADE_THROW(config_error, "Matrix summation of row-vectors is only supported for CKKSPackedEncoding.");
 
 			} else { // Arbitray cyclotomics
 
-				throw std::runtime_error("Matrix summation of row-vectors is not supported for arbitrary cyclotomics.");
+				PALISADE_THROW(config_error, "Matrix summation of row-vectors is not supported for arbitrary cyclotomics.");
 			}
 
 			if (publicKey)
@@ -2328,7 +2311,7 @@ namespace lbcrypto {
 		* @param colSize size of columns in the matrix
 		* @return returns the evaluation keys
 		*/
-		shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalSumColsKeyGen(const LPPrivateKey<Element> privateKey,
+		virtual shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalSumColsKeyGen(const LPPrivateKey<Element> privateKey,
 			const LPPublicKey<Element> publicKey) const
 		{
 
@@ -2351,7 +2334,7 @@ namespace lbcrypto {
 				if (!(m & (m-1))){ // Check if m is a power of 2
 						indices = GenerateIndices2nComplexCols(batchSize, m);
 				} else { // Arbitray cyclotomics
-					throw std::runtime_error("Matrix summation of column-vectors is not supported for arbitrary cyclotomics.");
+					PALISADE_THROW(config_error, "Matrix summation of column-vectors is not supported for arbitrary cyclotomics.");
 				}
 
 				if (publicKey)
@@ -2363,7 +2346,7 @@ namespace lbcrypto {
 
 			}
 			else
-				throw std::runtime_error("Matrix summation of column-vectors is only supported for CKKSPackedEncoding.");
+				PALISADE_THROW(config_error, "Matrix summation of column-vectors is only supported for CKKSPackedEncoding.");
 
 		}
 
@@ -2375,7 +2358,7 @@ namespace lbcrypto {
 		* @param &evalKeys - reference to the map of evaluation keys generated by EvalAutomorphismKeyGen.
 		* @return resulting ciphertext
 		*/
-		Ciphertext<Element> EvalSum(ConstCiphertext<Element> ciphertext, usint batchSize,
+		virtual Ciphertext<Element> EvalSum(ConstCiphertext<Element> ciphertext, usint batchSize,
 			const std::map<usint, LPEvalKey<Element>> &evalKeys) const {
 
 			const shared_ptr<LPCryptoParameters<Element>> cryptoParams = ciphertext->GetCryptoParameters();
@@ -2387,7 +2370,7 @@ namespace lbcrypto {
 			usint m = elementParams->GetCyclotomicOrder();
 
 			if ((encodingParams->GetBatchSize() == 0))
-				throw std::runtime_error("EvalSum: Packed encoding parameters 'batch size' is not set; Please check the EncodingParams passed to the crypto context.");
+				PALISADE_THROW(config_error, "EvalSum: Packed encoding parameters 'batch size' is not set; Please check the EncodingParams passed to the crypto context.");
 			else
 			{
 
@@ -2401,7 +2384,7 @@ namespace lbcrypto {
 				} else { // Arbitray cyclotomics
 
 					if (encodingParams->GetPlaintextGenerator() == 0)
-						throw std::runtime_error("EvalSum: Packed encoding parameters 'plaintext generator' is not set; Please check the EncodingParams passed to the crypto context.");
+						PALISADE_THROW(config_error, "EvalSum: Packed encoding parameters 'plaintext generator' is not set; Please check the EncodingParams passed to the crypto context.");
 					else
 					{
 						usint g = encodingParams->GetPlaintextGenerator();
@@ -2428,7 +2411,7 @@ namespace lbcrypto {
 		* @param &evalKeys - reference to the map of evaluation keys generated by EvalAutomorphismKeyGen.
 		* @return resulting ciphertext
 		*/
-		Ciphertext<Element> EvalSumRows(ConstCiphertext<Element> ciphertext, usint rowSize,
+		virtual Ciphertext<Element> EvalSumRows(ConstCiphertext<Element> ciphertext, usint rowSize,
 			const std::map<usint, LPEvalKey<Element>> &evalKeys) const {
 
 			const shared_ptr<LPCryptoParameters<Element>> cryptoParams = ciphertext->GetCryptoParameters();
@@ -2440,7 +2423,7 @@ namespace lbcrypto {
 			usint m = elementParams->GetCyclotomicOrder();
 
 			if ((encodingParams->GetBatchSize() == 0))
-				throw std::runtime_error("EvalSum: Packed encoding parameters 'batch size' is not set; Please check the EncodingParams passed to the crypto context.");
+				PALISADE_THROW(config_error, "EvalSum: Packed encoding parameters 'batch size' is not set; Please check the EncodingParams passed to the crypto context.");
 			else
 			{
 
@@ -2449,10 +2432,10 @@ namespace lbcrypto {
 					if (ciphertext->GetEncodingType() == CKKSPacked)
 						newCiphertext = EvalSum2nComplexRows(rowSize, m, evalKeys,newCiphertext);
 					else
-						throw std::runtime_error("Matrix summation of row-vectors is only supported for CKKS packed encoding.");
+						PALISADE_THROW(config_error, "Matrix summation of row-vectors is only supported for CKKS packed encoding.");
 
 				} else { // Arbitray cyclotomics
-					throw std::runtime_error("Matrix summation of row-vectors is not supported for arbitrary cyclotomics.");
+					PALISADE_THROW(config_error, "Matrix summation of row-vectors is not supported for arbitrary cyclotomics.");
 				}
 			}
 
@@ -2469,7 +2452,7 @@ namespace lbcrypto {
 		* @param &evalKeys - reference to the map of evaluation keys generated by EvalAutomorphismKeyGen.
 		* @return resulting ciphertext
 		*/
-		Ciphertext<Element> EvalSumCols(ConstCiphertext<Element> ciphertext, usint batchSize,
+		virtual Ciphertext<Element> EvalSumCols(ConstCiphertext<Element> ciphertext, usint batchSize,
 			const std::map<usint, LPEvalKey<Element>> &evalKeys, const std::map<usint, LPEvalKey<Element>> &rightEvalKeys) const {
 
 			const shared_ptr<LPCryptoParameters<Element>> cryptoParams = ciphertext->GetCryptoParameters();
@@ -2481,7 +2464,7 @@ namespace lbcrypto {
 			usint m = elementParams->GetCyclotomicOrder();
 
 			if ((encodingParams->GetBatchSize() == 0))
-				throw std::runtime_error("EvalSumCols: Packed encoding parameters 'batch size' is not set; Please check the EncodingParams passed to the crypto context.");
+				PALISADE_THROW(config_error, "EvalSumCols: Packed encoding parameters 'batch size' is not set; Please check the EncodingParams passed to the crypto context.");
 			else
 			{
 
@@ -2510,12 +2493,12 @@ namespace lbcrypto {
 
 
 					} else { // Arbitray cyclotomics
-						throw std::runtime_error("Matrix summation of column-vectors is not supported for arbitrary cyclotomics.");
+						PALISADE_THROW(config_error, "Matrix summation of column-vectors is not supported for arbitrary cyclotomics.");
 					}
 
 				}
 				else
-					throw std::runtime_error("Matrix summation of column-vectors is only supported for CKKS packed encoding.");
+					PALISADE_THROW(config_error, "Matrix summation of column-vectors is only supported for CKKS packed encoding.");
 
 			}
 
@@ -2533,7 +2516,7 @@ namespace lbcrypto {
 		* @param &evalMultKey - reference to the evaluation key generated by EvalMultKeyGen.
 		* @return resulting ciphertext
 		*/
-		Ciphertext<Element> EvalInnerProduct(ConstCiphertext<Element> ciphertext1,
+		virtual Ciphertext<Element> EvalInnerProduct(ConstCiphertext<Element> ciphertext1,
 			ConstCiphertext<Element> ciphertext2, usint batchSize,
 			const std::map<usint, LPEvalKey<Element>> &evalSumKeys,
 			const LPEvalKey<Element> evalMultKey) const {
@@ -2559,7 +2542,7 @@ namespace lbcrypto {
 		* @param &evalMultKey - reference to the evaluation key generated by EvalMultKeyGen.
 		* @return resulting ciphertext
 		*/
-		Ciphertext<Element> EvalInnerProduct(ConstCiphertext<Element> ciphertext1,
+		virtual Ciphertext<Element> EvalInnerProduct(ConstCiphertext<Element> ciphertext1,
 			ConstPlaintext ciphertext2, usint batchSize,
 			const std::map<usint, LPEvalKey<Element>> &evalSumKeys) const {
 
@@ -2583,11 +2566,11 @@ namespace lbcrypto {
 		* @param &evalKeys - reference to the map of evaluation keys generated by EvalAutomorphismKeyGen.
 		* @return resulting ciphertext
 		*/
-		Ciphertext<Element> EvalMerge(const vector<Ciphertext<Element>> &ciphertextVector,
+		virtual Ciphertext<Element> EvalMerge(const vector<Ciphertext<Element>> &ciphertextVector,
 			const std::map<usint, LPEvalKey<Element>> &evalKeys) const {
 
 			if (ciphertextVector.size() == 0)
-				throw std::runtime_error("EvalMerge: the vector of ciphertexts to be merged cannot be empty");
+				PALISADE_THROW(math_error, "EvalMerge: the vector of ciphertexts to be merged cannot be empty");
 
 			const shared_ptr<LPCryptoParameters<Element>> cryptoParams = ciphertextVector[0]->GetCryptoParameters();
 			Ciphertext<Element> newCiphertext(new CiphertextImpl<Element>(*(ciphertextVector[0])));
@@ -2621,7 +2604,7 @@ namespace lbcrypto {
 		* @param y - vector of dependent variables
 		* @return the parameter vector using (x^T x)^{-1} x^T y (using least squares method)
 		*/
-		shared_ptr<Matrix<RationalCiphertext<Element>>>
+		virtual shared_ptr<Matrix<RationalCiphertext<Element>>>
 			EvalLinRegressBatched(const shared_ptr<Matrix<RationalCiphertext<Element>>> x,
 				const shared_ptr<Matrix<RationalCiphertext<Element>>> y, usint batchSize,
 				const std::map<usint, LPEvalKey<Element>> &evalSumKeys,
@@ -2675,7 +2658,7 @@ namespace lbcrypto {
 		* @param evalMultKey - the evaluation key used for multiplication
 		* @return sum(x_i*y_i), i.e., a sum of inner products
 		*/
-		Ciphertext<Element>
+		virtual Ciphertext<Element>
 			EvalCrossCorrelation(const shared_ptr<Matrix<RationalCiphertext<Element>>> x,
 				const shared_ptr<Matrix<RationalCiphertext<Element>>> y, usint batchSize, 
 				usint indexStart, usint length,
@@ -2687,7 +2670,7 @@ namespace lbcrypto {
 				length = x->GetRows();
 			
 			if (length - indexStart > x->GetRows())
-				throw std::runtime_error("The number of rows exceeds the dimension of the vector");
+				PALISADE_THROW(math_error, "The number of rows exceeds the dimension of the vector");
 
 			//additional error checking can be added here
 
@@ -2725,7 +2708,7 @@ namespace lbcrypto {
 					Ciphertext<Element> &c1,
 					uint32_t targetLevel) const {
 			std::string errMsg = "AdjustLevelWithoutRescale is not implemented for this scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		private:
@@ -2734,16 +2717,19 @@ namespace lbcrypto {
 				// stores automorphism indices needed for EvalSum
 				std::vector<usint> indices;
 
-				usint g = 5;
-				for (int i = 0; i < ceil(log2(batchSize)) - 1; i++)
+				if (batchSize > 1)
 				{
-					indices.push_back(g);
-					g = (g * g) % m;
+					usint g = 5;
+					for (int i = 0; i < ceil(log2(batchSize)) - 1; i++)
+					{
+						indices.push_back(g);
+						g = (g * g) % m;
+					}
+					if (2*batchSize<m)
+						indices.push_back(g);
+					else
+						indices.push_back(m-1);
 				}
-				if (2*batchSize<m)
-					indices.push_back(g);
-				else
-					indices.push_back(m-1);
 
 				return indices;
 			}
@@ -2817,16 +2803,19 @@ namespace lbcrypto {
 
 				Ciphertext<Element> newCiphertext(new CiphertextImpl<Element>(*ciphertext));
 
-				usint g = 5;
-				for (int i = 0; i < ceil(log2(batchSize)) - 1; i++)
+				if (batchSize > 1)
 				{
-					newCiphertext = EvalAdd(newCiphertext, EvalAutomorphism(newCiphertext, g, evalKeys));
-					g = (g * g) % m;
+					usint g = 5;
+					for (int i = 0; i < ceil(log2(batchSize)) - 1; i++)
+					{
+						newCiphertext = EvalAdd(newCiphertext, EvalAutomorphism(newCiphertext, g, evalKeys));
+						g = (g * g) % m;
+					}
+					if (2*batchSize<m)
+						newCiphertext = EvalAdd(newCiphertext, EvalAutomorphism(newCiphertext, g, evalKeys));
+					else
+						newCiphertext = EvalAdd(newCiphertext, EvalAutomorphism(newCiphertext, m - 1, evalKeys));
 				}
-				if (2*batchSize<m)
-					newCiphertext = EvalAdd(newCiphertext, EvalAutomorphism(newCiphertext, g, evalKeys));
-				else
-					newCiphertext = EvalAdd(newCiphertext, EvalAutomorphism(newCiphertext, m - 1, evalKeys));
 
 				return newCiphertext;
 
@@ -2921,31 +2910,31 @@ namespace lbcrypto {
 			*
 			* @return the plaintext modulus.
 			*/
-		const PlaintextModulus &GetPlaintextModulus() const { return  m_encodingParams->GetPlaintextModulus(); }
+		virtual const PlaintextModulus &GetPlaintextModulus() const { return  m_encodingParams->GetPlaintextModulus(); }
 
 		/**
 			* Returns the reference to IL params
 			*
 			* @return the ring element parameters.
 			*/
-		const shared_ptr<typename Element::Params> GetElementParams() const { return m_params; }
+		virtual const shared_ptr<typename Element::Params> GetElementParams() const { return m_params; }
 
 		/**
 		* Returns the reference to encoding params
 		*
 		* @return the encoding parameters.
 		*/
-		const EncodingParams GetEncodingParams() const { return m_encodingParams; }
+		virtual const EncodingParams GetEncodingParams() const { return m_encodingParams; }
 
 		/**
 		* Sets the value of plaintext modulus p
 		*/
-		void SetPlaintextModulus(const PlaintextModulus &plaintextModulus) {
+		virtual void SetPlaintextModulus(const PlaintextModulus &plaintextModulus) {
 			m_encodingParams->SetPlaintextModulus(plaintextModulus);
 		}
 
 		virtual bool operator==(const LPCryptoParameters<Element>& cmp) const = 0;
-		bool operator!=(const LPCryptoParameters<Element>& cmp) const { return !(*this == cmp); }
+		virtual bool operator!=(const LPCryptoParameters<Element>& cmp) const { return !(*this == cmp); }
 
 		/**
 		 * Overload to allow printing of parameters to an iostream
@@ -2965,20 +2954,20 @@ namespace lbcrypto {
 		virtual size_t GetMaxDepth() const { return 0; }
 
 		virtual const typename Element::DggType &GetDiscreteGaussianGenerator() const {
-			throw std::logic_error("No DGG Available for this parameter set");
+			PALISADE_THROW(config_error, "No DGG Available for this parameter set");
 		}
 
 		/**
 		 * Sets the reference to element params
 		 */
-		void SetElementParams(shared_ptr<typename Element::Params> params) {
+		virtual void SetElementParams(shared_ptr<typename Element::Params> params) {
 			m_params = params;
 		}
 
         /**
          * Sets the reference to encoding params
          */
-		void SetEncodingParams(EncodingParams encodingParams) {
+		virtual void SetEncodingParams(EncodingParams encodingParams) {
 			m_encodingParams = encodingParams;
 		}
 
@@ -3066,7 +3055,7 @@ namespace lbcrypto {
 		
 		virtual bool operator==(const LPPublicKeyEncryptionScheme& sch) const = 0;
 
-		bool operator!=(const LPPublicKeyEncryptionScheme& sch) const {
+		virtual bool operator!=(const LPPublicKeyEncryptionScheme& sch) const {
 			return !(*this == sch);
 		}
 
@@ -3112,13 +3101,13 @@ namespace lbcrypto {
 		// wrapper for LPParameterSelectionAlgorithm
 		//
 
-		bool ParamsGen(shared_ptr<LPCryptoParameters<Element>> cryptoParams, int32_t evalAddCount = 0,
+		virtual bool ParamsGen(shared_ptr<LPCryptoParameters<Element>> cryptoParams, int32_t evalAddCount = 0,
 			int32_t evalMultCount = 0, int32_t keySwitchCount = 0, size_t dcrtBits = 0, uint32_t n = 0) const {
 			if (this->m_algorithmParamsGen) {
 				return this->m_algorithmParamsGen->ParamsGen(cryptoParams, evalAddCount, evalMultCount, keySwitchCount, dcrtBits, n);
 			}
 			else {
-				throw std::logic_error("Parameter generation operation has not been implemented");
+				PALISADE_THROW(not_implemented_error, "Parameter generation operation has not been implemented");
 			}
 		}
 
@@ -3126,52 +3115,52 @@ namespace lbcrypto {
 		// the three functions below are wrappers for things in LPEncryptionAlgorithm (ENCRYPT)
 		//
 
-		Ciphertext<Element> Encrypt(const LPPublicKey<Element> publicKey,
+		virtual Ciphertext<Element> Encrypt(const LPPublicKey<Element> publicKey,
 			const Element &plaintext) const {
 				if(this->m_algorithmEncryption) {
 					return this->m_algorithmEncryption->Encrypt(publicKey,plaintext);
 				}
 				else {
-					throw std::logic_error("Encrypt operation has not been enabled");
+					PALISADE_THROW(config_error, "Encrypt operation has not been enabled");
 				}
 		}
 
-		Ciphertext<Element> Encrypt(const LPPrivateKey<Element> privateKey,
+		virtual Ciphertext<Element> Encrypt(const LPPrivateKey<Element> privateKey,
 			const Element &plaintext) const {
 				if(this->m_algorithmEncryption) {
 					return this->m_algorithmEncryption->Encrypt(privateKey,plaintext);
 				}
 				else {
-					throw std::logic_error("Encrypt operation has not been enabled");
+					PALISADE_THROW(config_error, "Encrypt operation has not been enabled");
 				}
 		}
 
-		DecryptResult Decrypt(const LPPrivateKey<Element> privateKey, ConstCiphertext<Element> ciphertext,
+		virtual DecryptResult Decrypt(const LPPrivateKey<Element> privateKey, ConstCiphertext<Element> ciphertext,
 				NativePoly *plaintext) const {
 				if(this->m_algorithmEncryption)
 					return this->m_algorithmEncryption->Decrypt(privateKey,ciphertext,plaintext);
 				else {
-					throw std::logic_error("Decrypt operation has not been enabled");
+					PALISADE_THROW(config_error, "Decrypt operation has not been enabled");
 				}
 		}
 
-		DecryptResult Decrypt(const LPPrivateKey<Element> privateKey, ConstCiphertext<Element> ciphertext,
+		virtual DecryptResult Decrypt(const LPPrivateKey<Element> privateKey, ConstCiphertext<Element> ciphertext,
 				Poly *plaintext) const {
 				if(this->m_algorithmEncryption)
 					return this->m_algorithmEncryption->Decrypt(privateKey,ciphertext,plaintext);
 				else {
-					throw std::logic_error("Decrypt operation has not been enabled");
+					PALISADE_THROW(config_error, "Decrypt operation has not been enabled");
 				}
 		}
 
-		LPKeyPair<Element> KeyGen(CryptoContext<Element> cc, bool makeSparse) {
+		virtual LPKeyPair<Element> KeyGen(CryptoContext<Element> cc, bool makeSparse) {
 				if(this->m_algorithmEncryption) {
 					auto kp = this->m_algorithmEncryption->KeyGen(cc, makeSparse);
 					kp.publicKey->SetKeyTag( kp.secretKey->GetKeyTag() );
 					return kp;
 				}
 				else {
-					throw std::logic_error("KeyGen operation has not been enabled");
+					PALISADE_THROW(config_error, "KeyGen operation has not been enabled");
 				}
 		}
 
@@ -3179,18 +3168,18 @@ namespace lbcrypto {
 		// the three functions below are wrappers for things in LPPREAlgorithm (PRE)
 		//
 
-		LPEvalKey<Element> ReKeyGen(const LPPublicKey<Element> newKey,
+		virtual LPEvalKey<Element> ReKeyGen(const LPPublicKey<Element> newKey,
 				const LPPrivateKey<Element> origPrivateKey) const {
 			if(this->m_algorithmPRE) {
 				auto rk = this->m_algorithmPRE->ReKeyGen(newKey,origPrivateKey);
 				rk->SetKeyTag( newKey->GetKeyTag() );
 				return rk;
 			} else {
-				throw std::logic_error("ReKeyGen operation has not been enabled");
+				PALISADE_THROW(config_error, "ReKeyGen operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> ReEncrypt(const LPEvalKey<Element> evalKey,
+		virtual Ciphertext<Element> ReEncrypt(const LPEvalKey<Element> evalKey,
 				ConstCiphertext<Element> ciphertext,
 				const LPPublicKey<Element> publicKey) const {
 			if(this->m_algorithmPRE) {
@@ -3198,7 +3187,7 @@ namespace lbcrypto {
 				ct->SetKeyTag( evalKey->GetKeyTag() );
 				return ct;
 			} else {
-				throw std::logic_error("ReEncrypt operation has not been enabled");
+				PALISADE_THROW(config_error, "ReEncrypt operation has not been enabled");
 			}
 		}
 
@@ -3208,7 +3197,7 @@ namespace lbcrypto {
 
 		// Wrapper for Multiparty Key Gen
 		// FIXME check key ID for multiparty
-		LPKeyPair<Element> MultipartyKeyGen(CryptoContext<Element> cc,
+		virtual LPKeyPair<Element> MultipartyKeyGen(CryptoContext<Element> cc,
 				const LPPublicKey<Element> pk1,
 				bool makeSparse, bool PRE) {
 			if(this->m_algorithmMultiparty) {
@@ -3216,13 +3205,13 @@ namespace lbcrypto {
 				k.publicKey->SetKeyTag( k.secretKey->GetKeyTag() );
 				return k;
 			} else {
-				throw std::logic_error("MultipartyKeyGen operation has not been enabled");
+				PALISADE_THROW(config_error, "MultipartyKeyGen operation has not been enabled");
 			}
 		}
 
 		// Wrapper for Multiparty Key Gen
 		// FIXME key IDs for multiparty
-		LPKeyPair<Element> MultipartyKeyGen(CryptoContext<Element> cc,
+		virtual LPKeyPair<Element> MultipartyKeyGen(CryptoContext<Element> cc,
 			const vector<LPPrivateKey<Element>>& secretKeys,
 			bool makeSparse) {
 				if(this->m_algorithmMultiparty) {
@@ -3230,49 +3219,49 @@ namespace lbcrypto {
 					k.publicKey->SetKeyTag( k.secretKey->GetKeyTag() );
 					return k;
 				} else {
-					throw std::logic_error("MultipartyKeyGen operation has not been enabled");
+					PALISADE_THROW(config_error, "MultipartyKeyGen operation has not been enabled");
 				}
 		}
 
 		// FIXME key IDs for multiparty
-		Ciphertext<Element> MultipartyDecryptMain(const LPPrivateKey<Element> privateKey,
+		virtual Ciphertext<Element> MultipartyDecryptMain(const LPPrivateKey<Element> privateKey,
 				ConstCiphertext<Element> ciphertext) const {
 				if(this->m_algorithmMultiparty) {
 					auto ct = this->m_algorithmMultiparty->MultipartyDecryptMain(privateKey,ciphertext);
 					ct->SetKeyTag( privateKey->GetKeyTag() );
 					return ct;
 				} else {
-					throw std::logic_error("MultipartyDecryptMain operation has not been enabled");
+					PALISADE_THROW(config_error, "MultipartyDecryptMain operation has not been enabled");
 				}
 		}
 
 		// FIXME key IDs for multiparty
-		Ciphertext<Element> MultipartyDecryptLead(const LPPrivateKey<Element> privateKey,
+		virtual Ciphertext<Element> MultipartyDecryptLead(const LPPrivateKey<Element> privateKey,
 				ConstCiphertext<Element> ciphertext) const {
 				if(this->m_algorithmMultiparty) {
 					auto ct = this->m_algorithmMultiparty->MultipartyDecryptLead(privateKey,ciphertext);
 					ct->SetKeyTag( privateKey->GetKeyTag() );
 					return ct;
 				} else {
-					throw std::logic_error("MultipartyDecryptLead operation has not been enabled");
+					PALISADE_THROW(config_error, "MultipartyDecryptLead operation has not been enabled");
 				}
 		}
 
-		DecryptResult MultipartyDecryptFusion(const vector<Ciphertext<Element>>& ciphertextVec,
+		virtual DecryptResult MultipartyDecryptFusion(const vector<Ciphertext<Element>>& ciphertextVec,
 				NativePoly *plaintext) const {
 				if(this->m_algorithmMultiparty) {
 					return this->m_algorithmMultiparty->MultipartyDecryptFusion(ciphertextVec,plaintext);
 				} else {
-					throw std::logic_error("MultipartyDecrypt operation has not been enabled");
+					PALISADE_THROW(config_error, "MultipartyDecrypt operation has not been enabled");
 				}
 		}
 
-		DecryptResult MultipartyDecryptFusion(const vector<Ciphertext<Element>>& ciphertextVec,
+		virtual DecryptResult MultipartyDecryptFusion(const vector<Ciphertext<Element>>& ciphertextVec,
 				Poly *plaintext) const {
 				if(this->m_algorithmMultiparty) {
 					return this->m_algorithmMultiparty->MultipartyDecryptFusion(ciphertextVec,plaintext);
 				} else {
-					throw std::logic_error("MultipartyDecrypt operation has not been enabled");
+					PALISADE_THROW(config_error, "MultipartyDecrypt operation has not been enabled");
 				}
 		}
 
@@ -3280,71 +3269,71 @@ namespace lbcrypto {
 		// the three functions below are wrappers for things in LPSHEAlgorithm (SHE)
 		//
 
-		Ciphertext<Element> AddRandomNoise(ConstCiphertext<Element> ciphertext) const {
+		virtual Ciphertext<Element> AddRandomNoise(ConstCiphertext<Element> ciphertext) const {
 
 			if (this->m_algorithmSHE)
 				return this->m_algorithmSHE->AddRandomNoise(ciphertext);
 			else {
-				throw std::logic_error("AddRandomNoise operation has not been enabled");
+				PALISADE_THROW(config_error, "AddRandomNoise operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalAdd(ConstCiphertext<Element> ciphertext1,
+		virtual Ciphertext<Element> EvalAdd(ConstCiphertext<Element> ciphertext1,
 				ConstCiphertext<Element> ciphertext2) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalAdd(ciphertext1, ciphertext2);
 				return ct;
 			} else {
-				throw std::logic_error("EvalAdd operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalAdd operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalAddMutable(Ciphertext<Element> &ciphertext1,
+		virtual Ciphertext<Element> EvalAddMutable(Ciphertext<Element> &ciphertext1,
 				Ciphertext<Element> &ciphertext2) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalAddMutable(ciphertext1, ciphertext2);
 				return ct;
 			} else {
-				throw std::logic_error("EvalAdd operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalAdd operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalAdd(ConstCiphertext<Element> ciphertext1,
+		virtual Ciphertext<Element> EvalAdd(ConstCiphertext<Element> ciphertext1,
 				ConstPlaintext plaintext) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalAdd(ciphertext1, plaintext);
 				return ct;
 			} else {
-				throw std::logic_error("EvalAdd operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalAdd operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalAddMutable(Ciphertext<Element> &ciphertext1,
+		virtual Ciphertext<Element> EvalAddMutable(Ciphertext<Element> &ciphertext1,
 				Plaintext plaintext) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalAddMutable(ciphertext1, plaintext);
 				return ct;
 			} else {
-				throw std::logic_error("EvalAdd operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalAdd operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalAdd(ConstCiphertext<Element> ciphertext1,
+		virtual Ciphertext<Element> EvalAdd(ConstCiphertext<Element> ciphertext1,
 				double constant) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalAdd(ciphertext1, constant);
 				return ct;
 			} else {
-				throw std::logic_error("EvalAdd operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalAdd operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalLinearWSum(
+		virtual Ciphertext<Element> EvalLinearWSum(
 				vector<Ciphertext<Element>> ciphertexts,
 				vector<double> constants) const {
 
@@ -3352,11 +3341,11 @@ namespace lbcrypto {
 				auto ct = this->m_algorithmSHE->EvalLinearWSum(ciphertexts, constants);
 				return ct;
 			} else {
-				throw std::logic_error("EvalLinearWSum operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalLinearWSum operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalLinearWSumMutable(
+		virtual Ciphertext<Element> EvalLinearWSumMutable(
 				vector<Ciphertext<Element>> ciphertexts,
 				vector<double> constants) const {
 
@@ -3364,130 +3353,130 @@ namespace lbcrypto {
 				auto ct = this->m_algorithmSHE->EvalLinearWSumMutable(ciphertexts, constants);
 				return ct;
 			} else {
-				throw std::logic_error("EvalLinearWSum operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalLinearWSum operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalSub(ConstCiphertext<Element> ciphertext1,
+		virtual Ciphertext<Element> EvalSub(ConstCiphertext<Element> ciphertext1,
 			ConstCiphertext<Element> ciphertext2) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalSub(ciphertext1, ciphertext2);
 				return ct;
 			} else {
-				throw std::logic_error("EvalSub operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalSub operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalSubMutable(Ciphertext<Element> &ciphertext1,
+		virtual Ciphertext<Element> EvalSubMutable(Ciphertext<Element> &ciphertext1,
 			Ciphertext<Element> &ciphertext2) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalSubMutable(ciphertext1, ciphertext2);
 				return ct;
 			} else {
-				throw std::logic_error("EvalSub operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalSub operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalSub(ConstCiphertext<Element> ciphertext1,
+		virtual Ciphertext<Element> EvalSub(ConstCiphertext<Element> ciphertext1,
 				ConstPlaintext plaintext) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalSub(ciphertext1, plaintext);
 				return ct;
 			} else {
-				throw std::logic_error("EvalSub operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalSub operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalSubMutable(Ciphertext<Element> &ciphertext1,
+		virtual Ciphertext<Element> EvalSubMutable(Ciphertext<Element> &ciphertext1,
 				Plaintext plaintext) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalSubMutable(ciphertext1, plaintext);
 				return ct;
 			} else {
-				throw std::logic_error("EvalSub operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalSub operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalSub(ConstCiphertext<Element> ciphertext1,
+		virtual Ciphertext<Element> EvalSub(ConstCiphertext<Element> ciphertext1,
 				double constant) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalSub(ciphertext1, constant);
 				return ct;
 			} else {
-				throw std::logic_error("EvalSub operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalSub operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext1,
+		virtual Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext1,
 			ConstCiphertext<Element> ciphertext2) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalMult(ciphertext1, ciphertext2);
 				return ct;
 			} else {
-				throw std::logic_error("EvalMult operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalMult operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalMultMutable(Ciphertext<Element> &ciphertext1,
+		virtual Ciphertext<Element> EvalMultMutable(Ciphertext<Element> &ciphertext1,
 			Ciphertext<Element> &ciphertext2) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalMultMutable(ciphertext1, ciphertext2);
 				return ct;
 			} else {
-				throw std::logic_error("EvalMult operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalMult operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext,
+		virtual Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext,
 			ConstPlaintext plaintext) const {
 
 			if (this->m_algorithmSHE)
 				return this->m_algorithmSHE->EvalMult(ciphertext, plaintext);
 			else {
-				throw std::logic_error("EvalMult operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalMult operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalMultMutable(Ciphertext<Element> &ciphertext,
+		virtual Ciphertext<Element> EvalMultMutable(Ciphertext<Element> &ciphertext,
 			ConstPlaintext plaintext) const {
 
 			if (this->m_algorithmSHE)
 				return this->m_algorithmSHE->EvalMultMutable(ciphertext, plaintext);
 			else {
-				throw std::logic_error("EvalMult operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalMult operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext1,
+		virtual Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext1,
 				double constant) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalMult(ciphertext1, constant);
 				return ct;
 			} else {
-				throw std::logic_error("EvalMult operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalMult operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalMultMutable(Ciphertext<Element> &ciphertext1,
+		virtual Ciphertext<Element> EvalMultMutable(Ciphertext<Element> &ciphertext1,
 				double constant) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalMultMutable(ciphertext1, constant);
 				return ct;
 			} else {
-				throw std::logic_error("EvalMult operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalMult operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext1,
+		virtual Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext1,
 				ConstCiphertext<Element> ciphertext2,
 				const LPEvalKey<Element> evalKey) const {
 
@@ -3495,11 +3484,11 @@ namespace lbcrypto {
 				auto ct = this->m_algorithmSHE->EvalMult(ciphertext1, ciphertext2, evalKey);
 				return ct;
 			} else {
-				throw std::logic_error("EvalMult operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalMult operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalMultMutable(Ciphertext<Element> &ciphertext1,
+		virtual Ciphertext<Element> EvalMultMutable(Ciphertext<Element> &ciphertext1,
 				Ciphertext<Element> &ciphertext2,
 				const LPEvalKey<Element> evalKey) const {
 
@@ -3507,53 +3496,53 @@ namespace lbcrypto {
 				auto ct = this->m_algorithmSHE->EvalMultMutable(ciphertext1, ciphertext2, evalKey);
 				return ct;
 			} else {
-				throw std::logic_error("EvalMult operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalMult operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalMultMany(const vector<Ciphertext<Element>>& ciphertext, const vector<LPEvalKey<Element>> &evalKeys) const {
+		virtual Ciphertext<Element> EvalMultMany(const vector<Ciphertext<Element>>& ciphertext, const vector<LPEvalKey<Element>> &evalKeys) const {
 
 			if (this->m_algorithmSHE){
 				return this->m_algorithmSHE->EvalMultMany(ciphertext, evalKeys);
 			}
 			else {
-				throw std::logic_error("EvalMultMany operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalMultMany operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalAddMany(
+		virtual Ciphertext<Element> EvalAddMany(
 				const vector<Ciphertext<Element>>& ciphertexts) const {
 
 			if (this->m_algorithmSHE){
 				return this->m_algorithmSHE->EvalAddMany(ciphertexts);
 			}
 			else {
-				throw std::logic_error("EvalMultMany operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalMultMany operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalAddManyInPlace(
+		virtual Ciphertext<Element> EvalAddManyInPlace(
 				vector<Ciphertext<Element>>& ciphertexts) const {
 
 			if (this->m_algorithmSHE){
 				return this->m_algorithmSHE->EvalAddManyInPlace(ciphertexts);
 			}
 			else {
-				throw std::logic_error("EvalAddManyInPlace operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalAddManyInPlace operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> EvalNegate(ConstCiphertext<Element> ciphertext) const {
+		virtual Ciphertext<Element> EvalNegate(ConstCiphertext<Element> ciphertext) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalNegate(ciphertext);
 				return ct;
 			} else {
-				throw std::logic_error("EvalNegate operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalNegate operation has not been enabled");
 			}
 		}
 
-		shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAutomorphismKeyGen(const LPPublicKey<Element> publicKey,
+		virtual shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAutomorphismKeyGen(const LPPublicKey<Element> publicKey,
 			const LPPrivateKey<Element> origPrivateKey,
 			const std::vector<usint> &indexList) const {
 
@@ -3563,10 +3552,10 @@ namespace lbcrypto {
 					k.second->SetKeyTag( origPrivateKey->GetKeyTag() );
 				return km;
 			} else
-				throw std::logic_error("EvalAutomorphismKeyGen operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalAutomorphismKeyGen operation has not been enabled");
 		}
 
-		shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAtIndexKeyGen(const LPPublicKey<Element> publicKey,
+		virtual shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAtIndexKeyGen(const LPPublicKey<Element> publicKey,
 			const LPPrivateKey<Element> origPrivateKey,
 			const std::vector<int32_t> &indexList) const {
 
@@ -3576,31 +3565,31 @@ namespace lbcrypto {
 					k.second->SetKeyTag( origPrivateKey->GetKeyTag() );
 				return km;
 			} else
-				throw std::logic_error("EvalAtIndexKeyGen operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalAtIndexKeyGen operation has not been enabled");
 		}
 
-		Ciphertext<Element> EvalAutomorphism(ConstCiphertext<Element> ciphertext, usint i,
+		virtual Ciphertext<Element> EvalAutomorphism(ConstCiphertext<Element> ciphertext, usint i,
 			const std::map<usint, LPEvalKey<Element>> &evalKeys) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalAutomorphism(ciphertext, i, evalKeys);
 				return ct;
 			} else
-				throw std::logic_error("EvalAutomorphism operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalAutomorphism operation has not been enabled");
 		}
 
 
-		Ciphertext<Element> EvalAtIndex(ConstCiphertext<Element> ciphertext, usint i,
+		virtual Ciphertext<Element> EvalAtIndex(ConstCiphertext<Element> ciphertext, usint i,
 			const std::map<usint, LPEvalKey<Element>> &evalKeys) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalAtIndex(ciphertext, i, evalKeys);
 				return ct;
 			} else
-				throw std::logic_error("EvalAtIndex operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalAtIndex operation has not been enabled");
 		}
 
-		shared_ptr<vector<Element>> EvalFastRotationPrecompute(
+		virtual shared_ptr<vector<Element>> EvalFastRotationPrecompute(
 				ConstCiphertext<Element> ciphertext
 				) const {
 
@@ -3608,10 +3597,10 @@ namespace lbcrypto {
 				auto ct = this->m_algorithmSHE->EvalFastRotationPrecompute(ciphertext);
 				return ct;
 			} else
-				throw std::logic_error("EvalFastRotationPrecompute operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalFastRotationPrecompute operation has not been enabled");
 		}
 
-		Ciphertext<Element> EvalFastRotation(
+		virtual Ciphertext<Element> EvalFastRotation(
 				ConstCiphertext<Element> ciphertext,
 				const usint index,
 				const usint m,
@@ -3622,11 +3611,11 @@ namespace lbcrypto {
 				auto ct = this->m_algorithmSHE->EvalFastRotation(ciphertext, index, m, digits);
 				return ct;
 			} else
-				throw std::logic_error("EvalFastRotation operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalFastRotation operation has not been enabled");
 		}
 
 
-		shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAutomorphismKeyGen(const LPPrivateKey<Element> privateKey,
+		virtual shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAutomorphismKeyGen(const LPPrivateKey<Element> privateKey,
 			const std::vector<usint> &indexList) const {
 
 			if (this->m_algorithmSHE) {
@@ -3635,10 +3624,10 @@ namespace lbcrypto {
 					k.second->SetKeyTag( privateKey->GetKeyTag() );
 				return km;
 			} else
-				throw std::logic_error("EvalAutomorphismKeyGen operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalAutomorphismKeyGen operation has not been enabled");
 		}
 
-		shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalSumKeyGen(
+		virtual shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalSumKeyGen(
 			const LPPrivateKey<Element> privateKey,
 			const LPPublicKey<Element> publicKey) const {
 
@@ -3649,10 +3638,10 @@ namespace lbcrypto {
 				}
 				return km;
 			} else
-				throw std::logic_error("EvalSumKeyGen operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalSumKeyGen operation has not been enabled");
 		}
 
-		shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalSumRowsKeyGen(
+		virtual shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalSumRowsKeyGen(
 			const LPPrivateKey<Element> privateKey,
 			const LPPublicKey<Element> publicKey, usint rowSize) const {
 
@@ -3663,10 +3652,10 @@ namespace lbcrypto {
 				}
 				return km;
 			} else
-				throw std::logic_error("EvalSumRowsKeyGen operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalSumRowsKeyGen operation has not been enabled");
 		}
 
-		shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalSumColsKeyGen(
+		virtual shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalSumColsKeyGen(
 			const LPPrivateKey<Element> privateKey,
 			const LPPublicKey<Element> publicKey) const {
 
@@ -3677,43 +3666,43 @@ namespace lbcrypto {
 				}
 				return km;
 			} else
-				throw std::logic_error("EvalSumColsKeyGen operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalSumColsKeyGen operation has not been enabled");
 		}
 
-		Ciphertext<Element> EvalSum(ConstCiphertext<Element> ciphertext, usint batchSize,
+		virtual Ciphertext<Element> EvalSum(ConstCiphertext<Element> ciphertext, usint batchSize,
 			const std::map<usint, LPEvalKey<Element>> &evalKeys) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalSum(ciphertext, batchSize, evalKeys);
 				return ct;
 			} else
-				throw std::logic_error("EvalSum operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalSum operation has not been enabled");
 
 		}
 
-		Ciphertext<Element> EvalSumRows(ConstCiphertext<Element> ciphertext, usint rowSize,
+		virtual Ciphertext<Element> EvalSumRows(ConstCiphertext<Element> ciphertext, usint rowSize,
 			const std::map<usint, LPEvalKey<Element>> &evalKeys) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalSumRows(ciphertext, rowSize, evalKeys);
 				return ct;
 			} else
-				throw std::logic_error("EvalSumRow operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalSumRow operation has not been enabled");
 
 		}
 
-		Ciphertext<Element> EvalSumCols(ConstCiphertext<Element> ciphertext, usint batchSize,
+		virtual Ciphertext<Element> EvalSumCols(ConstCiphertext<Element> ciphertext, usint batchSize,
 			const std::map<usint, LPEvalKey<Element>> &evalKeys, const std::map<usint, LPEvalKey<Element>> &rightEvalKeys) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalSumCols(ciphertext, batchSize, evalKeys, rightEvalKeys);
 				return ct;
 			} else
-				throw std::logic_error("EvalSumCols operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalSumCols operation has not been enabled");
 
 		}
 
-		Ciphertext<Element> EvalInnerProduct(ConstCiphertext<Element> ciphertext1,
+		virtual Ciphertext<Element> EvalInnerProduct(ConstCiphertext<Element> ciphertext1,
 			ConstCiphertext<Element> ciphertext2, usint batchSize,
 			const std::map<usint, LPEvalKey<Element>> &evalSumKeys,
 			const LPEvalKey<Element> evalMultKey) const {
@@ -3723,33 +3712,33 @@ namespace lbcrypto {
 				ct->SetKeyTag( evalSumKeys.begin()->second->GetKeyTag() );
 				return ct;
 			} else
-				throw std::logic_error("EvalInnerProduct operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalInnerProduct operation has not been enabled");
 
 		}
 
-		Ciphertext<Element> EvalMerge(const vector<Ciphertext<Element>> &ciphertextVector,
+		virtual Ciphertext<Element> EvalMerge(const vector<Ciphertext<Element>> &ciphertextVector,
 			const std::map<usint, LPEvalKey<Element>> &evalKeys) const {
 
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->EvalMerge(ciphertextVector,evalKeys);
 				return ct;
 			} else
-				throw std::logic_error("EvalMerge operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalMerge operation has not been enabled");
 		}
 
 
-		Ciphertext<Element> EvalInnerProduct(ConstCiphertext<Element> ciphertext1,
+		virtual Ciphertext<Element> EvalInnerProduct(ConstCiphertext<Element> ciphertext1,
 			ConstPlaintext ciphertext2, usint batchSize,
 			const std::map<usint, LPEvalKey<Element>> &evalSumKeys) const {
 
 			if (this->m_algorithmSHE)
 				return this->m_algorithmSHE->EvalInnerProduct(ciphertext1, ciphertext2, batchSize, evalSumKeys);
 			else
-				throw std::logic_error("EvalInnerProduct operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalInnerProduct operation has not been enabled");
 
 		}
 
-		shared_ptr<Matrix<RationalCiphertext<Element>>>
+		virtual shared_ptr<Matrix<RationalCiphertext<Element>>>
 			EvalLinRegressBatched(const shared_ptr<Matrix<RationalCiphertext<Element>>> x,
 				const shared_ptr<Matrix<RationalCiphertext<Element>>> y, usint batchSize,
 				const std::map<usint, LPEvalKey<Element>> &evalSumKeys,
@@ -3763,11 +3752,11 @@ namespace lbcrypto {
 						(*ctm)(r,c).SetKeyTag(kID);
 				return ctm;
 			} else
-				throw std::logic_error("EvalLinRegressionBatched operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalLinRegressionBatched operation has not been enabled");
 		}
 
 
-		Ciphertext<Element>
+		virtual Ciphertext<Element>
 			EvalCrossCorrelation(const shared_ptr<Matrix<RationalCiphertext<Element>>> x,
 				const shared_ptr<Matrix<RationalCiphertext<Element>>> y, usint batchSize,
 				usint indexStart, usint length,
@@ -3779,7 +3768,7 @@ namespace lbcrypto {
 				// FIXME: mark with which key?
 				return ct;
 			} else
-				throw std::logic_error("EvalCrossCorrelation operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalCrossCorrelation operation has not been enabled");
 		}
 
 
@@ -3789,7 +3778,7 @@ namespace lbcrypto {
 		* @param y - vector of dependent variables
 		* @return the parameter vector using (x^T x)^{-1} x^T y (using least squares method)
 		*/
-		shared_ptr<Matrix<RationalCiphertext<Element>>>
+		virtual shared_ptr<Matrix<RationalCiphertext<Element>>>
 			EvalLinRegression(const shared_ptr<Matrix<RationalCiphertext<Element>>> x,
 				const shared_ptr<Matrix<RationalCiphertext<Element>>> y) const
 		{
@@ -3799,12 +3788,12 @@ namespace lbcrypto {
 				// FIXME mark with which key??
 				return ctm;
 			} else {
-				throw std::logic_error("EvalLinRegression operation has not been enabled");
+				PALISADE_THROW(config_error, "EvalLinRegression operation has not been enabled");
 			}
 
 		}
 
-		LPEvalKey<Element> KeySwitchGen(
+		virtual LPEvalKey<Element> KeySwitchGen(
 			const LPPrivateKey<Element> originalPrivateKey,
 			const LPPrivateKey<Element> newPrivateKey) const {
 			if (this->m_algorithmSHE) {
@@ -3813,11 +3802,11 @@ namespace lbcrypto {
 				return kp;
 
 			} else {
-				throw std::logic_error("KeySwitchGen operation has not been enabled");
+				PALISADE_THROW(config_error, "KeySwitchGen operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> KeySwitch(
+		virtual Ciphertext<Element> KeySwitch(
 			const LPEvalKey<Element> keySwitchHint,
 			ConstCiphertext<Element> cipherText) const {
 
@@ -3827,42 +3816,42 @@ namespace lbcrypto {
 
 			}
 			else {
-				throw std::logic_error("KeySwitch operation has not been enabled");
+				PALISADE_THROW(config_error, "KeySwitch operation has not been enabled");
 			}
 		}
 
-		LPEvalKey<Element> KeySwitchRelinGen(const LPPublicKey<Element> newKey, const LPPrivateKey<Element> origPrivateKey) const {
+		virtual LPEvalKey<Element> KeySwitchRelinGen(const LPPublicKey<Element> newKey, const LPPrivateKey<Element> origPrivateKey) const {
 			if (this->m_algorithmSHE) {
 				auto kp = this->m_algorithmSHE->KeySwitchRelinGen(newKey, origPrivateKey);
 				kp->SetKeyTag( newKey->GetKeyTag() );
 				return kp;
 			} else {
-				throw std::logic_error("KeySwitchRelinGen operation has not been enabled");
+				PALISADE_THROW(config_error, "KeySwitchRelinGen operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> KeySwitchRelin(const LPEvalKey<Element> evalKey,
+		virtual Ciphertext<Element> KeySwitchRelin(const LPEvalKey<Element> evalKey,
 			ConstCiphertext<Element> ciphertext) const {
 			if (this->m_algorithmSHE) {
 				auto ct = this->m_algorithmSHE->KeySwitchRelin(evalKey, ciphertext);
 				ct->SetKeyTag( evalKey->GetKeyTag() );
 				return ct;
 			} else {
-				throw std::logic_error("KeySwitchRelin operation has not been enabled");
+				PALISADE_THROW(config_error, "KeySwitchRelin operation has not been enabled");
 			}
 		}
 
-		LPEvalKey<Element> EvalMultKeyGen(const LPPrivateKey<Element> originalPrivateKey) const {
+		virtual LPEvalKey<Element> EvalMultKeyGen(const LPPrivateKey<Element> originalPrivateKey) const {
 				if(this->m_algorithmSHE) {
 					auto ek = this->m_algorithmSHE->EvalMultKeyGen(originalPrivateKey);
 					ek->SetKeyTag( originalPrivateKey->GetKeyTag() );
 					return ek;
 				} else {
-					throw std::logic_error("EvalMultKeyGen operation has not been enabled");
+					PALISADE_THROW(config_error, "EvalMultKeyGen operation has not been enabled");
 				}
 		}
 		
-		vector<LPEvalKey<Element>> EvalMultKeysGen(const LPPrivateKey<Element> originalPrivateKey) const {
+		virtual vector<LPEvalKey<Element>> EvalMultKeysGen(const LPPrivateKey<Element> originalPrivateKey) const {
 				if(this->m_algorithmSHE){
 					auto ek = this->m_algorithmSHE->EvalMultKeysGen(originalPrivateKey);
 					for(size_t i=0; i<ek.size(); i++)
@@ -3870,24 +3859,24 @@ namespace lbcrypto {
 					return ek;
 				}
 				else {
-					throw std::logic_error("EvalMultKeysGen operation has not been enabled");
+					PALISADE_THROW(config_error, "EvalMultKeysGen operation has not been enabled");
 				}
 		}
 
-		Ciphertext<Element> EvalMultAndRelinearize(ConstCiphertext<Element> ct1,
+		virtual Ciphertext<Element> EvalMultAndRelinearize(ConstCiphertext<Element> ct1,
 			ConstCiphertext<Element> ct2, const vector<LPEvalKey<Element>> &ek) const {
 				if(this->m_algorithmSHE)
 					return this->m_algorithmSHE->EvalMultAndRelinearize(ct1, ct2, ek);
 				else {
-					throw std::logic_error("EvalMultAndRelinearize operation has not been enabled");
+					PALISADE_THROW(config_error, "EvalMultAndRelinearize operation has not been enabled");
 				}
 		}
 
-		Ciphertext<Element> Relinearize(ConstCiphertext<Element> ciphertext, const vector<LPEvalKey<Element>> &ek) const {
+		virtual Ciphertext<Element> Relinearize(ConstCiphertext<Element> ciphertext, const vector<LPEvalKey<Element>> &ek) const {
 				if(this->m_algorithmSHE)
 					return this->m_algorithmSHE->Relinearize(ciphertext, ek);
 				else {
-					throw std::logic_error("Relinearize operation has not been enabled");
+					PALISADE_THROW(config_error, "Relinearize operation has not been enabled");
 				}
 		}
 
@@ -3900,38 +3889,18 @@ namespace lbcrypto {
 		// the functions below are wrappers for things in LPSHEAlgorithm (SHE)
 		//
 
-		Ciphertext<Element> ModReduce(ConstCiphertext<Element> cipherText) const {
+		virtual Ciphertext<Element> ModReduce(ConstCiphertext<Element> cipherText) const {
 			if(this->m_algorithmLeveledSHE) {
 				auto ct = this->m_algorithmLeveledSHE->ModReduce(cipherText);
 				ct->SetKeyTag( cipherText->GetKeyTag() );
 				return ct;
 			}
 			else{
-				throw std::logic_error("ModReduce operation has not been enabled");
+				PALISADE_THROW(config_error, "ModReduce operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> RingReduce(ConstCiphertext<Element> cipherText, const LPEvalKey<Element> keySwitchHint) const {
-			if(this->m_algorithmLeveledSHE){
-				auto ct = this->m_algorithmLeveledSHE->RingReduce(cipherText,keySwitchHint);
-				ct->SetKeyTag( keySwitchHint->GetKeyTag() );
-				return ct;
-			}
-			else{
-				throw std::logic_error("RingReduce operation has not been enabled");
-			}
-		}
-
-		bool CanRingReduce(usint ringDimension, const std::vector<BigInteger> &moduli, const double rootHermiteFactor) const {
-			if (this->m_algorithmLeveledSHE) {
-				return this->m_algorithmLeveledSHE->CanRingReduce(ringDimension, moduli, rootHermiteFactor);
-			}
-			else {
-				throw std::logic_error("CanRingReduce operation has not been enabled");
-			}
-		}
-
-		Ciphertext<Element> ComposedEvalMult(
+		virtual Ciphertext<Element> ComposedEvalMult(
 							ConstCiphertext<Element> cipherText1,
 							ConstCiphertext<Element> cipherText2,
 							const LPEvalKey<Element> quadKeySwitchHint) const {
@@ -3941,11 +3910,11 @@ namespace lbcrypto {
 				return ct;
 			}
 			else{
-				throw std::logic_error("ComposedEvalMult operation has not been enabled");
+				PALISADE_THROW(config_error, "ComposedEvalMult operation has not been enabled");
 			}
 		}
 
-		Ciphertext<Element> LevelReduce(ConstCiphertext<Element> cipherText1,
+		virtual Ciphertext<Element> LevelReduce(ConstCiphertext<Element> cipherText1,
 				const LPEvalKeyNTRU<Element> linearKeySwitchHint, size_t levels = 1) const {
 			if(this->m_algorithmLeveledSHE){
 				auto ct = this->m_algorithmLeveledSHE->LevelReduce(cipherText1,linearKeySwitchHint,levels);
@@ -3953,7 +3922,7 @@ namespace lbcrypto {
 				return ct;
 			}
 			else{
-				throw std::logic_error("LevelReduce operation has not been enabled");
+				PALISADE_THROW(config_error, "LevelReduce operation has not been enabled");
 			}
 		}
 
@@ -3962,7 +3931,7 @@ namespace lbcrypto {
 		 * See LPAlgorithmParamsGenCKKS::ParamsGen for a description of the arguments.
 		 *
 		 */
-		bool ParamsGen(shared_ptr<LPCryptoParameters<Element>> cryptoParams,
+		virtual bool ParamsGen(shared_ptr<LPCryptoParameters<Element>> cryptoParams,
 				   usint cyclOrder,
 				   usint numPrimes,
 				   usint scaleExp,
@@ -3979,7 +3948,7 @@ namespace lbcrypto {
 											numLargeDigits);
 			}
 			else {
-				throw std::logic_error("Parameter generation operation has not been implemented for this scheme.");
+				PALISADE_THROW(not_implemented_error, "Parameter generation operation has not been implemented for this scheme.");
 			}
 		}
 
@@ -3996,14 +3965,14 @@ namespace lbcrypto {
 		 *         but with fewer towers.
 		 *
 		 */
-		Ciphertext<Element> LevelReduceInternal(ConstCiphertext<Element> cipherText1,
+		virtual Ciphertext<Element> LevelReduceInternal(ConstCiphertext<Element> cipherText1,
 				const LPEvalKey<Element> linearKeySwitchHint, size_t levels)  const {
 
 			if (this->m_algorithmLeveledSHE) {
 				return m_algorithmLeveledSHE->LevelReduceInternal(cipherText1, linearKeySwitchHint, levels);
 			}
 			else {
-				throw std::logic_error("LevelReduceInternal has not been enabled for this scheme.");
+				PALISADE_THROW(not_implemented_error, "LevelReduceInternal has not been enabled for this scheme.");
 			}
 		}
 
@@ -4017,21 +3986,21 @@ namespace lbcrypto {
 		 * @return the rescaled ciphertext.
 		 *
 		 */
-		Ciphertext<Element> ModReduceInternal(ConstCiphertext<Element> cipherText) const {
+		virtual Ciphertext<Element> ModReduceInternal(ConstCiphertext<Element> cipherText) const {
 			if (this->m_algorithmLeveledSHE) {
 				return m_algorithmLeveledSHE->ModReduceInternal(cipherText);
 			}
 			else {
-				throw std::logic_error("ModReduceInternal has not been enabled for this scheme.");
+				PALISADE_THROW(config_error, "ModReduceInternal has not been enabled for this scheme.");
 			}
 		}
 
-		Ciphertext<Element> AdjustLevelWithRescale(Ciphertext<Element> cipherText, uint32_t targetLevel) const {
+		virtual Ciphertext<Element> AdjustLevelWithRescale(Ciphertext<Element> cipherText, uint32_t targetLevel) const {
 			if (this->m_algorithmSHE) {
 				return m_algorithmSHE->AdjustLevelWithRescale(cipherText, targetLevel);
 			}
 			else {
-				throw std::logic_error("AdjustLevelWithRescale has not been enabled for this scheme.");
+				PALISADE_THROW(config_error, "AdjustLevelWithRescale has not been enabled for this scheme.");
 			}
 		}
 

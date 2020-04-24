@@ -42,11 +42,11 @@ protected:
 /*---------------------------------------	TESTING METHODS OF FHEW --------------------------------------------*/
 
 // Checks the key switching operation
-TEST(UnitTestFHEW,KeySwitch) {
+TEST(UnitTestFHEWAP,KeySwitch) {
 
 	auto cc = BinFHEContext();
 
-	cc.GenerateBinFHEContext(TOY);
+	cc.GenerateBinFHEContext(TOY,AP);
 
 	NativeInteger Q = cc.GetParams()->GetLWEParams()->GetQ();
 
@@ -80,11 +80,11 @@ TEST(UnitTestFHEW,KeySwitch) {
 }
 
 // Checks the mod switching operation
-TEST(UnitTestFHEW,ModSwitch) {
+TEST(UnitTestFHEWAP,ModSwitch) {
 
 	auto cc = BinFHEContext();
 
-	cc.GenerateBinFHEContext(TOY);
+	cc.GenerateBinFHEContext(TOY,AP);
 
 	NativeInteger Q = cc.GetParams()->GetLWEParams()->GetQ();
 
@@ -120,7 +120,7 @@ TEST(UnitTestFHEW,ModSwitch) {
 TEST(UnitTestFHEW,NOT) {
 
 	auto cc = BinFHEContext();
-	cc.GenerateBinFHEContext(TOY);
+	cc.GenerateBinFHEContext(TOY,AP);
 
 	auto sk = cc.KeyGen();
 
@@ -145,10 +145,48 @@ TEST(UnitTestFHEW,NOT) {
 }
 
 // Checks the truth table for AND
-TEST(UnitTestFHEW,AND) {
+TEST(UnitTestFHEWAP,AND) {
 
 	auto cc = BinFHEContext();
-	cc.GenerateBinFHEContext(TOY);
+	cc.GenerateBinFHEContext(TOY,AP);
+
+	auto sk = cc.KeyGen();
+
+	cc.BTKeyGen(sk);
+
+	auto ct1 = cc.Encrypt(sk,1);
+	auto ct0 = cc.Encrypt(sk,0);
+	auto ct1Alt = cc.Encrypt(sk,1);
+	auto ct0Alt = cc.Encrypt(sk,0);
+
+	auto ct11 = cc.EvalBinGate(AND,ct1,ct1Alt);
+	auto ct01 = cc.EvalBinGate(AND,ct0,ct1);
+	auto ct10 = cc.EvalBinGate(AND,ct1,ct0);
+	auto ct00 = cc.EvalBinGate(AND,ct0,ct0Alt);
+
+	LWEPlaintext result11;
+	cc.Decrypt(sk,ct11,&result11);
+	LWEPlaintext result01;
+	cc.Decrypt(sk,ct01,&result01);
+	LWEPlaintext result10;
+	cc.Decrypt(sk,ct10,&result10);
+	LWEPlaintext result00;
+	cc.Decrypt(sk,ct00,&result00);
+
+	std::string failed = "AND failed";
+
+	EXPECT_EQ(1, result11) << failed;
+	EXPECT_EQ(0, result01) << failed;
+	EXPECT_EQ(0, result10) << failed;
+	EXPECT_EQ(0, result00) << failed;
+
+}
+
+// Checks the truth table for AND
+TEST(UnitTestFHEWGINX,AND) {
+
+	auto cc = BinFHEContext();
+	cc.GenerateBinFHEContext(TOY,GINX);
 
 	auto sk = cc.KeyGen();
 
@@ -183,10 +221,48 @@ TEST(UnitTestFHEW,AND) {
 }
 
 // Checks the truth table for OR
-TEST(UnitTestFHEW,OR) {
+TEST(UnitTestFHEWAP,OR) {
 
 	auto cc = BinFHEContext();
-	cc.GenerateBinFHEContext(TOY);
+	cc.GenerateBinFHEContext(TOY,AP);
+
+	auto sk = cc.KeyGen();
+
+	cc.BTKeyGen(sk);
+
+	auto ct1 = cc.Encrypt(sk,1);
+	auto ct0 = cc.Encrypt(sk,0);
+	auto ct1Alt = cc.Encrypt(sk,1);
+	auto ct0Alt = cc.Encrypt(sk,0);
+
+	auto ct11 = cc.EvalBinGate(OR,ct1,ct1Alt);
+	auto ct01 = cc.EvalBinGate(OR,ct0,ct1);
+	auto ct10 = cc.EvalBinGate(OR,ct1,ct0);
+	auto ct00 = cc.EvalBinGate(OR,ct0,ct0Alt);
+
+	LWEPlaintext result11;
+	cc.Decrypt(sk,ct11,&result11);
+	LWEPlaintext result01;
+	cc.Decrypt(sk,ct01,&result01);
+	LWEPlaintext result10;
+	cc.Decrypt(sk,ct10,&result10);
+	LWEPlaintext result00;
+	cc.Decrypt(sk,ct00,&result00);
+
+	std::string failed = "OR failed";
+
+	EXPECT_EQ(1, result11) << failed;
+	EXPECT_EQ(1, result01) << failed;
+	EXPECT_EQ(1, result10) << failed;
+	EXPECT_EQ(0, result00) << failed;
+
+}
+
+// Checks the truth table for OR
+TEST(UnitTestFHEWGINX,OR) {
+
+	auto cc = BinFHEContext();
+	cc.GenerateBinFHEContext(TOY,GINX);
 
 	auto sk = cc.KeyGen();
 
@@ -221,10 +297,10 @@ TEST(UnitTestFHEW,OR) {
 }
 
 // Checks the truth table for AND
-TEST(UnitTestFHEW,NAND) {
+TEST(UnitTestFHEWAP,NAND) {
 
 	auto cc = BinFHEContext();
-	cc.GenerateBinFHEContext(TOY);
+	cc.GenerateBinFHEContext(TOY,AP);
 
 	auto sk = cc.KeyGen();
 
@@ -259,10 +335,48 @@ TEST(UnitTestFHEW,NAND) {
 }
 
 // Checks the truth table for AND
-TEST(UnitTestFHEW,NOR) {
+TEST(UnitTestFHEWGINX,NAND) {
 
 	auto cc = BinFHEContext();
-	cc.GenerateBinFHEContext(TOY);
+	cc.GenerateBinFHEContext(TOY,GINX);
+
+	auto sk = cc.KeyGen();
+
+	cc.BTKeyGen(sk);
+
+	auto ct1 = cc.Encrypt(sk,1);
+	auto ct0 = cc.Encrypt(sk,0);
+	auto ct1Alt = cc.Encrypt(sk,1);
+	auto ct0Alt = cc.Encrypt(sk,0);
+
+	auto ct11 = cc.EvalBinGate(NAND,ct1,ct1Alt);
+	auto ct01 = cc.EvalBinGate(NAND,ct0,ct1);
+	auto ct10 = cc.EvalBinGate(NAND,ct1,ct0);
+	auto ct00 = cc.EvalBinGate(NAND,ct0,ct0Alt);
+
+	LWEPlaintext result11;
+	cc.Decrypt(sk,ct11,&result11);
+	LWEPlaintext result01;
+	cc.Decrypt(sk,ct01,&result01);
+	LWEPlaintext result10;
+	cc.Decrypt(sk,ct10,&result10);
+	LWEPlaintext result00;
+	cc.Decrypt(sk,ct00,&result00);
+
+	std::string failed = "NAND failed";
+
+	EXPECT_EQ(0, result11) << failed;
+	EXPECT_EQ(1, result01) << failed;
+	EXPECT_EQ(1, result10) << failed;
+	EXPECT_EQ(1, result00) << failed;
+
+}
+
+// Checks the truth table for AND
+TEST(UnitTestFHEWAP,NOR) {
+
+	auto cc = BinFHEContext();
+	cc.GenerateBinFHEContext(TOY,AP);
 
 	auto sk = cc.KeyGen();
 
@@ -290,6 +404,196 @@ TEST(UnitTestFHEW,NOR) {
 	std::string failed = "NOR failed";
 
 	EXPECT_EQ(0, result11) << failed;
+	EXPECT_EQ(0, result01) << failed;
+	EXPECT_EQ(0, result10) << failed;
+	EXPECT_EQ(1, result00) << failed;
+
+}
+
+// Checks the truth table for AND
+TEST(UnitTestFHEWGINX,NOR) {
+
+	auto cc = BinFHEContext();
+	cc.GenerateBinFHEContext(TOY,GINX);
+
+	auto sk = cc.KeyGen();
+
+	cc.BTKeyGen(sk);
+
+	auto ct1 = cc.Encrypt(sk,1);
+	auto ct0 = cc.Encrypt(sk,0);
+	auto ct1Alt = cc.Encrypt(sk,1);
+	auto ct0Alt = cc.Encrypt(sk,0);
+
+	auto ct11 = cc.EvalBinGate(NOR,ct1,ct1Alt);
+	auto ct01 = cc.EvalBinGate(NOR,ct0,ct1);
+	auto ct10 = cc.EvalBinGate(NOR,ct1,ct0);
+	auto ct00 = cc.EvalBinGate(NOR,ct0,ct0Alt);
+
+	LWEPlaintext result11;
+	cc.Decrypt(sk,ct11,&result11);
+	LWEPlaintext result01;
+	cc.Decrypt(sk,ct01,&result01);
+	LWEPlaintext result10;
+	cc.Decrypt(sk,ct10,&result10);
+	LWEPlaintext result00;
+	cc.Decrypt(sk,ct00,&result00);
+
+	std::string failed = "NOR failed";
+
+	EXPECT_EQ(0, result11) << failed;
+	EXPECT_EQ(0, result01) << failed;
+	EXPECT_EQ(0, result10) << failed;
+	EXPECT_EQ(1, result00) << failed;
+
+}
+
+// Checks the truth table for XOR
+TEST(UnitTestFHEWAP,XOR) {
+
+	auto cc = BinFHEContext();
+	cc.GenerateBinFHEContext(TOY,AP);
+
+	auto sk = cc.KeyGen();
+
+	cc.BTKeyGen(sk);
+
+	auto ct1 = cc.Encrypt(sk,1);
+	auto ct0 = cc.Encrypt(sk,0);
+	auto ct1Alt = cc.Encrypt(sk,1);
+	auto ct0Alt = cc.Encrypt(sk,0);
+
+	auto ct11 = cc.EvalBinGate(XOR,ct1,ct1Alt);
+	auto ct01 = cc.EvalBinGate(XOR,ct0,ct1);
+	auto ct10 = cc.EvalBinGate(XOR,ct1,ct0);
+	auto ct00 = cc.EvalBinGate(XOR,ct0,ct0Alt);
+
+	LWEPlaintext result11;
+	cc.Decrypt(sk,ct11,&result11);
+	LWEPlaintext result01;
+	cc.Decrypt(sk,ct01,&result01);
+	LWEPlaintext result10;
+	cc.Decrypt(sk,ct10,&result10);
+	LWEPlaintext result00;
+	cc.Decrypt(sk,ct00,&result00);
+
+	std::string failed = "XOR failed";
+
+	EXPECT_EQ(0, result11) << failed;
+	EXPECT_EQ(1, result01) << failed;
+	EXPECT_EQ(1, result10) << failed;
+	EXPECT_EQ(0, result00) << failed;
+
+}
+
+// Checks the truth table for XOR
+TEST(UnitTestFHEWGINX,XOR) {
+
+	auto cc = BinFHEContext();
+	cc.GenerateBinFHEContext(TOY,GINX);
+
+	auto sk = cc.KeyGen();
+
+	cc.BTKeyGen(sk);
+
+	auto ct1 = cc.Encrypt(sk,1);
+	auto ct0 = cc.Encrypt(sk,0);
+	auto ct1Alt = cc.Encrypt(sk,1);
+	auto ct0Alt = cc.Encrypt(sk,0);
+
+	auto ct11 = cc.EvalBinGate(XOR,ct1,ct1Alt);
+	auto ct01 = cc.EvalBinGate(XOR,ct0,ct1);
+	auto ct10 = cc.EvalBinGate(XOR,ct1,ct0);
+	auto ct00 = cc.EvalBinGate(XOR,ct0,ct0Alt);
+
+	LWEPlaintext result11;
+	cc.Decrypt(sk,ct11,&result11);
+	LWEPlaintext result01;
+	cc.Decrypt(sk,ct01,&result01);
+	LWEPlaintext result10;
+	cc.Decrypt(sk,ct10,&result10);
+	LWEPlaintext result00;
+	cc.Decrypt(sk,ct00,&result00);
+
+	std::string failed = "XOR failed";
+
+	EXPECT_EQ(0, result11) << failed;
+	EXPECT_EQ(1, result01) << failed;
+	EXPECT_EQ(1, result10) << failed;
+	EXPECT_EQ(0, result00) << failed;
+
+}
+
+// Checks the truth table for XOR
+TEST(UnitTestFHEWAP,XNOR) {
+
+	auto cc = BinFHEContext();
+	cc.GenerateBinFHEContext(TOY,AP);
+
+	auto sk = cc.KeyGen();
+
+	cc.BTKeyGen(sk);
+
+	auto ct1 = cc.Encrypt(sk,1);
+	auto ct0 = cc.Encrypt(sk,0);
+	auto ct1Alt = cc.Encrypt(sk,1);
+	auto ct0Alt = cc.Encrypt(sk,0);
+
+	auto ct11 = cc.EvalBinGate(XNOR,ct1,ct1Alt);
+	auto ct01 = cc.EvalBinGate(XNOR,ct0,ct1);
+	auto ct10 = cc.EvalBinGate(XNOR,ct1,ct0);
+	auto ct00 = cc.EvalBinGate(XNOR,ct0,ct0Alt);
+
+	LWEPlaintext result11;
+	cc.Decrypt(sk,ct11,&result11);
+	LWEPlaintext result01;
+	cc.Decrypt(sk,ct01,&result01);
+	LWEPlaintext result10;
+	cc.Decrypt(sk,ct10,&result10);
+	LWEPlaintext result00;
+	cc.Decrypt(sk,ct00,&result00);
+
+	std::string failed = "XNOR failed";
+
+	EXPECT_EQ(1, result11) << failed;
+	EXPECT_EQ(0, result01) << failed;
+	EXPECT_EQ(0, result10) << failed;
+	EXPECT_EQ(1, result00) << failed;
+
+}
+
+// Checks the truth table for XOR
+TEST(UnitTestFHEWGINX,XNOR) {
+
+	auto cc = BinFHEContext();
+	cc.GenerateBinFHEContext(TOY,GINX);
+
+	auto sk = cc.KeyGen();
+
+	cc.BTKeyGen(sk);
+
+	auto ct1 = cc.Encrypt(sk,1);
+	auto ct0 = cc.Encrypt(sk,0);
+	auto ct1Alt = cc.Encrypt(sk,1);
+	auto ct0Alt = cc.Encrypt(sk,0);
+
+	auto ct11 = cc.EvalBinGate(XNOR,ct1,ct1Alt);
+	auto ct01 = cc.EvalBinGate(XNOR,ct0,ct1);
+	auto ct10 = cc.EvalBinGate(XNOR,ct1,ct0);
+	auto ct00 = cc.EvalBinGate(XNOR,ct0,ct0Alt);
+
+	LWEPlaintext result11;
+	cc.Decrypt(sk,ct11,&result11);
+	LWEPlaintext result01;
+	cc.Decrypt(sk,ct01,&result01);
+	LWEPlaintext result10;
+	cc.Decrypt(sk,ct10,&result10);
+	LWEPlaintext result00;
+	cc.Decrypt(sk,ct00,&result00);
+
+	std::string failed = "XNOR failed";
+
+	EXPECT_EQ(1, result11) << failed;
 	EXPECT_EQ(0, result01) << failed;
 	EXPECT_EQ(0, result10) << failed;
 	EXPECT_EQ(1, result00) << failed;

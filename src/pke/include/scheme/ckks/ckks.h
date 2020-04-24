@@ -55,14 +55,16 @@ namespace lbcrypto {
 			/**
 			 * Default Constructor.
 			 */
-			LPCryptoParametersCKKS() : LPCryptoParametersRLWE<Element>(), m_ksTechnique (BV), m_rsTechnique (APPROXRESCALE) {}
+			LPCryptoParametersCKKS() : LPCryptoParametersRLWE<Element>(), m_ksTechnique (BV),
+			m_rsTechnique (APPROXRESCALE), m_dnum(0), m_numTowersPerDigit(0) {}
 
 			/**
 			 * Copy constructor.
 			 *
 	 		 * @param rhs - source
 			 */
-			LPCryptoParametersCKKS(const LPCryptoParametersCKKS &rhs) : LPCryptoParametersRLWE<Element>(rhs), m_ksTechnique (BV), m_rsTechnique (APPROXRESCALE) {}
+			LPCryptoParametersCKKS(const LPCryptoParametersCKKS &rhs) : LPCryptoParametersRLWE<Element>(rhs),
+					m_ksTechnique (BV), m_rsTechnique (APPROXRESCALE), m_dnum(0), m_numTowersPerDigit(0) {}
 
 			/**
 			 * Constructor that initializes values.  Note that it is possible to set parameters in a way that is overall
@@ -80,7 +82,9 @@ namespace lbcrypto {
 			 * @param relinWindow the size of the relinearization window.
 			 * @param mode sets the mode of operation: RLWE or OPTIMIZED
 			 * @param depth depth which is set to 1.
+			 * @param maxDepth the maximum power of secret key for which the relinearization key is generated
 			 * @param ksTech key switching method
+			 * @param rsTech rescaling method
 			 */
 			LPCryptoParametersCKKS(
 				shared_ptr<typename Element::Params> params,
@@ -91,7 +95,7 @@ namespace lbcrypto {
 				usint relinWindow,
 				MODE mode,
 				int depth = 1,
-				int maxDepth = 1,
+				int maxDepth = 2,
 				KeySwitchTechnique ksTech = BV,
 				RescalingTechnique rsTech = APPROXRESCALE)
 					: LPCryptoParametersRLWE<Element>(
@@ -106,6 +110,8 @@ namespace lbcrypto {
 						mode) {
 				m_ksTechnique = ksTech;
 				m_rsTechnique = rsTech;
+				m_dnum = 0;
+				m_numTowersPerDigit = 0;
 			}
 
 			/**
@@ -119,6 +125,7 @@ namespace lbcrypto {
 			* @param relinWindow the size of the relinearization window.
 			* @param mode sets the mode of operation: RLWE or OPTIMIZED
 			* @param depth depth which is set to 1.
+			* @param maxDepth the maximum power of secret key for which the relinearization key is generated
 			* @param ksTech key switching method
 			* @param rsTech rescaling method
 			*/
@@ -131,7 +138,7 @@ namespace lbcrypto {
 				usint relinWindow,
 				MODE mode,
 				int depth = 1,
-				int maxDepth = 1,
+				int maxDepth = 2,
 				KeySwitchTechnique ksTech = BV,
 				RescalingTechnique rsTech = APPROXRESCALE)
 				: LPCryptoParametersRLWE<Element>(
@@ -146,6 +153,8 @@ namespace lbcrypto {
 					mode) {
 				m_ksTechnique = ksTech;
 				m_rsTechnique = rsTech;
+				m_dnum = 0;
+				m_numTowersPerDigit = 0;
 			}
 
 			/**
@@ -256,7 +265,7 @@ namespace lbcrypto {
 
 			/**
 			 * Used for speeding up GHS key switching, it returns precomputed
-			 * values to allow ModMulPreconOptimized with the (P^-1 mod q_j)
+			 * values to allow ModMulPrecon with the (P^-1 mod q_j)
 			 * values. Result size as in GetPInvModQTable method.
 			 *
 			 * @return a vector holding precomputed values for (P^-1 mod q_j)
@@ -282,7 +291,7 @@ namespace lbcrypto {
 
 			/**
 			 * Used for speeding up GHS key switching, it returns precomputed
-			 * values to allow ModMulPreconOptimized with the (\hat{p_i}^-1 mod p_i)
+			 * values to allow ModMulPrecon with the (\hat{p_i}^-1 mod p_i)
 			 * values. Result size as in GetPHatInvModPTable method.
 			 *
 			 * @return a vector holding precomputed values for (\hat{p_i}^-1 mod p_i)
@@ -308,7 +317,7 @@ namespace lbcrypto {
 
 			/**
 			 * Used for speeding up GHS key switching, it returns precomputed
-			 * values to allow ModMulPreconOptimized with the (\hat{q_{l,j}}^-1 mod q_j)
+			 * values to allow ModMulPrecon with the (\hat{q_{l,j}}^-1 mod q_j)
 			 * values. Result size as in GetQHatInvModQTable method.
 			 *
 			 * @return a vector holding precomputed values for (\hat{q_{l,j}}^-1 mod q_j)
@@ -408,7 +417,7 @@ namespace lbcrypto {
 			 */
 			const double GetScalingFactorOfLevel(uint32_t i) const {
 				if (i >= m_scalingFactors.size()) {
-					throw std::logic_error(
+					PALISADE_THROW(math_error,
 							"LPCryptoParametersCKKS::GetScalingFactorOfLevel - Cannot return scaling factor of level " +
 							std::to_string(i) + ". Current settings have up to " +
 							std::to_string(m_scalingFactors.size()) + " levels, starting from 0." );
@@ -499,7 +508,7 @@ namespace lbcrypto {
 				if (index < m_partitionQHatInvModQj.size())
 					return m_partitionQHatInvModQj[index];
 				else
-					throw std::logic_error(
+					PALISADE_THROW(math_error,
 							"LPCryptoParametersCKKS::GetPartitionQHatInvModQTable - index out of bounds." );
 			}
 
@@ -513,7 +522,7 @@ namespace lbcrypto {
 				if (index < m_partitionQHatInvModQjPrecon.size())
 					return m_partitionQHatInvModQjPrecon[index];
 				else
-					throw std::logic_error(
+					PALISADE_THROW(math_error,
 							"LPCryptoParametersCKKS::GetPartitionQHatInvModQPreconTable - index out of bounds." );
 			}
 
@@ -527,7 +536,7 @@ namespace lbcrypto {
 				if (index < m_partitionQHatModPi.size())
 					return m_partitionQHatModPi[index];
 				else
-					throw std::logic_error(
+					PALISADE_THROW(math_error,
 							"LPCryptoParametersCKKS::GetPartitionQHatModPTable - index out of bounds." );
 			}
 
@@ -541,7 +550,7 @@ namespace lbcrypto {
 				if (index < m_modBarrettPreconComplPartition.size())
 					return m_modBarrettPreconComplPartition[index];
 				else
-					throw std::logic_error(
+					PALISADE_THROW(math_error,
 							"LPCryptoParametersCKKS::GetPartitionPrecon - index out of bounds." );
 			}
 
@@ -669,7 +678,7 @@ namespace lbcrypto {
 		bool ParamsGen(shared_ptr<LPCryptoParameters<Element>> cryptoParams, int32_t evalAddCount = 0,
 			int32_t evalMultCount = 0, int32_t keySwitchCount = 0, size_t dcrtBits = 0, uint32_t n = 0) const {
 			std::string errMsg = "This ParamsGen method is not implemented for CKKS.";
-			throw std::logic_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -810,6 +819,11 @@ namespace lbcrypto {
 		LPAlgorithmSHECKKS() {}
 
 		/**
+		* Destructor
+		*/
+		virtual ~LPAlgorithmSHECKKS() {}
+
+		/**
 		* Function for homomorphic addition of ciphertexts.
 		*
 		* @param ciphertext1 first input ciphertext.
@@ -830,7 +844,7 @@ namespace lbcrypto {
 		virtual Ciphertext<Element> EvalAddMutable(Ciphertext<Element> &ciphertext1,
 			Ciphertext<Element> &ciphertext2) const {
 			std::string errMsg = "LPAlgorithmSHECKKS::EvalAddMutable is only supported for DCRTPoly.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -854,7 +868,7 @@ namespace lbcrypto {
 		virtual Ciphertext<Element> EvalAddMutable(Ciphertext<Element> &ciphertext,
 			Plaintext plaintext) const {
 			std::string errMsg = "LPAlgorithmSHECKKS::EvalAddMutable is only supported for DCRTPoly.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 
@@ -879,7 +893,7 @@ namespace lbcrypto {
 		virtual Ciphertext<Element> EvalAddMutable(Ciphertext<Element> &ciphertext,
 			double constant) const {
 			std::string errMsg = "LPAlgorithmSHECKKS::EvalAddMutable is only supported for DCRTPoly.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -895,7 +909,7 @@ namespace lbcrypto {
 			vector<Ciphertext<Element>> ciphertexts,
 			vector<double> constants) const {
 			std::string errMsg = "LPAlgorithmSHECKKS::EvalLinearWSum is only supported for DCRTPoly.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -911,7 +925,7 @@ namespace lbcrypto {
 			vector<Ciphertext<Element>> ciphertexts,
 			vector<double> constants) const {
 			std::string errMsg = "LPAlgorithmSHECKKS::EvalLinearWSumMutable is only supported for DCRTPoly.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -935,7 +949,7 @@ namespace lbcrypto {
 		virtual Ciphertext<Element> EvalSubMutable(Ciphertext<Element> &ciphertext1,
 			Ciphertext<Element> &ciphertext2) const {
 			std::string errMsg = "LPAlgorithmSHECKKS::EvalSubMutable is only supported for DCRTPoly.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -959,7 +973,7 @@ namespace lbcrypto {
 		virtual Ciphertext<Element> EvalSubMutable(Ciphertext<Element> &ciphertext1,
 				Plaintext plaintext) const {
 			std::string errMsg = "LPAlgorithmSHECKKS::EvalSubMutable is only supported for DCRTPoly.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -983,7 +997,7 @@ namespace lbcrypto {
 		virtual Ciphertext<Element> EvalSubMutable(Ciphertext<Element> &ciphertext,
 			double constant) const {
 			std::string errMsg = "LPAlgorithmSHECKKS::EvalSubMutable is only supported for DCRTPoly.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 
@@ -1010,7 +1024,7 @@ namespace lbcrypto {
 		virtual Ciphertext<Element> EvalMultMutable(Ciphertext<Element> &ciphertext1,
 			Ciphertext<Element> &ciphertext2) const {
 			std::string errMsg = "LPAlgorithmSHECKKS::EvalMultMutable is only supported for DCRTPoly.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 
@@ -1035,7 +1049,7 @@ namespace lbcrypto {
 		virtual Ciphertext<Element> EvalMultMutable(Ciphertext<Element> &ciphertext,
 			ConstPlaintext plaintext) const {
 			std::string errMsg = "LPAlgorithmSHECKKS::EvalMultMutable is only supported for DCRTPoly.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 
@@ -1060,7 +1074,7 @@ namespace lbcrypto {
 		virtual Ciphertext<Element> EvalMultMutable(Ciphertext<Element> &ciphertext,
 			double constant) const {
 			std::string errMsg = "LPAlgorithmSHECKKS::EvalMultMutable is only supported for DCRTPoly.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 
@@ -1102,7 +1116,7 @@ namespace lbcrypto {
 			ConstCiphertext<Element> ciphertext2,
 			const vector<LPEvalKey<Element>> &ek) const {
 			std::string errMsg = "LPAlgorithmSHECKKS::EvalMultAndRelinearize is not implemented for the CKKS Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/*
@@ -1114,7 +1128,7 @@ namespace lbcrypto {
 		Ciphertext<Element> Relinearize(ConstCiphertext<Element> ciphertext,
 			const vector<LPEvalKey<Element>> &ek) const {
 			std::string errMsg = "LPAlgorithmSHECKKS::Relinearize is not implemented for the non Double-CRT variant of the CKKS Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -1138,7 +1152,7 @@ namespace lbcrypto {
 				const LPPrivateKey<Element> oldKey,
 				const LPPrivateKey<Element> newKey) const {
 			std::string errMsg = "LPAlgorithmSHECKKS::KeySwitchHybridGen is not implemented for the non Double-CRT variant of the CKKS Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/*
@@ -1153,7 +1167,7 @@ namespace lbcrypto {
 		Ciphertext<Element> KeySwitchHybrid(const LPEvalKey<Element> keySwitchHint,
 				ConstCiphertext<Element> cipherText) const {
 			std::string errMsg = "LPAlgorithmSHECKKS::KeySwitchGHS is not implemented for the non Double-CRT variant of the CKKS Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 
@@ -1243,7 +1257,7 @@ namespace lbcrypto {
 		LPEvalKey<Element> KeySwitchRelinGen(const LPPublicKey<Element> newPublicKey,
 			const LPPrivateKey<Element> origPrivateKey) const {
 			std::string errMsg = "LPAlgorithmSHECKKS:KeySwitchRelinGen is not implemented for CKKS as relinearization is the default technique and no NTRU key generation is used in CKKS.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -1256,7 +1270,7 @@ namespace lbcrypto {
 		Ciphertext<Element> KeySwitchRelin(const LPEvalKey<Element> evalKey,
 			ConstCiphertext<Element> ciphertext) const {
 			std::string errMsg = "LPAlgorithmSHECKKS:KeySwitchRelin is not implemented for CKKS as relinearization is the default technique and no NTRU key generation is used in CKKS.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -1309,7 +1323,7 @@ namespace lbcrypto {
 		shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAutomorphismKeyGen(const LPPublicKey<Element> publicKey,
 			const LPPrivateKey<Element> privateKey, const std::vector<usint> &indexList) const {
 			std::string errMsg = "LPAlgorithmSHECKKS::EvalAutomorphismKeyGen is not implemented for CKKS SHE Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -1410,7 +1424,7 @@ namespace lbcrypto {
 					Ciphertext<Element> &c1,
 					uint32_t targetLevel) const {
 			std::string errMsg = "LPAlgorithmSHECKKS::AdjustLevelWithoutRescale is not implemented for the non Double-CRT variant of the CKKS Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -1433,7 +1447,7 @@ namespace lbcrypto {
 			Ciphertext<Element> &c1,
 			uint32_t targetLevel ) const {
 			std::string errMsg = "LPAlgorithmSHECKKS::AdjustLevelWithoutRescale is not implemented for the non Double-CRT variant of the CKKS Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 
@@ -1623,7 +1637,7 @@ namespace lbcrypto {
 			ConstCiphertext<Element> ciphertext1,
 			ConstCiphertext<Element> ciphertext2) const {
 			std::string errMsg = "LPAlgorithmSHECKKS::EvalAddApprox is only supported for DCRTPoly.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -1700,7 +1714,7 @@ namespace lbcrypto {
 			ConstCiphertext<Element> ciphertext1,
 			ConstCiphertext<Element> ciphertext2) const {
 			std::string errMsg = "LPAlgorithmSHECKKS::EvalMultApprox is only supported for DCRTPoly.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -2063,18 +2077,6 @@ namespace lbcrypto {
 		virtual Ciphertext<Element> ModReduceInternal(ConstCiphertext<Element> cipherText) const;
 
 		/**
-		* Method for RingReducing CipherText. Not implemented for the CKKS/CKKS scheme.
-		*
-		* @param cipherText is the ciphertext to perform ringreduce on.
-		* @param keySwitchHint is the keyswitchhint to switch the ciphertext from original private key to a sparse private key.
-		*/
-		virtual Ciphertext<Element> RingReduce(ConstCiphertext<Element> cipherText, const LPEvalKey<Element> keySwitchHint) const {
-
-			std::string errMsg = "LPAlgorithmSHECKKS::RindReduce is not currently implemented for the CKKS/CKKS Scheme.";
-			throw std::runtime_error(errMsg);
-		}
-
-		/**
 		* Method for Composed EvalMult, which includes homomorphic multiplication, key switching, and modulo reduction. Not implemented for the CKKS/CKKS scheme.
 		*
 		* @param cipherText1 ciphertext1, first input ciphertext to perform multiplication on.
@@ -2088,7 +2090,7 @@ namespace lbcrypto {
 			const LPEvalKey<Element> quadKeySwitchHint) const
 		{
 			std::string errMsg = "LPAlgorithmSHECKKS::ComposedEvalMult is not currently implemented for the CKKS/CKKS Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -2115,21 +2117,6 @@ namespace lbcrypto {
 		*/
 		virtual Ciphertext<Element> LevelReduceInternal(ConstCiphertext<Element> cipherText1,
 			const LPEvalKey<Element> linearKeySwitchHint, size_t levels) const;
-
-		/**
-		* Function that determines if security requirements are met if ring dimension is reduced by half.
-		* Not implemented for the CKKS/CKKS scheme.
-		*
-		* @param ringDimension is the original ringDimension
-		* @param &moduli is the vector of moduli that is used
-		* @param rootHermiteFactor is the security threshold
-		* @return boolean value that determines if the ring is reducable.
-		*/
-		virtual bool CanRingReduce(usint ringDimension, const std::vector<BigInteger> &moduli, const double rootHermiteFactor) const
-		{
-			std::string errMsg = "LPAlgorithmSHECKKS::CanRingReduce is not currently implemented for the CKKS/CKKS Scheme.";
-			throw std::runtime_error(errMsg);
-		}
 
 		template <class Archive>
 		void save ( Archive & ar ) const

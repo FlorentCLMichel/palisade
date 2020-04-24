@@ -112,31 +112,34 @@ template<>
 inline CryptoContext<DCRTPoly>
 GenCryptoContextBFV(usint ORDER, PlaintextModulus ptm, usint bits, usint towers, MODE mode) {
 
-	PALISADE_THROW(not_available_error, "DCRT is not supported for BFV");
+	PALISADE_THROW(not_implemented_error, "DCRT is not supported for BFV");
 }
 
 template<typename Element>
 inline CryptoContext<Element>
-GenCryptoContextBFVrns(PlaintextModulus ptm, MODE mode=RLWE);
+GenCryptoContextBFVrns(PlaintextModulus ptm, MODE mode=RLWE, uint32_t batchSize=0);
 
 template<>
 inline CryptoContext<Poly>
-GenCryptoContextBFVrns(PlaintextModulus ptm, MODE mode) {
+GenCryptoContextBFVrns(PlaintextModulus ptm, MODE mode, uint32_t batchSize) {
 
-	PALISADE_THROW(not_available_error, "Poly is not supported for BFVrns");
+	PALISADE_THROW(not_implemented_error, "Poly is not supported for BFVrns");
 }
 
 template<>
 inline CryptoContext<NativePoly>
-GenCryptoContextBFVrns(PlaintextModulus ptm, MODE mode) {
+GenCryptoContextBFVrns(PlaintextModulus ptm, MODE mode, uint32_t batchSize) {
 
-	PALISADE_THROW(not_available_error, "NativePoly is not supported for BFVrns");
+	PALISADE_THROW(not_implemented_error, "NativePoly is not supported for BFVrns");
 }
 
 template<>
 inline CryptoContext<DCRTPoly>
-GenCryptoContextBFVrns(PlaintextModulus ptm, MODE mode) {
-	CryptoContext<DCRTPoly> cc = CryptoContextFactory<DCRTPoly>::genCryptoContextBFVrns(ptm, HEStd_128_classic, 3.2, 0, 2, 0, mode, 2, 20, 60);
+GenCryptoContextBFVrns(PlaintextModulus ptm, MODE mode, uint32_t batchSize) {
+	EncodingParams encodingParams(new EncodingParamsImpl(ptm));
+	encodingParams->SetBatchSize(batchSize);
+	CryptoContext<DCRTPoly> cc = CryptoContextFactory<DCRTPoly>::genCryptoContextBFVrns(encodingParams,
+			HEStd_128_classic, 3.2, 0, 2, 0, mode, 2, 20, 60);
 	cc->Enable(ENCRYPTION);
 	cc->Enable(PRE);
 	cc->Enable(SHE);
@@ -146,26 +149,29 @@ GenCryptoContextBFVrns(PlaintextModulus ptm, MODE mode) {
 
 template<typename Element>
 inline CryptoContext<Element>
-GenCryptoContextBFVrnsB(PlaintextModulus ptm, MODE mode=RLWE);
+GenCryptoContextBFVrnsB(PlaintextModulus ptm, MODE mode=RLWE, uint32_t batchSize=0);
 
 template<>
 inline CryptoContext<Poly>
-GenCryptoContextBFVrnsB(PlaintextModulus ptm, MODE mode) {
+GenCryptoContextBFVrnsB(PlaintextModulus ptm, MODE mode, uint32_t batchSize) {
 
-	PALISADE_THROW(not_available_error, "Poly is not supported for BFVrnsB");
+	PALISADE_THROW(not_implemented_error, "Poly is not supported for BFVrnsB");
 }
 
 template<>
 inline CryptoContext<NativePoly>
-GenCryptoContextBFVrnsB(PlaintextModulus ptm, MODE mode) {
+GenCryptoContextBFVrnsB(PlaintextModulus ptm, MODE mode, uint32_t batchSize) {
 
-	PALISADE_THROW(not_available_error, "NativePoly is not supported for BFVrnsB");
+	PALISADE_THROW(not_implemented_error, "NativePoly is not supported for BFVrnsB");
 }
 
 template<>
 inline CryptoContext<DCRTPoly>
-GenCryptoContextBFVrnsB(PlaintextModulus ptm, MODE mode) {
-	CryptoContext<DCRTPoly> cc = CryptoContextFactory<DCRTPoly>::genCryptoContextBFVrnsB(ptm, HEStd_128_classic, 3.2, 0, 2, 0, mode, 2, 30, 60);
+GenCryptoContextBFVrnsB(PlaintextModulus ptm, MODE mode, uint32_t batchSize) {
+	EncodingParams encodingParams(new EncodingParamsImpl(ptm));
+	encodingParams->SetBatchSize(batchSize);
+	CryptoContext<DCRTPoly> cc = CryptoContextFactory<DCRTPoly>::genCryptoContextBFVrnsB(encodingParams,
+			HEStd_128_classic, 3.2, 0, 2, 0, mode, 2, 20, 60);
 	cc->Enable(ENCRYPTION);
 	cc->Enable(PRE);
 	cc->Enable(SHE);
@@ -195,7 +201,7 @@ GenCryptoContextCKKS( usint cyclOrder,
 		   KeySwitchTechnique ksTech,
 		   RescalingTechnique rsTech ) {
 
-	PALISADE_THROW(not_available_error, "Poly is not supported for CKKS");
+	PALISADE_THROW(not_implemented_error, "Poly is not supported for CKKS");
 }
 
 /* *
@@ -342,13 +348,13 @@ GenTestCryptoContext( const string& name,
 	else if( name == "BFV_opt" )
 		cc = GenCryptoContextBFV<Element>(ORDER, ptm, bits, towers, OPTIMIZED);
 	else if( name == "BFVrns_rlwe" )
-		cc = GenCryptoContextBFVrns<Element>(ptm, RLWE);
+		cc = GenCryptoContextBFVrns<Element>(ptm, RLWE, batchSize);
 	else if( name == "BFVrns_opt" )
-		cc = GenCryptoContextBFVrns<Element>(ptm, OPTIMIZED);
+		cc = GenCryptoContextBFVrns<Element>(ptm, OPTIMIZED, batchSize);
 	else if( name == "BFVrnsB_rlwe" )
-		cc = GenCryptoContextBFVrnsB<Element>(ptm, RLWE);
+		cc = GenCryptoContextBFVrnsB<Element>(ptm, RLWE, batchSize);
 	else if( name == "BFVrnsB_opt" )
-		cc = GenCryptoContextBFVrnsB<Element>(ptm, OPTIMIZED);
+		cc = GenCryptoContextBFVrnsB<Element>(ptm, OPTIMIZED, batchSize);
 	else if( name == "CKKS_sparse" )
 		cc = GenCryptoContextCKKS<Element>(ORDER, towers, ptm, relinWin, batchSize, SPARSE, ksTech, rsTech);
 	else if( name == "CKKS" ) {

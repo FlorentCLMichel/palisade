@@ -64,7 +64,7 @@ namespace lbcrypto{
                     base = 64;
                     break;
                 default:
-                    throw std::logic_error("Unknown ringsize");
+                    PALISADE_THROW(config_error, "Unknown ringsize");
             }
             GenerateGPVContext(ringsize,k,base);
     }

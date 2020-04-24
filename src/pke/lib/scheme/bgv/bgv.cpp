@@ -297,7 +297,7 @@ namespace lbcrypto {
 	{
 
 		if (ciphertext1->GetElements()[0].GetFormat() == Format::COEFFICIENT || ciphertext2->GetElements()[0].GetFormat() == Format::COEFFICIENT) {
-			throw std::runtime_error("EvalMult cannot multiply in COEFFICIENT domain.");
+			PALISADE_THROW(not_available_error, "EvalMult cannot multiply in COEFFICIENT domain.");
 		}
 
 		Ciphertext<Element> newCiphertext = ciphertext1->CloneEmpty();
@@ -333,7 +333,7 @@ namespace lbcrypto {
 		const Element& c2 = plaintext->GetElement<Element>();
 
 		if (ciphertext->GetElements()[0].GetFormat() == Format::COEFFICIENT || plaintext->GetElement<Element>().GetFormat() == Format::COEFFICIENT) {
-			throw std::runtime_error("EvalMult cannot multiply in COEFFICIENT domain.");
+			PALISADE_THROW(not_available_error, "EvalMult cannot multiply in COEFFICIENT domain.");
 		}
 
 		std::vector<Element> cNew;
@@ -529,7 +529,7 @@ namespace lbcrypto {
 		shared_ptr<std::map<usint, LPEvalKey<Element>>> evalKeys(new std::map<usint, LPEvalKey<Element>>());
 
 		if (indexList.size() > n - 1)
-			throw std::runtime_error("size exceeds the ring dimension");
+			PALISADE_THROW(math_error, "size exceeds the ring dimension");
 		else {
 
 			for (usint i = 0; i < indexList.size(); i++)
@@ -636,71 +636,48 @@ namespace lbcrypto {
 			ConstCiphertext<Element> ciphertext,
 			const LPPublicKey<Element> publicKey) const
 	{
-		auto c = ciphertext->GetCryptoContext()->GetEncryptionAlgorithm()->KeySwitch(EK, ciphertext);
-
-		if (publicKey == nullptr) { // Recipient PK is not provided - CPA-secure PRE
+		if (publicKey == nullptr) { // Sender PK is not provided - CPA-secure PRE
+			auto c = ciphertext->GetCryptoContext()->GetEncryptionAlgorithm()->KeySwitch(EK, ciphertext);
 			return c;
-		} else {
-			// Recipient PK provided - HRA-secure PRE
-			// To obtain HRA security, we a fresh encryption of zero to the result
-			// with noise scaled by K (=log2(q)/relinWin).
-			CryptoContext<Element> cc = publicKey->GetCryptoContext();
+		} else {// Sender PK provided - HRA-secure PRE
+			// Get crypto and elements parameters
+			const shared_ptr<LPCryptoParametersRLWE<Element>> cryptoParamsLWE =
+				std::dynamic_pointer_cast<LPCryptoParametersRLWE<Element>>(publicKey->GetCryptoParameters());
+			const shared_ptr<typename Element::Params> elementParams = cryptoParamsLWE->GetElementParams();
 
-			// Creating the correct plaintext of zeroes, based on the
-			// encoding type of the ciphertext.
-			PlaintextEncodings encType = c->GetEncodingType();
+			const auto p = cryptoParamsLWE->GetPlaintextModulus();
 
-			// Encrypting with noise scaled by K
-			const shared_ptr<LPCryptoParametersBGV<Element>> cryptoPars =
-					std::dynamic_pointer_cast<LPCryptoParametersBGV<Element>>(publicKey->GetCryptoParameters());
-			const shared_ptr<typename Element::Params> elementParams = cryptoPars->GetElementParams();
+			const typename Element::DggType &dgg = cryptoParamsLWE->GetDiscreteGaussianGenerator();
+			typename Element::TugType tug;
 
-			usint relinWin = cryptoPars->GetRelinWindow();
-			usint nBits = elementParams->GetModulus().GetLengthForBase(2);
-			// K = log2(q)/r, i.e., number of digits in PRE decomposition
-			usint K = 1;
-			if (relinWin > 0) {
-				K = nBits / relinWin;
-				if (nBits % relinWin > 0)
-					K++;
-			}
+			PlaintextEncodings encType = ciphertext->GetEncodingType();
 
 			Ciphertext<Element> zeroCiphertext(new CiphertextImpl<Element>(publicKey));
 			zeroCiphertext->SetEncodingType(encType);
-
-			const auto p = cryptoPars->GetPlaintextModulus();
-			const typename Element::DggType &dgg = cryptoPars->GetDiscreteGaussianGenerator();
-			typename Element::TugType tug;
-			// Scaling the distribution standard deviation by K for HRA-security
-			auto stdDev = cryptoPars->GetDistributionParameter();
-			typename Element::DggType dgg_err(K*stdDev);
-
-			std::vector<Element> cVector;
 
 			const Element &a = publicKey->GetPublicElements().at(0);
 			const Element &b = publicKey->GetPublicElements().at(1);
 
 			Element v;
-			if (cryptoPars->GetMode() == RLWE)
+			if (cryptoParamsLWE->GetMode() == RLWE)
 				v = Element(dgg, elementParams, Format::EVALUATION);
 			else
 				v = Element(tug, elementParams, Format::EVALUATION);
 
-			Element e0(dgg_err, elementParams, Format::EVALUATION);
-			Element e1(dgg_err, elementParams, Format::EVALUATION);
+			Element e0(dgg, elementParams, Format::EVALUATION);
+			Element e1(dgg, elementParams, Format::EVALUATION);
 
 			Element c0(b*v + p*e0);
 			Element c1(a*v + p*e1);
 
-			cVector.push_back(std::move(c0));
-			cVector.push_back(std::move(c1));
-			zeroCiphertext->SetElements(std::move(cVector));
+			zeroCiphertext->SetElements({ c0, c1 });
 
-			c->SetKeyTag(zeroCiphertext->GetKeyTag());
+			// Add the encryption of zero for re-randomization purposes
+			auto c = ciphertext->GetCryptoContext()->GetEncryptionAlgorithm()->EvalAdd(ciphertext, zeroCiphertext);
 
-			// Add the encryption of zeroes to the re-encrypted ciphertext
-			// and return the result.
-			return cc->EvalAdd(c, zeroCiphertext);
+			// Do key switching and return the result
+			return ciphertext->GetCryptoContext()->GetEncryptionAlgorithm()->KeySwitch(EK, c);
+
 		}
 	}
 
@@ -940,7 +917,7 @@ shared_ptr<std::map<usint, LPEvalKey<Element>>> LPAlgorithmMultipartyBGV<Element
 		shared_ptr<std::map<usint, LPEvalKey<Element>>> evalKeys(new std::map<usint, LPEvalKey<Element>>());
 
 		if (indexList.size() > n - 1)
-			throw std::runtime_error("size exceeds the ring dimension");
+			PALISADE_THROW(math_error, "size exceeds the ring dimension");
 		else {
 
 			for (usint i = 0; i < indexList.size(); i++)
@@ -1127,11 +1104,11 @@ LPEvalKey<Element> LPAlgorithmMultipartyBGV<Element>::MultiAddEvalMultKeys(LPEva
 				this->m_algorithmMultiparty.reset( new LPAlgorithmMultipartyBGV<Element>() );
 			break;
 		case FHE:
-			throw std::logic_error("FHE feature not supported for BGV scheme");
+			PALISADE_THROW(not_implemented_error, "FHE feature not supported for BGV scheme");
 		case ADVANCEDSHE:
-			throw std::logic_error("ADVANCEDSHE feature not supported for BGV scheme");
+			PALISADE_THROW(not_implemented_error, "ADVANCEDSHE feature not supported for BGV scheme");
 		case ADVANCEDMP:
-			throw std::logic_error("ADVANCEDMP feature not supported for BGV scheme");
+			PALISADE_THROW(not_implemented_error, "ADVANCEDMP feature not supported for BGV scheme");
 		}
 	}
 

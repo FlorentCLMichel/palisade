@@ -188,8 +188,8 @@ public:
 				break;
 
 		for( size_t j = 0; j <= i; j++ ) {
-			out << ' ' << value[j].real();
-			//out << " (" << value[j].real() << "," << value[j].imag() << "),";
+			//out << ' ' << value[j].real();
+			out << " (" << value[j].real() << "," << value[j].imag() << "),";
 		}
 
 		out << " ... )";
@@ -197,7 +197,16 @@ public:
 
 private:
 
-	std::vector<std::complex<double>>		value;
+	std::vector<std::complex<double>> value;
+
+	/**
+	 * Set modulus and recalculates the vector values to fit the modulus
+	 *
+	 * @param &vec input vector
+	 * @param &bigValue big bound of the vector values.
+	 * @param &modulus modulus to be set for vector.
+	 */
+	void FitToNativeVector(const std::vector<int64_t> &vec, int64_t bigBound, NativeVector *nativeVec) const;
 
 };
 

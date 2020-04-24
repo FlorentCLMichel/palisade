@@ -62,7 +62,6 @@ template M2Vector PolynomialPower<M2Vector>(const M2Vector &input, usint power);
 template M2Vector SyntheticPolynomialDivision(const M2Vector &dividend, const M2Integer &a, const M2Integer &modulus);
 template M2Integer FindGeneratorCyclic(const M2Integer& modulo);
 template bool IsGenerator(const M2Integer& g, const M2Integer& modulo);
-template M2Integer ComputeMu(const M2Integer& q);
 template std::shared_ptr<std::vector<int64_t>> GetDigits(const M2Integer &u, uint64_t base, uint32_t k);
 }
 

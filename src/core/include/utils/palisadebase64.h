@@ -29,7 +29,7 @@
 
 #include <cctype>
 #include <cstdint>
-#include <stdexcept>
+#include <utils/exception.h>
 
 namespace lbcrypto {
 
@@ -56,7 +56,7 @@ namespace lbcrypto {
 		static unsigned char smallmask[] = { 0, 0x1, 0x3, 0x7, 0xf, 0x1f, 0x3f };
 
 		if(index==0) {
-			throw std::logic_error("Zero index in GetBitAtIndex");
+			PALISADE_THROW(math_error, "Zero index in GetBitAtIndex");
 		}
 		if( index<=6 ) {
 			return m_value & smallmask[index];

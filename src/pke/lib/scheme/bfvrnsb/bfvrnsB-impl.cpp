@@ -33,11 +33,11 @@ namespace lbcrypto {
 
 #define NOPOLY \
 		std::string errMsg = "BFVrnsB does not support Poly. Use DCRTPoly instead."; \
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(not_implemented_error, errMsg);
 
 #define NONATIVEPOLY \
 		std::string errMsg = "BFVrnsB does not support NativePoly. Use DCRTPoly instead."; \
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(not_implemented_error, errMsg);
 
 template <>
 LPCryptoParametersBFVrnsB<Poly>::LPCryptoParametersBFVrnsB() : m_numq(0), m_numB(0) {
@@ -349,7 +349,7 @@ bool LPCryptoParametersBFVrnsB<DCRTPoly>::PrecomputeCRTTables(){
 	m_numq = size;
 
 	// find m_tilde [we need to ensure that m_tilde is < Bsk moduli to avoid one extra modulo in Small_Montgomery_Reduction]
-	m_mtilde = NextPrime<NativeInteger>(moduli[m_numq-1], 2 * n);
+	m_mtilde = PreviousPrime<NativeInteger>(moduli[m_numq-1], 2 * n);
 
 	BigInteger t = BigInteger(GetPlaintextModulus());
 	BigInteger q(GetElementParams()->GetModulus());
@@ -357,14 +357,14 @@ bool LPCryptoParametersBFVrnsB<DCRTPoly>::PrecomputeCRTTables(){
 	BigInteger B = 1;
 	BigInteger maxConvolutionValue = BigInteger(4) * BigInteger(n) * q * q * t;
 
-	m_BModuli.push_back( NextPrime<NativeInteger>(m_mtilde, 2 * n) );
+	m_BModuli.push_back( PreviousPrime<NativeInteger>(m_mtilde, 2 * n) );
 	m_BskRoots.push_back( RootOfUnity<NativeInteger>(2 * n, m_BModuli[0]) );
 	B = B * BigInteger(m_BModuli[0]);
 
 	int i = 1; // we already added one prime
 	while ( q*B < maxConvolutionValue )
 	{
-		m_BModuli.push_back( NextPrime<NativeInteger>(m_BModuli[i-1], 2 * n) );
+		m_BModuli.push_back( PreviousPrime<NativeInteger>(m_BModuli[i-1], 2 * n) );
 		m_BskRoots.push_back( RootOfUnity<NativeInteger>(2 * n, m_BModuli[i]) );
 
 		B = B * BigInteger(m_BModuli[i]);
@@ -374,7 +374,7 @@ bool LPCryptoParametersBFVrnsB<DCRTPoly>::PrecomputeCRTTables(){
 	m_numB = i;
 
 	// find msk
-	m_msk = NextPrime<NativeInteger>(m_BModuli[m_numB-1], 2 * n);
+	m_msk = PreviousPrime<NativeInteger>(m_BModuli[m_numB-1], 2 * n);
 	m_BskRoots.push_back( RootOfUnity<NativeInteger>(2 * n, m_msk) );
 
 	m_BskModuli = m_BModuli;
@@ -429,7 +429,7 @@ bool LPCryptoParametersBFVrnsB<DCRTPoly>::PrecomputeCRTTables(){
 		tqDivqi = tqDivqi.ModInverse( moduli[i] );
 		tqDivqi = tqDivqi.ModMul( t.ConvertToInt() , moduli[i] );
 		m_tqDivqiModqiTable[i] = tqDivqi.ConvertToInt();
-		m_tqDivqiModqiPreconTable[i] = m_tqDivqiModqiTable[i].PrepModMulPreconOptimized( moduli[i] );
+		m_tqDivqiModqiPreconTable[i] = m_tqDivqiModqiTable[i].PrepModMulConst( moduli[i] );
 	}
 
 	// Populate q/qi mod Bj table where Bj \in {Bsk U mtilde}
@@ -459,14 +459,14 @@ bool LPCryptoParametersBFVrnsB<DCRTPoly>::PrecomputeCRTTables(){
 		qDivqi = qDivqi * bmtilde;
 		qDivqi = qDivqi.Mod(moduli[i]);
 		m_mtildeqDivqiTable[i] = qDivqi.ConvertToInt();
-		m_mtildeqDivqiPreconTable[i] = m_mtildeqDivqiTable[i].PrepModMulPreconOptimized( moduli[i] );
+		m_mtildeqDivqiPreconTable[i] = m_mtildeqDivqiTable[i].PrepModMulConst( moduli[i] );
 	}
 
 	// Populate -1/q mod mtilde
 	BigInteger negqInvModmtilde = (BigInteger(m_mtilde-1) * q.ModInverse(m_mtilde));
 	negqInvModmtilde = negqInvModmtilde.Mod(m_mtilde);
 	m_negqInvModmtilde = negqInvModmtilde.ConvertToInt();
-	m_negqInvModmtildePrecon = m_negqInvModmtilde.PrepModMulPreconOptimized(m_mtilde);
+	m_negqInvModmtildePrecon = m_negqInvModmtilde.PrepModMulConst(m_mtilde);
 
 	// Populate q mod Bski
 	m_qModBskiTable.resize(m_numB + 1);
@@ -476,7 +476,7 @@ bool LPCryptoParametersBFVrnsB<DCRTPoly>::PrecomputeCRTTables(){
 	{
 		BigInteger qModBski = q.Mod(m_BskModuli[i]);
 		m_qModBskiTable[i] = qModBski.ConvertToInt();
-		m_qModBskiPreconTable[i] = m_qModBskiTable[i].PrepModMulPreconOptimized(m_BskModuli[i]);
+		m_qModBskiPreconTable[i] = m_qModBskiTable[i].PrepModMulConst(m_BskModuli[i]);
 	}
 
 	// Populate mtilde^-1 mod Bski
@@ -487,7 +487,7 @@ bool LPCryptoParametersBFVrnsB<DCRTPoly>::PrecomputeCRTTables(){
 		BigInteger mtildeInvModBski = m_mtilde % m_BskModuli[i];
 		mtildeInvModBski = mtildeInvModBski.ModInverse(m_BskModuli[i]);
 		m_mtildeInvModBskiTable[i] = mtildeInvModBski.ConvertToInt();
-		m_mtildeInvModBskiPreconTable[i] = m_mtildeInvModBskiTable[i].PrepModMulPreconOptimized(m_BskModuli[i]);
+		m_mtildeInvModBskiPreconTable[i] = m_mtildeInvModBskiTable[i].PrepModMulConst(m_BskModuli[i]);
 	}
 
 	// Populate q^-1 mod Bski
@@ -498,7 +498,7 @@ bool LPCryptoParametersBFVrnsB<DCRTPoly>::PrecomputeCRTTables(){
 	{
 		BigInteger qInvModBski = q.ModInverse(m_BskModuli[i]);
 		m_qInvModBskiTable[i] = qInvModBski.ConvertToInt();
-		m_qInvModBskiPreconTable[i] = m_qInvModBskiTable[i].PrepModMulPreconOptimized( m_BskModuli[i] );
+		m_qInvModBskiPreconTable[i] = m_qInvModBskiTable[i].PrepModMulConst( m_BskModuli[i] );
 	}
 
 	// Populate (B/Bi)^-1 mod Bi
@@ -512,7 +512,7 @@ bool LPCryptoParametersBFVrnsB<DCRTPoly>::PrecomputeCRTTables(){
 		BDivBi = BDivBi.Mod(m_BModuli[i]);
 		BDivBi = BDivBi.ModInverse( m_BModuli[i] );
 		m_BDivBiModBiTable[i] = BDivBi.ConvertToInt();
-		m_BDivBiModBiPreconTable[i] = m_BDivBiModBiTable[i].PrepModMulPreconOptimized(m_BModuli[i]);
+		m_BDivBiModBiPreconTable[i] = m_BDivBiModBiTable[i].PrepModMulConst(m_BModuli[i]);
 	}
 
 	// Populate B/Bi mod qj table (Matrix) where Bj \in {q}
@@ -538,7 +538,7 @@ bool LPCryptoParametersBFVrnsB<DCRTPoly>::PrecomputeCRTTables(){
 
 	// Populate B^-1 mod msk
 	m_BInvModmsk = (B.ModInverse(m_msk)).ConvertToInt();
-	m_BInvModmskPrecon = m_BInvModmsk.PrepModMulPreconOptimized( m_msk );
+	m_BInvModmskPrecon = m_BInvModmsk.PrepModMulConst( m_msk );
 
 	// Populate B mod qi
 	m_BModqiTable.resize(m_numq);
@@ -546,15 +546,15 @@ bool LPCryptoParametersBFVrnsB<DCRTPoly>::PrecomputeCRTTables(){
 	for (uint32_t i = 0; i < m_BModqiTable.size(); i++)
 	{
 		m_BModqiTable[i] = (B.Mod( moduli[i] )).ConvertToInt();
-		m_BModqiPreconTable[i] = m_BModqiTable[i].PrepModMulPreconOptimized( moduli[i] );
+		m_BModqiPreconTable[i] = m_BModqiTable[i].PrepModMulConst( moduli[i] );
 	}
 
 	// Populate Decrns lookup tables
 	// choose gamma
-	m_gamma = NextPrime<NativeInteger>(m_mtilde, 2 * n);
+	m_gamma = PreviousPrime<NativeInteger>(m_mtilde, 2 * n);
 
 	m_gammaInvModt = m_gamma.ModInverse(t.ConvertToInt());
-	m_gammaInvModtPrecon = m_gammaInvModt.PrepModMulPreconOptimized( t.ConvertToInt() );
+	m_gammaInvModtPrecon = m_gammaInvModt.PrepModMulConst( t.ConvertToInt() );
 
 	BigInteger negqModt = ((t-BigInteger(1)) * q.ModInverse(t));
 	BigInteger negqModgamma = (BigInteger(m_gamma-1) * q.ModInverse(m_gamma));
@@ -562,10 +562,10 @@ bool LPCryptoParametersBFVrnsB<DCRTPoly>::PrecomputeCRTTables(){
 	m_negqInvModtgammaPreconTable.resize(2);
 
 	m_negqInvModtgammaTable[0] = negqModt.Mod(t).ConvertToInt();
-	m_negqInvModtgammaPreconTable[0] = m_negqInvModtgammaTable[0].PrepModMulPreconOptimized( t.ConvertToInt() );
+	m_negqInvModtgammaPreconTable[0] = m_negqInvModtgammaTable[0].PrepModMulConst( t.ConvertToInt() );
 
 	m_negqInvModtgammaTable[1] = negqModgamma.Mod(m_gamma).ConvertToInt();
-	m_negqInvModtgammaPreconTable[1] = m_negqInvModtgammaTable[1].PrepModMulPreconOptimized(m_gamma);
+	m_negqInvModtgammaPreconTable[1] = m_negqInvModtgammaTable[1].PrepModMulConst(m_gamma);
 
 	// Populate q/qi mod mj table where mj \in {t U gamma}
 	m_qDivqiModtgammaTable.resize(m_numq);
@@ -579,11 +579,11 @@ bool LPCryptoParametersBFVrnsB<DCRTPoly>::PrecomputeCRTTables(){
 
 		BigInteger qDivqiModt = qDivqi.Mod(t);
 		m_qDivqiModtgammaTable[i][0] = qDivqiModt.ConvertToInt();
-		m_qDivqiModtgammaPreconTable[i][0] = m_qDivqiModtgammaTable[i][0].PrepModMulPreconOptimized( t.ConvertToInt() );
+		m_qDivqiModtgammaPreconTable[i][0] = m_qDivqiModtgammaTable[i][0].PrepModMulConst( t.ConvertToInt() );
 
 		BigInteger qDivqiModgamma = qDivqi.Mod(m_gamma);
 		m_qDivqiModtgammaTable[i][1] = qDivqiModgamma.ConvertToInt();
-		m_qDivqiModtgammaPreconTable[i][1] = m_qDivqiModtgammaTable[i][1].PrepModMulPreconOptimized( m_gamma );
+		m_qDivqiModtgammaPreconTable[i][1] = m_qDivqiModtgammaTable[i][1].PrepModMulConst( m_gamma );
 
 	}
 
@@ -600,7 +600,7 @@ bool LPCryptoParametersBFVrnsB<DCRTPoly>::PrecomputeCRTTables(){
 		BigInteger gammaqDivqi = (qDivqi*bmgamma) % imod;
 		BigInteger tgammaqDivqi = (gammaqDivqi*t) % imod;
 		m_tgammaqDivqiModqiTable[i] = tgammaqDivqi.ConvertToInt();
-		m_tgammaqDivqiModqiPreconTable[i] = m_tgammaqDivqiModqiTable[i].PrepModMulPreconOptimized( moduli[i] );
+		m_tgammaqDivqiModqiPreconTable[i] = m_tgammaqDivqiModqiTable[i].PrepModMulConst( moduli[i] );
 	}
 
 	return true;
@@ -848,13 +848,13 @@ bool LPAlgorithmParamsGenBFVrnsB<DCRTPoly>::ParamsGen(shared_ptr<LPCryptoParamet
 
 	//makes sure the first integer is less than 2^60-1 to take advantage of NTL optimizations
 	NativeInteger firstInteger = FirstPrime<NativeInteger>(dcrtBits, 2 * n);
-	firstInteger -= (int64_t)(2*n)*((int64_t)(1)<<(dcrtBits/3));
-	moduli[0] = NextPrime<NativeInteger>(firstInteger, 2 * n);
+
+	moduli[0] = PreviousPrime<NativeInteger>(firstInteger, 2 * n);
 	roots[0] = RootOfUnity<NativeInteger>(2 * n, moduli[0]);
 
 	for (size_t i = 1; i < size; i++)
 	{
-		moduli[i] = NextPrime<NativeInteger>(moduli[i-1], 2 * n);
+		moduli[i] = PreviousPrime<NativeInteger>(moduli[i-1], 2 * n);
 		roots[i] = RootOfUnity<NativeInteger>(2 * n, moduli[i]);
 	}
 
@@ -863,6 +863,15 @@ bool LPAlgorithmParamsGenBFVrnsB<DCRTPoly>::ParamsGen(shared_ptr<LPCryptoParamet
 	ChineseRemainderTransformFTT<NativeVector>::PreCompute(roots,2*n,moduli);
 
 	cryptoParamsBFVrnsB->SetElementParams(params);
+
+	// if no batch size was specified, we set batchSize = n by default (for full packing)
+	const EncodingParams encodingParams = cryptoParamsBFVrnsB->GetEncodingParams();
+	if (encodingParams->GetBatchSize() == 0)
+	{
+		uint32_t batchSize = n;
+		EncodingParams encodingParamsNew(new EncodingParamsImpl(encodingParams->GetPlaintextModulus(),batchSize));
+		cryptoParamsBFVrnsB->SetEncodingParams(encodingParamsNew);
+	}
 
 	return cryptoParamsBFVrnsB->PrecomputeCRTTables();
 #endif //ifdef NO_EXTENDEDDOUBLE
@@ -1078,18 +1087,13 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBFVrnsB<DCRTPoly>::EvalMult(ConstCiphertext<D
 
 	if (!(ciphertext1->GetCryptoParameters() == ciphertext2->GetCryptoParameters())) {
 		std::string errMsg = "LPAlgorithmSHEBFVrnsB::EvalMult crypto parameters are not the same";
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(config_error, errMsg);
 	}
 
 	Ciphertext<DCRTPoly> newCiphertext = ciphertext1->CloneEmpty();
 
 	const shared_ptr<LPCryptoParametersBFVrnsB<DCRTPoly>> cryptoParamsBFVrnsB =
 			std::dynamic_pointer_cast<LPCryptoParametersBFVrnsB<DCRTPoly>>(ciphertext1->GetCryptoContext()->GetCryptoParameters());
-	//Check if the multiplication supports the depth
-	if ( (ciphertext1->GetDepth() + ciphertext2->GetDepth()) > cryptoParamsBFVrnsB->GetMaxDepth() ) {
-			std::string errMsg = "LPAlgorithmSHEBFVrnsB::EvalMult multiplicative depth is not supported";
-			throw std::runtime_error(errMsg);
-	}
 
 	//Get the ciphertext elements
 	std::vector<DCRTPoly> cipherText1Elements = ciphertext1->GetElements();
@@ -1551,96 +1555,52 @@ LPEvalKey<DCRTPoly> LPAlgorithmPREBFVrnsB<DCRTPoly>::ReKeyGen(const LPPublicKey<
 
 template <>
 Ciphertext<DCRTPoly> LPAlgorithmPREBFVrnsB<DCRTPoly>::ReEncrypt(const LPEvalKey<DCRTPoly> ek,
-	ConstCiphertext<DCRTPoly> cipherText,
+	ConstCiphertext<DCRTPoly> ciphertext,
 	const LPPublicKey<DCRTPoly> publicKey) const
 {
-	Ciphertext<DCRTPoly> newCiphertext = cipherText->CloneEmpty();
+	if (publicKey == nullptr) { // Sender PK is not provided - CPA-secure PRE
+		return ciphertext->GetCryptoContext()->KeySwitch(ek, ciphertext);
+	} else { // Sender PK provided - HRA-secure PRE
 
-	const shared_ptr<LPCryptoParametersBFVrnsB<DCRTPoly>> cryptoParamsLWE = std::dynamic_pointer_cast<LPCryptoParametersBFVrnsB<DCRTPoly>>(ek->GetCryptoParameters());
+		const shared_ptr<LPCryptoParametersBFVrnsB<DCRTPoly>> cryptoParamsLWE =
+						std::dynamic_pointer_cast<LPCryptoParametersBFVrnsB<DCRTPoly>>(ek->GetCryptoParameters());
 
-	LPEvalKeyRelin<DCRTPoly> evalKey = std::static_pointer_cast<LPEvalKeyRelinImpl<DCRTPoly>>(ek);
+		// Get crypto and elements parameters
+		const shared_ptr<typename DCRTPoly::Params> elementParams = cryptoParamsLWE->GetElementParams();
 
-	const std::vector<DCRTPoly> &c = cipherText->GetElements();
+		const typename DCRTPoly::DggType &dgg = cryptoParamsLWE->GetDiscreteGaussianGenerator();
+		typename DCRTPoly::TugType tug;
 
-	const std::vector<DCRTPoly> &b = evalKey->GetAVector();
-	const std::vector<DCRTPoly> &a = evalKey->GetBVector();
-
-	uint32_t relinWindow = cryptoParamsLWE->GetRelinWindow();
-	std::vector<DCRTPoly> digitsC2;
-
-	DCRTPoly ct0(c[0]);
-	DCRTPoly ct1;
-
-	digitsC2 = c[1].CRTDecompose(relinWindow);
-	ct1 = digitsC2[0] * a[0];
-	ct0 += digitsC2[0] * b[0];
-
-	for (usint i = 1; i < digitsC2.size(); ++i)	{
-		ct0 += digitsC2[i] * b[i];
-		ct1 += digitsC2[i] * a[i];
-	}
-
-	newCiphertext->SetElements({ ct0, ct1 });
-
-	if (publicKey == nullptr) { // Recipient PK is not provided - CPA-secure PRE
-		return newCiphertext;
-	} else { // Recipient PK provided - HRA-secure PRE
-		// To obtain HRA security, we a fresh encryption of zero to the result
-		// with noise scaled by K (=log2(q)/relinWin).
-		CryptoContext<DCRTPoly> cc = publicKey->GetCryptoContext();
-
-		// Creating the correct plaintext of zeroes, based on the
-		// encoding type of the ciphertext.
-		PlaintextEncodings encType = newCiphertext->GetEncodingType();
-
-		// Encrypting with noise scaled by K
-		const shared_ptr<LPCryptoParametersBFVrnsB<DCRTPoly>> cryptoPars =
-				std::dynamic_pointer_cast<LPCryptoParametersBFVrnsB<DCRTPoly>>(publicKey->GetCryptoParameters());
-		const shared_ptr<DCRTPoly::Params> elementParams = cryptoPars->GetElementParams();
-
-		usint relinWin = cryptoPars->GetRelinWindow();
-		usint nBits = elementParams->GetModulus().GetLengthForBase(2);
-		// K = log2(q)/r, i.e., number of digits in PRE decomposition
-		usint K = 1;
-		if (relinWin > 0) {
-			K = nBits / relinWin;
-			if (nBits % relinWin > 0)
-				K++;
-		}
+		PlaintextEncodings encType = ciphertext->GetEncodingType();
 
 		Ciphertext<DCRTPoly> zeroCiphertext(new CiphertextImpl<DCRTPoly>(publicKey));
 		zeroCiphertext->SetEncodingType(encType);
-
-		const DCRTPoly::DggType &dgg = cryptoPars->GetDiscreteGaussianGenerator();
-		DCRTPoly::TugType tug;
-		// Scaling the distribution standard deviation by K for HRA-security
-		auto stdDev = cryptoPars->GetDistributionParameter();
-		DCRTPoly::DggType dgg_err(K*stdDev);
 
 		const DCRTPoly &p0 = publicKey->GetPublicElements().at(0);
 		const DCRTPoly &p1 = publicKey->GetPublicElements().at(1);
 
 		DCRTPoly u;
-		if (cryptoPars->GetMode() == RLWE)
+
+		if (cryptoParamsLWE->GetMode() == RLWE)
 			u = DCRTPoly(dgg, elementParams, Format::EVALUATION);
 		else
 			u = DCRTPoly(tug, elementParams, Format::EVALUATION);
 
-		DCRTPoly e1(dgg_err, elementParams, Format::EVALUATION);
-		DCRTPoly e2(dgg_err, elementParams, Format::EVALUATION);
+		DCRTPoly e1(dgg, elementParams, Format::EVALUATION);
+		DCRTPoly e2(dgg, elementParams, Format::EVALUATION);
 
-		DCRTPoly c0(elementParams);
-		DCRTPoly c1(elementParams);
-
-		c0 = p0*u + e1;
-		c1 = p1*u + e2;
+		DCRTPoly c0 = p0*u + e1;
+		DCRTPoly c1 = p1*u + e2;
 
 		zeroCiphertext->SetElements({ c0, c1 });
 
-		newCiphertext->SetKeyTag(zeroCiphertext->GetKeyTag());
+		// Add the encryption of zero for re-randomization purposes
+		auto c = ciphertext->GetCryptoContext()->GetEncryptionAlgorithm()->EvalAdd(ciphertext, zeroCiphertext);
 
-		return cc->EvalAdd(newCiphertext, zeroCiphertext);
+		return ciphertext->GetCryptoContext()->KeySwitch(ek, c);
+
 	}
+
 }
 
 template <>

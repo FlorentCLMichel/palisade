@@ -30,7 +30,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <stdexcept>
+#include <utils/exception.h>
 using std::string;
 using std::vector;
 
@@ -52,7 +52,7 @@ public:
 			return;
 
 		default:
-			throw std::logic_error("ERROR: Unknown Hash Algorithm");
+			PALISADE_THROW(not_available_error, "ERROR: Unknown Hash Algorithm");
 		}
 	}
 

@@ -67,7 +67,6 @@ template NativeVector PolynomialPower<NativeVector>(const NativeVector &input, u
 template NativeVector SyntheticPolynomialDivision(const NativeVector &dividend, const NativeInteger &a, const NativeInteger &modulus);
 template NativeInteger FindGeneratorCyclic(const NativeInteger& modulo);
 template bool IsGenerator(const NativeInteger& g, const NativeInteger& modulo);
-template NativeInteger ComputeMu(const NativeInteger& q);
 template std::shared_ptr<std::vector<int64_t>> GetDigits(const NativeInteger &u, uint64_t base, uint32_t k);
 
 template class Matrix<NativeInteger>;

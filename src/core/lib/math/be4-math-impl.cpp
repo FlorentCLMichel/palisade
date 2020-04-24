@@ -64,7 +64,6 @@ template M4Vector PolynomialPower<M4Vector>(const M4Vector &input, usint power);
 template M4Vector SyntheticPolynomialDivision(const M4Vector &dividend, const M4Integer &a, const M4Integer &modulus);
 template M4Integer FindGeneratorCyclic(const M4Integer& modulo);
 template bool IsGenerator(const M4Integer& g, const M4Integer& modulo);
-template M4Integer ComputeMu(const M4Integer& q);
 template std::shared_ptr<std::vector<int64_t>> GetDigits(const M4Integer &u, uint64_t base, uint32_t k);
 
 template class Matrix<M4Integer>;

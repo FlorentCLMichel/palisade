@@ -257,7 +257,6 @@ void method_primitive_root_of_unity_VERY_LONG(const string& msg) {
 		,2048, 33
 		,2048, 40
 		,2048, 41 
-		//NOTE: To test for prime modulus greater than bit length of 50, set the following two constants in binint.h and dtstruct.h: 
 		// const usint BIT_LENGTH = 200 and const usint FRAGMENTATION_FACTOR = 27
 		// ,2048, 51
 		,4096, 32 

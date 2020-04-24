@@ -1073,7 +1073,7 @@ static void UnitTest_ReEncryption(const CryptoContext<Element> cc, const string&
 	stringstream buffer2;
 	Ciphertext<Element> ciphertext2 = cc->Encrypt(kp.publicKey, plaintextInt);
 	Plaintext plaintextIntNew2;
-	Ciphertext<Element> reCiphertext2 = cc->ReEncrypt(evalKey, ciphertext2, newKp.publicKey);
+	Ciphertext<Element> reCiphertext2 = cc->ReEncrypt(evalKey, ciphertext2, kp.publicKey);
 	cc->Decrypt(newKp.secretKey, reCiphertext2, &plaintextIntNew2);
 	plaintextIntNew2->SetLength(plaintextInt->GetLength());
 	tmp_a = plaintextIntNew2->GetCKKSPackedValue();

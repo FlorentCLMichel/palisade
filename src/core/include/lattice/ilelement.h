@@ -139,19 +139,19 @@ public:
 	 * This is only implemented for some derived classes, so the default implementation throws an exception
 	 *
 	 * @param i is the index.
-	 * @return will throw a logic_error.
+	 * @return will throw an error.
 	 */
 	virtual IntType& at(usint i) {
-		throw std::logic_error("at not implemented");
+		PALISADE_THROW(not_implemented_error, "at not implemented");
 	}
 	virtual const IntType& at(usint i) const {
-		throw std::logic_error("const at not implemented");
+		PALISADE_THROW(not_implemented_error, "const at not implemented");
 	}
 	virtual IntType& operator[](usint i) {
-		throw std::logic_error("[] not implemented");
+		PALISADE_THROW(not_implemented_error, "[] not implemented");
 	}
 	virtual const IntType& operator[](usint i) const {
-		throw std::logic_error("const [] not implemented");
+		PALISADE_THROW(not_implemented_error, "const [] not implemented");
 	}
 
 //	virtual NativePoly DecryptionCRTInterpolate(PlaintextModulus ptm) const = 0;
@@ -315,11 +315,6 @@ public:
 	virtual std::vector<Element> BaseDecompose(usint baseBits, bool evalModeAnswer=true) const = 0;
 
 	/**
-	 * @brief Interleaves values in the Poly with odd indices being all zeros.
-	 */
-	virtual void Decompose() = 0;
-
-	/**
 	 * @brief Scalar division followed by rounding operation - operation on all entries.
 	 *
 	 * @param &q is the element to divide entry-wise.
@@ -385,7 +380,7 @@ public:
 	 *@param plaintextModulus is the plaintextModulus used for the DCRTPoly
 	 */
 	virtual void ModReduce(const IntType &plaintextModulus) {
-		throw std::logic_error("ModReduce is not implemented");
+		PALISADE_THROW(not_implemented_error, "ModReduce is not implemented");
 	}
 
 	/**

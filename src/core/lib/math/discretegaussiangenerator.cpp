@@ -164,7 +164,7 @@ namespace lbcrypto {
 		}
 
 		else
-			throw std::runtime_error("DGG Inversion Sampling. FindInVector value not found: " + std::to_string(search));
+			PALISADE_THROW(not_available_error, "DGG Inversion Sampling. FindInVector value not found: " + std::to_string(search));
 	}
 
 	template<typename VecType>
@@ -270,10 +270,10 @@ namespace lbcrypto {
 		DEBUG("t "<<t);
 
 		if (std::isinf(mean)) {
-			throw std::runtime_error("DiscreteGaussianGeneratorImpl called with mean == +-inf");
+			PALISADE_THROW(not_available_error, "DiscreteGaussianGeneratorImpl called with mean == +-inf");
 		}
 		if (std::isinf(stddev)) {
-			throw std::runtime_error("DiscreteGaussianGeneratorImpl called with stddev == +-inf");
+			PALISADE_THROW(not_available_error, "DiscreteGaussianGeneratorImpl called with stddev == +-inf");
 		}
 		typename VecType::Integer result;
 
@@ -288,7 +288,7 @@ namespace lbcrypto {
 
 		usint count = 0;
 		const usint limit =10000;
-		//throw std::runtime_error("dbg throw");
+		//PALISADE_THROW(palisade_error, "dbg throw");
 
 		while (!flagSuccess) {
 			//  pick random int
@@ -304,7 +304,7 @@ namespace lbcrypto {
 			count++;
 			if (count > limit) {
 				DEBUG("x " << x << " dice " << dice);
-				throw std::runtime_error("GenerateInteger could not find success after repeated attempts");
+				PALISADE_THROW(not_available_error, "GenerateInteger could not find success after repeated attempts");
 			}
 
 		}

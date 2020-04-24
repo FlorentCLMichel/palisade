@@ -35,9 +35,9 @@ ILDCRTParams<IntType>::ILDCRTParams(usint order, usint depth, usint bits) : Elem
 	if( order == 0 )
 		return;
 	if( depth == 0 )
-		throw std::logic_error("Invalid depth for ILDCRTParams");
+		PALISADE_THROW(config_error, "Invalid depth for ILDCRTParams");
 	if( bits == 0 || bits > 64 )
-		throw std::logic_error("Invalid bits for ILDCRTParams");
+		PALISADE_THROW(config_error, "Invalid bits for ILDCRTParams");
 
 	m_parms.resize(depth);
 	this->ciphertextModulus = IntType(0);

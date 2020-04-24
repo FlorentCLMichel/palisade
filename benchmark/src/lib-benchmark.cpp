@@ -196,39 +196,91 @@ void BFVrns_Decryption(benchmark::State& state) {
 
 BENCHMARK(BFVrns_Decryption)->Unit(benchmark::kMicrosecond);
 
-void NTTTransform(benchmark::State& state) {
+void NTTTransform1024(benchmark::State& state) {
 
 	usint m = 2048;
 	usint phim = 1024;
 
 	NativeInteger modulusQ("288230376151748609");
-	NativeInteger rootOfUnity("64073710037604316");
-
-	uint64_t nRep;
+	NativeInteger rootOfUnity = RootOfUnity(m, modulusQ);
 
 	DiscreteUniformGeneratorImpl<NativeVector> dug;
 	dug.SetModulus(modulusQ);
 	NativeVector x = dug.GenerateVector(phim);
+	NativeVector X(phim);
 
-	NativeVector rootOfUnityTable(phim, modulusQ);
-	NativeInteger t(1);
-	for (usint i = 0; i<phim; i++) {
-		rootOfUnityTable.at(i)= t;
-		t = t.ModMul(rootOfUnity, modulusQ);
-	}
-
-	// test runs to force all precomputations
-	NativeVector X(m/2), xx(m/2);
-	ChineseRemainderTransformFTT<NativeVector>::ForwardTransform(x, rootOfUnity, m, &X);
-	ChineseRemainderTransformFTT<NativeVector>::InverseTransform(X, rootOfUnity, m, &xx);
-
+	ChineseRemainderTransformFTT<NativeVector>::PreCompute(rootOfUnity, m, modulusQ);
 
 	while (state.KeepRunning()) {
-		ChineseRemainderTransformFTT<NativeVector>::ForwardTransform(x, rootOfUnity, m, &X);
+		ChineseRemainderTransformFTT<NativeVector>::ForwardTransformToBitReverse(x, rootOfUnity, m, &X);
 	}
 }
 
-BENCHMARK(NTTTransform)->Unit(benchmark::kMicrosecond);
+BENCHMARK(NTTTransform1024)->Unit(benchmark::kMicrosecond);
+
+void INTTTransform1024(benchmark::State& state) {
+
+	usint m = 2048;
+	usint phim = 1024;
+
+	NativeInteger modulusQ("288230376151748609");
+	NativeInteger rootOfUnity = RootOfUnity(m, modulusQ);
+
+	DiscreteUniformGeneratorImpl<NativeVector> dug;
+	dug.SetModulus(modulusQ);
+	NativeVector x = dug.GenerateVector(phim);
+	NativeVector X(phim);
+
+	ChineseRemainderTransformFTT<NativeVector>::PreCompute(rootOfUnity, m, modulusQ);
+
+	while (state.KeepRunning()) {
+		ChineseRemainderTransformFTT<NativeVector>::InverseTransformFromBitReverse(x, rootOfUnity, m, &X);
+	}
+}
+
+BENCHMARK(INTTTransform1024)->Unit(benchmark::kMicrosecond);
+
+void NTTTransform4096(benchmark::State& state) {
+	usint m = 8192;
+	usint phim = 4096;
+
+	NativeInteger modulusQ("1152921496017387521");
+	NativeInteger rootOfUnity = RootOfUnity(m, modulusQ);
+
+	DiscreteUniformGeneratorImpl<NativeVector> dug;
+	dug.SetModulus(modulusQ);
+	NativeVector x = dug.GenerateVector(phim);
+	NativeVector X(phim);
+
+	ChineseRemainderTransformFTT<NativeVector>::PreCompute(rootOfUnity, m, modulusQ);
+
+	while (state.KeepRunning()) {
+		ChineseRemainderTransformFTT<NativeVector>::ForwardTransformToBitReverse(x, rootOfUnity, m, &X);
+	}
+}
+
+BENCHMARK(NTTTransform4096)->Unit(benchmark::kMicrosecond);
+
+void INTTTransform4096(benchmark::State& state) {
+	usint m = 8192;
+	usint phim = 4096;
+
+	NativeInteger modulusQ("1152921496017387521");
+	NativeInteger rootOfUnity = RootOfUnity(m, modulusQ);
+
+	DiscreteUniformGeneratorImpl<NativeVector> dug;
+	dug.SetModulus(modulusQ);
+	NativeVector x = dug.GenerateVector(phim);
+	NativeVector X(phim);
+
+	ChineseRemainderTransformFTT<NativeVector>::PreCompute(rootOfUnity, m, modulusQ);
+
+	while (state.KeepRunning()) {
+		ChineseRemainderTransformFTT<NativeVector>::InverseTransformFromBitReverse(x, rootOfUnity, m, &X);
+	}
+}
+
+BENCHMARK(INTTTransform4096)->Unit(benchmark::kMicrosecond);
 
 /*
  * CKKS benchmarks

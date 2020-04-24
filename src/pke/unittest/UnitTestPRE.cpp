@@ -146,19 +146,19 @@ static void ReEncryption(const CryptoContext<Element> cc, const string& failmsg)
 
 	Ciphertext<Element> ciphertext5 = cc->Encrypt(kp.publicKey, plaintextShort);
 	Plaintext plaintextShortNew2;
-	Ciphertext<Element> reCiphertext5 = cc->ReEncrypt(evalKey, ciphertext5, newKp.publicKey);
+	Ciphertext<Element> reCiphertext5 = cc->ReEncrypt(evalKey, ciphertext5, kp.publicKey);
 	result = cc->Decrypt(newKp.secretKey, reCiphertext5, &plaintextShortNew2);
 	EXPECT_EQ(plaintextShortNew2->GetStringValue(), plaintextShort->GetStringValue()) << failmsg << " HRA-secure ReEncrypt short string plaintext with padding";
 
 	Ciphertext<Element> ciphertext6 = cc->Encrypt(kp.publicKey, plaintextFull);
 	Plaintext plaintextFullNew2;
-	Ciphertext<Element> reCiphertext6 = cc->ReEncrypt(evalKey, ciphertext6, newKp.publicKey);
+	Ciphertext<Element> reCiphertext6 = cc->ReEncrypt(evalKey, ciphertext6, kp.publicKey);
 	result = cc->Decrypt(newKp.secretKey, reCiphertext6, &plaintextFullNew2);
 	EXPECT_EQ(plaintextFullNew2->GetStringValue(), plaintextFull->GetStringValue()) << failmsg << " HRA-secure ReEncrypt full string plaintext";
 
 	Ciphertext<Element> ciphertext7 = cc->Encrypt(kp.publicKey, plaintextInt);
 	Plaintext plaintextIntNew2;
-	Ciphertext<Element> reCiphertext7 = cc->ReEncrypt(evalKey, ciphertext7, newKp.publicKey);
+	Ciphertext<Element> reCiphertext7 = cc->ReEncrypt(evalKey, ciphertext7, kp.publicKey);
 	result = cc->Decrypt(newKp.secretKey, reCiphertext7, &plaintextIntNew2);
 	EXPECT_EQ(plaintextIntNew2->GetCoefPackedValue(), plaintextInt->GetCoefPackedValue()) << failmsg << " HRA-secure ReEncrypt integer plaintext";
 

@@ -30,7 +30,6 @@
 #include <iostream>
 #include <functional>
 #include <cmath>
-#include <stdexcept>
 
 #include "../math/backend.h"
 #include "../lattice/backend.h"
@@ -98,8 +97,9 @@ public:
 	 */
 
 	void SetSize(size_t rows, size_t cols) {
-		if( this->rows != 0 || this->cols != 0 )
-			throw std::logic_error("You cannot SetSize on a non-empty matrix");
+		if( this->rows != 0 || this->cols != 0 ) {
+			PALISADE_THROW(not_available_error, "You cannot SetSize on a non-empty matrix");
+		}
 
 		this->rows = rows;
 		this->cols = cols;
@@ -422,7 +422,7 @@ public:
 	 */
 	Matrix<Element> Add(Matrix<Element> const& other) const {
 		if (rows != other.rows || cols != other.cols) {
-			throw invalid_argument("Addition operands have incompatible dimensions");
+			PALISADE_THROW(math_error, "Addition operands have incompatible dimensions");
 		}
 		Matrix<Element> result(*this);
 #pragma omp parallel for
@@ -461,7 +461,7 @@ public:
 	 */
 	Matrix<Element> Sub(Matrix<Element> const& other) const {
 		if (rows != other.rows || cols != other.cols) {
-			throw invalid_argument("Subtraction operands have incompatible dimensions");
+			PALISADE_THROW(math_error, "Subtraction operands have incompatible dimensions");
 		}
 		Matrix<Element> result(allocZero, rows, other.cols);
 #pragma omp parallel for

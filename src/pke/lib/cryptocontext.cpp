@@ -43,7 +43,7 @@ template <typename Element>
 void CryptoContextImpl<Element>::EvalMultKeyGen(const LPPrivateKey<Element> key) {
 
 	if( key == NULL || Mismatched(key->GetCryptoContext()) )
-		throw std::logic_error("Key passed to EvalMultKeyGen were not generated with this crypto context");
+		PALISADE_THROW(config_error, "Key passed to EvalMultKeyGen were not generated with this crypto context");
 
 	double start = 0;
 	if( doTiming ) start = currentDateTime();
@@ -61,7 +61,7 @@ template <typename Element>
 void CryptoContextImpl<Element>::EvalMultKeysGen(const LPPrivateKey<Element> key) {
 
 	if( key == NULL || Mismatched(key->GetCryptoContext()) )
-		throw std::logic_error("Key passed to EvalMultsKeyGen were not generated with this crypto context");
+		PALISADE_THROW(config_error, "Key passed to EvalMultsKeyGen were not generated with this crypto context");
 
 	double start = 0;
 	if( doTiming ) start = currentDateTime();
@@ -79,7 +79,7 @@ template <typename Element>
 const vector<LPEvalKey<Element>>& CryptoContextImpl<Element>::GetEvalMultKeyVector(const string& keyID) {
 	auto ekv = evalMultKeyMap.find(keyID);
 	if( ekv == evalMultKeyMap.end() )
-		throw std::logic_error("You need to use EvalMultKeyGen so that you have an EvalMultKey available for this ID");
+		PALISADE_THROW(not_available_error, "You need to use EvalMultKeyGen so that you have an EvalMultKey available for this ID");
 	return ekv->second;
 }
 
@@ -130,11 +130,11 @@ void CryptoContextImpl<Element>::EvalSumKeyGen(
 		const LPPublicKey<Element> publicKey) {
 
 	if( privateKey == NULL || Mismatched(privateKey->GetCryptoContext()) ) {
-		throw std::logic_error("Private key passed to EvalSumKeyGen were not generated with this crypto context");
+		PALISADE_THROW(config_error, "Private key passed to EvalSumKeyGen were not generated with this crypto context");
 	}
 
 	if( publicKey != NULL && privateKey->GetKeyTag() != publicKey->GetKeyTag() ) {
-		throw std::logic_error("Public key passed to EvalSumKeyGen does not match private key");
+		PALISADE_THROW(config_error, "Public key passed to EvalSumKeyGen does not match private key");
 	}
 
 	double start = 0;
@@ -153,11 +153,11 @@ shared_ptr<std::map<usint, LPEvalKey<Element>>> CryptoContextImpl<Element>::Eval
 	const LPPublicKey<Element> publicKey, usint rowSize) {
 
 	if( privateKey == NULL || Mismatched(privateKey->GetCryptoContext()) ) {
-		throw std::logic_error("Private key passed to EvalSumKeyGen were not generated with this crypto context");
+		PALISADE_THROW(config_error, "Private key passed to EvalSumKeyGen were not generated with this crypto context");
 	}
 
 	if( publicKey != NULL && privateKey->GetKeyTag() != publicKey->GetKeyTag() ) {
-		throw std::logic_error("Public key passed to EvalSumKeyGen does not match private key");
+		PALISADE_THROW(config_error, "Public key passed to EvalSumKeyGen does not match private key");
 	}
 
 	double start = 0;
@@ -177,11 +177,11 @@ shared_ptr<std::map<usint, LPEvalKey<Element>>> CryptoContextImpl<Element>::Eval
 	const LPPublicKey<Element> publicKey) {
 
 	if( privateKey == NULL || Mismatched(privateKey->GetCryptoContext()) ) {
-		throw std::logic_error("Private key passed to EvalSumKeyGen were not generated with this crypto context");
+		PALISADE_THROW(config_error, "Private key passed to EvalSumKeyGen were not generated with this crypto context");
 	}
 
 	if( publicKey != NULL && privateKey->GetKeyTag() != publicKey->GetKeyTag() ) {
-		throw std::logic_error("Public key passed to EvalSumKeyGen does not match private key");
+		PALISADE_THROW(config_error, "Public key passed to EvalSumKeyGen does not match private key");
 	}
 
 	double start = 0;
@@ -199,7 +199,7 @@ template <typename Element>
 const std::map<usint, LPEvalKey<Element>>& CryptoContextImpl<Element>::GetEvalSumKeyMap(const string& keyID) {
 	auto ekv = evalSumKeyMap.find(keyID);
 	if( ekv == evalSumKeyMap.end() )
-		throw std::logic_error("You need to use EvalSumKeyGen so that you have EvalSumKeys available for this ID");
+		PALISADE_THROW(not_available_error, "You need to use EvalSumKeyGen so that you have EvalSumKeys available for this ID");
 	return *ekv->second;
 }
 
@@ -251,11 +251,11 @@ void CryptoContextImpl<Element>::EvalAtIndexKeyGen(const LPPrivateKey<Element> p
 		const std::vector<int32_t> &indexList, const LPPublicKey<Element> publicKey) {
 
 	if( privateKey == NULL || Mismatched(privateKey->GetCryptoContext()) ) {
-		throw std::logic_error("Private key passed to EvalAtIndexKeyGen were not generated with this crypto context");
+		PALISADE_THROW(config_error, "Private key passed to EvalAtIndexKeyGen were not generated with this crypto context");
 	}
 
 	if( publicKey != NULL && privateKey->GetKeyTag() != publicKey->GetKeyTag() ) {
-		throw std::logic_error("Public key passed to EvalAtIndexKeyGen does not match private key");
+		PALISADE_THROW(config_error, "Public key passed to EvalAtIndexKeyGen does not match private key");
 	}
 
 	double start = 0;
@@ -274,7 +274,7 @@ template <typename Element>
 const std::map<usint, LPEvalKey<Element>>& CryptoContextImpl<Element>::GetEvalAutomorphismKeyMap(const string& keyID) {
 	auto ekv = evalAutomorphismKeyMap.find(keyID);
 	if( ekv == evalAutomorphismKeyMap.end() )
-		throw std::logic_error("You need to use EvalAutomorphismKeyGen so that you have EvalAutomorphismKeys available for this ID");
+		PALISADE_THROW(not_available_error, "You need to use EvalAutomorphismKeyGen so that you have EvalAutomorphismKeys available for this ID");
 	return *ekv->second;
 }
 
@@ -325,7 +325,7 @@ template <typename Element>
 Ciphertext<Element> CryptoContextImpl<Element>::EvalSum(ConstCiphertext<Element> ciphertext, usint batchSize) const {
 
 	if( ciphertext == NULL || Mismatched(ciphertext->GetCryptoContext()) )
-		throw std::logic_error("Information passed to EvalSum was not generated with this crypto context");
+		PALISADE_THROW(config_error, "Information passed to EvalSum was not generated with this crypto context");
 
 	auto evalSumKeys = CryptoContextImpl<Element>::GetEvalSumKeyMap(ciphertext->GetKeyTag());
 	double start = 0;
@@ -342,7 +342,7 @@ Ciphertext<Element> CryptoContextImpl<Element>::EvalSumRows(ConstCiphertext<Elem
 		const std::map<usint, LPEvalKey<Element>> &evalSumKeys) const {
 
 	if( ciphertext == NULL || Mismatched(ciphertext->GetCryptoContext()) )
-		throw std::logic_error("Information passed to EvalSum was not generated with this crypto context");
+		PALISADE_THROW(config_error, "Information passed to EvalSum was not generated with this crypto context");
 
 	double start = 0;
 	if( doTiming ) start = currentDateTime();
@@ -359,7 +359,7 @@ Ciphertext<Element> CryptoContextImpl<Element>::EvalSumCols(ConstCiphertext<Elem
 		const std::map<usint, LPEvalKey<Element>> &evalSumKeysRight) const {
 
 	if( ciphertext == NULL || Mismatched(ciphertext->GetCryptoContext()) )
-		throw std::logic_error("Information passed to EvalSum was not generated with this crypto context");
+		PALISADE_THROW(config_error, "Information passed to EvalSum was not generated with this crypto context");
 
 	auto evalSumKeys = CryptoContextImpl<Element>::GetEvalSumKeyMap(ciphertext->GetKeyTag());
 
@@ -376,7 +376,7 @@ template <typename Element>
 Ciphertext<Element> CryptoContextImpl<Element>::EvalAtIndex(ConstCiphertext<Element> ciphertext, int32_t index) const {
 
 	if( ciphertext == NULL || Mismatched(ciphertext->GetCryptoContext()) )
-		throw std::logic_error("Information passed to EvalAtIndex was not generated with this crypto context");
+		PALISADE_THROW(config_error, "Information passed to EvalAtIndex was not generated with this crypto context");
 
 	auto evalAutomorphismKeys = CryptoContextImpl<Element>::GetEvalAutomorphismKeyMap(ciphertext->GetKeyTag());
 	double start = 0;
@@ -392,7 +392,7 @@ template <typename Element>
 Ciphertext<Element> CryptoContextImpl<Element>::EvalMerge(const vector<Ciphertext<Element>> &ciphertextVector) const {
 
 	if( ciphertextVector[0] == NULL || Mismatched(ciphertextVector[0]->GetCryptoContext()) )
-		throw std::logic_error("Information passed to EvalMerge was not generated with this crypto context");
+		PALISADE_THROW(config_error, "Information passed to EvalMerge was not generated with this crypto context");
 
 	auto evalAutomorphismKeys = CryptoContextImpl<Element>::GetEvalAutomorphismKeyMap(ciphertextVector[0]->GetKeyTag());
 	double start = 0;
@@ -412,7 +412,7 @@ Ciphertext<Element> CryptoContextImpl<Element>::EvalInnerProduct(ConstCiphertext
 
 	if( ct1 == NULL || ct2 == NULL || ct1->GetKeyTag() != ct2->GetKeyTag() ||
 			Mismatched(ct1->GetCryptoContext()) )
-		throw std::logic_error("Information passed to EvalInnerProduct was not generated with this crypto context");
+		PALISADE_THROW(config_error, "Information passed to EvalInnerProduct was not generated with this crypto context");
 
 	auto evalSumKeys = CryptoContextImpl<Element>::GetEvalSumKeyMap(ct1->GetKeyTag());
 	auto ek = GetEvalMultKeyVector(ct1->GetKeyTag());
@@ -430,7 +430,7 @@ template <typename Element>
 Ciphertext<Element> CryptoContextImpl<Element>::EvalInnerProduct(ConstCiphertext<Element> ct1, ConstPlaintext ct2, usint batchSize) const {
 
 	if( ct1 == NULL || ct2 == NULL || Mismatched(ct1->GetCryptoContext()) )
-		throw std::logic_error("Information passed to EvalInnerProduct was not generated with this crypto context");
+		PALISADE_THROW(config_error, "Information passed to EvalInnerProduct was not generated with this crypto context");
 
 	auto evalSumKeys = CryptoContextImpl<Element>::GetEvalSumKeyMap(ct1->GetKeyTag());
 

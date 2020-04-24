@@ -37,7 +37,7 @@ std::vector<DCRTPoly::Integer> CKKSPackedEncoding::CRTMult(
 	std::vector<DCRTPoly::Integer> result(mods.size());
 
 	for (usint i=0; i<a.size(); i++) {
-		result[i] = a[i].ModMul(b[i], mods[i]);
+		result[i] = a[i].ModMulFast(b[i], mods[i]);
 	}
 
 	return result;
@@ -45,59 +45,48 @@ std::vector<DCRTPoly::Integer> CKKSPackedEncoding::CRTMult(
 
 bool CKKSPackedEncoding::Encode() {
 
-	if( this->isEncoded ) return true;
+	if ( this->isEncoded ) return true;
 
-	double p = this->encodingParams->GetPlaintextModulus();
+	uint32_t Nh = (this->GetElementRingDimension() >> 1);
 
-	uint32_t Nh = this->GetElementRingDimension()/2;
+	std::vector<std::complex<double>> inverse  = value;
+	inverse.resize(Nh);
+	DiscreteFourierTransform::FFTSpecialInv(inverse);
 
-	if(this->typeFlag == IsDCRTPoly ){
+	if (this->typeFlag == IsDCRTPoly) {
+		double powP = scalingFactor;
+
 		int64_t q;
-		q = 9223372036854775807; // 2^63-1
-		NativeVector temp(this->GetElementRingDimension(), q);
+		q = 9223372036854775295; // 2^63-2^9-1 - max value that could be round to int64_t
+		double dq = q;
 
-		std::vector<std::complex<double>> inverse  = value;
+		std::vector<int64_t> temp(this->GetElementRingDimension());
+		size_t i, jdx, idx;
+		int64_t re, im;
+		double dre, dim;
+		for (i = 0, jdx = Nh, idx = 0; i < Nh; ++i, jdx++, idx++) {
+			// Check for possible overflow in llround function
+			dre = inverse[i].real() * powP;
+			dim = inverse[i].imag() * powP;
+			if(std::abs(dre) >= dq || std::abs(dim) >= dq) {
+				PALISADE_THROW(math_error, "Overflow, try to decrease scaling factor");
+			}
 
-		inverse.resize(Nh);
+			re = std::llround(dre);
+			im = std::llround(dim);
 
-		DiscreteFourierTransform::FFTSpecialInv(inverse);
+			temp[idx] = (re < 0) ? q + re : re;
+			temp[jdx] = (im < 0) ? q + im : im;
+		}
 
 		const shared_ptr<ILDCRTParams<BigInteger>> params = this->encodedVectorDCRT.GetParams();
 		const std::vector<std::shared_ptr<ILNativeParams>> &nativeParams = params->GetParams();
 
-		size_t i, jdx, idx;
-
-		double powP = scalingFactor;
-
-		for (i = 0, jdx = Nh, idx = 0; i < Nh; ++i, jdx++, idx++) {
-
-			int64_t re = std::llround(inverse[i].real()*powP);
-			int64_t im = std::llround(inverse[i].imag()*powP);
-
-			if (re < 0)
-				temp[idx] = NativeInteger(q + re);
-			else
-				temp[idx] = NativeInteger(re);
-			if (im < 0)
-				temp[jdx] = NativeInteger(q + im);
-			else
-				temp[jdx] = NativeInteger(im);
-
-		}
-
-		this->isEncoded = true;
-
-		NativeVector switched = temp;
-		switched.SwitchModulus(nativeParams[0]->GetModulus());
-		NativePoly firstElement = this->GetElement<DCRTPoly>().GetElementAtIndex(0);
-		firstElement.SetValues(switched, Format::COEFFICIENT); //output was in coefficient format
-		this->encodedVectorDCRT.SetElementAtIndex(0,firstElement);
-
-		for (size_t i = 1; i < nativeParams.size(); i++ ) {
-			switched = temp;
-			switched.SwitchModulus(nativeParams[i]->GetModulus());
+		for (i = 0; i < nativeParams.size(); i++ ) {
+			NativeVector nativeVec(this->GetElementRingDimension(), nativeParams[i]->GetModulus());
+			FitToNativeVector(temp, q, &nativeVec);
 			NativePoly element = this->GetElement<DCRTPoly>().GetElementAtIndex(i);
-			element.SetValues(switched, Format::COEFFICIENT); //output was in coefficient format
+			element.SetValues(nativeVec, Format::COEFFICIENT); //output was in coefficient format
 			this->encodedVectorDCRT.SetElementAtIndex(i,element);
 		}
 
@@ -112,100 +101,87 @@ bool CKKSPackedEncoding::Encode() {
 		std::vector<DCRTPoly::Integer> crtPowP(numTowers, intPowP);
 
 		auto currPowP = crtPowP;
+
 		// We want to scale temp by 2^(pd), and the loop starts from j=2
 		// because temp is already scaled by 2^p in the re/im loop above,
 		// and currPowP already is 2^p.
-		for (usint j=2; j<depth; j++) {
+		for (i = 2; i < depth; i++) {
 			currPowP = CKKSPackedEncoding::CRTMult(currPowP, crtPowP, moduli);
 		}
 
-		if ( depth > 1 )
+		if (depth > 1) {
 			this->encodedVectorDCRT = this->encodedVectorDCRT.Times(currPowP);
+		}
 
 		this->GetElement<DCRTPoly>().SetFormat(Format::EVALUATION);
 
 		scalingFactor = pow(scalingFactor, depth);
 
-	} else if( this->typeFlag == IsNativePoly ){
+	} else if (this->typeFlag == IsNativePoly) {
 
-		double powP = pow(2,p*depth);
+		double p = this->encodingParams->GetPlaintextModulus();
+		double powP = pow(2, p * depth);
 
 		int64_t q;
-
 		q = this->GetElementModulus().ConvertToInt();
-
 		NativeVector temp(this->GetElementRingDimension(), q);
 
-		std::vector<std::complex<double>> inverse  = value;
-
-		inverse.resize(Nh);
-
-		DiscreteFourierTransform::FFTSpecialInv(inverse);
-
+		double dq = q;
 		size_t i, jdx, idx;
-
+		int64_t re, im;
+		double dre, dim;
 		for (i = 0, jdx = Nh, idx = 0; i < Nh; ++i, jdx++, idx++) {
+			dre = inverse[i].real() * powP;
+			dim = inverse[i].imag() * powP;
+			// Check for possible overflow in llround function
+			if(std::abs(dre) >= dq || std::abs(dim) >= dq) {
+				PALISADE_THROW(math_error, "Overflow, try to decrease depth or plaintext modulus");
+			}
 
-			int64_t re = std::llround(inverse[i].real()*powP);
-			int64_t im = std::llround(inverse[i].imag()*powP);
+			re = std::llround(dre);
+			im = std::llround(dim);
 
-			if (re < 0)
-				temp[idx] = NativeInteger(q + re);
-			else
-				temp[idx] = NativeInteger(re);
-			if (im < 0)
-				temp[jdx] = NativeInteger(q + im);
-			else
-				temp[jdx] = NativeInteger(im);
-
+			temp[idx] = (re < 0) ? NativeInteger(q + re) : NativeInteger(re);
+			temp[jdx] = (im < 0) ? NativeInteger(q + im) : NativeInteger(im);
 		}
-
-		this->isEncoded = true;
 
 		this->GetElement<NativePoly>().SetValues(temp, Format::COEFFICIENT); //output was in coefficient format
 		this->GetElement<NativePoly>().SetFormat(Format::EVALUATION);
 
-	}
-	else {
+	} else {
 
-		double powP = pow(2,p*depth);
+		// Scale inverse by scaling factor
+		double p = this->encodingParams->GetPlaintextModulus();
+		double powP = pow(2, p * depth);
+
+		const BigInteger &q = this->GetElementModulus();
+		double dq = std::min(9223372036854775295., q.ConvertToDouble()); //min of q and 2^63-2^9-1 - max value that could be round to int64_t
 
 		BigVector temp(this->GetElementRingDimension(), this->GetElementModulus());
 
-		std::vector<std::complex<double>> inverse = value;
-
-		inverse.resize(Nh);
-
-		DiscreteFourierTransform::FFTSpecialInv(inverse);
-
+		int64_t re, im;
 		size_t i, jdx, idx;
-
-		const BigInteger &q = this->GetElementModulus();
-
+		double dre, dim;
 		for (i = 0, jdx = Nh, idx = 0; i < Nh; ++i, jdx++, idx++) {
+			dre = inverse[i].real() * powP;
+			dim = inverse[i].imag() * powP;
+			// Check for possible overflow in llround function
+			if(std::abs(dre) >= dq || std::abs(dim) >= dq) {
+				PALISADE_THROW(math_error, "Overflow, try to decrease depth or plaintext modulus");
+			}
 
-			int64_t re = std::llround(inverse[i].real()*powP);
-			int64_t im = std::llround(inverse[i].imag()*powP);
+			re = std::llround(dre);
+			im = std::llround(dim);
 
-			if (re < 0)
-				temp[idx] = q - BigInteger(llabs(re)) ;
-			else
-				temp[idx] = BigInteger(re);
-			if (im < 0)
-				temp[jdx] = q - BigInteger(llabs(im));
-			else
-				temp[jdx] = BigInteger(im);
-
+			temp[idx] = (re < 0) ? q - BigInteger(llabs(re)) : BigInteger(re);
+			temp[jdx] = (im < 0) ? q - BigInteger(llabs(im)) : BigInteger(im);
 		}
-
-		this->isEncoded = true;
 
 		this->GetElement<Poly>().SetValues(temp, Format::COEFFICIENT); //output was in coefficient format
 		this->GetElement<Poly>().SetFormat(Format::EVALUATION);
 	}
-
+	this->isEncoded = true;
 	return true;
-
 }
 
 
@@ -360,6 +336,20 @@ bool CKKSPackedEncoding::Decode() {
 void CKKSPackedEncoding::Destroy()
 {
 
+}
+
+void CKKSPackedEncoding::FitToNativeVector(const std::vector<int64_t> &vec, int64_t bigBound, NativeVector *nativeVec) const {
+	NativeInteger bigValueHf(bigBound >> 1);
+	NativeInteger modulus(nativeVec->GetModulus());
+	NativeInteger diff = bigBound - modulus;
+	for (usint i = 0; i < vec.size(); i++) {
+		NativeInteger n(vec[i]);
+		if (n > bigValueHf) {
+			(*nativeVec)[i] = n.ModSub(diff, modulus);
+		} else {
+			(*nativeVec)[i] = n.Mod(modulus);
+		}
+	}
 }
 
 }

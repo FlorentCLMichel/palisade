@@ -44,7 +44,7 @@ namespace lbcrypto{
             std::pair<usint,usint> ringSizeAndBase = CPABEMinRingSizeMap.at(key);
             GenerateCPABEContext(ell,ringSizeAndBase.first,ringSizeAndBase.second);
         }else{
-            throw std::logic_error("Unknown minimum ring size and base for given security level and number of attributes");
+            PALISADE_THROW(config_error, "Unknown minimum ring size and base for given security level and number of attributes");
         }
     }
     //Method for setting up a IBE context with specific parameters
@@ -62,7 +62,7 @@ namespace lbcrypto{
             usint base = IBEMinRingSizeMap.at(level).second;
             GenerateIBEContext(ringsize,base);
         }else{
-            throw std::logic_error("Unknown minimun ring size for given security level");
+            PALISADE_THROW(config_error, "Unknown minimun ring size for given security level");
         }
         
     }

@@ -111,6 +111,12 @@ GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrnsB_opt, ORD, PTM) \
 GENERATE_PKE_TEST_CASE(x, y, Poly, BFV_opt, ORD, PTM) \
 GENERATE_PKE_TEST_CASE(x, y, NativePoly, BGV_opt, ORD, PTM)
 
+// For EvalSum
+#define GENERATE_TEST_CASES_FUNC_EVALSUM(x,y,ORD,PTM) \
+GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrns_rlwe, ORD, PTM) \
+GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrns_opt, ORD, PTM) \
+GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrnsB_rlwe, ORD, PTM) \
+GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrnsB_opt, ORD, PTM)
 
 static vector<string> AllSchemes( {"Null", "BGV", "BFV", /*"BFVrns"*/} );
 typedef ::testing::Types<Poly, DCRTPoly, NativePoly> EncryptElementTypes;
@@ -497,6 +503,109 @@ static void UnitTest_EvalMerge(const CryptoContext<Element> cc, const string& fa
 }
 
 GENERATE_TEST_CASES_FUNC_EVALATINDEX(UTSHE, UnitTest_EvalMerge, 512, 65537)
+
+template<class Element>
+static void UnitTest_EvalSum(const CryptoContext<Element> cc, const string& failmsg) {
+
+	// Initialize the public key containers.
+	LPKeyPair<Element> kp = cc->KeyGen();
+
+	std::vector<Ciphertext<Element>> ciphertexts;
+
+	uint32_t n = cc->GetRingDimension();
+
+	std::vector<int64_t> vectorOfInts1 = { 1,2,3,4,5,6,7,8};
+	uint32_t dim = vectorOfInts1.size();
+	vectorOfInts1.resize(n);
+	for (uint32_t i = dim; i < n; i++)
+		vectorOfInts1[i] = vectorOfInts1[i % dim];
+	Plaintext intArray1 = cc->MakePackedPlaintext(vectorOfInts1);
+	auto ct1 = cc->Encrypt(kp.publicKey, intArray1);
+
+	cc->EvalSumKeyGen(kp.secretKey);
+
+	auto ctsum1 = cc->EvalSum(ct1,1);
+	auto ctsum2 = cc->EvalSum(ct1,2);
+	auto ctsum3 = cc->EvalSum(ct1,8);
+
+	std::vector<int64_t> vectorOfInts2 = { 3,5,7,9,11,13,15,9};
+	vectorOfInts2.resize(n);
+	for (uint32_t i = dim; i < n; i++)
+		vectorOfInts2[i] = vectorOfInts2[i % dim];
+	Plaintext intArray2 = cc->MakePackedPlaintext(vectorOfInts2);
+
+	std::vector<int64_t> vectorOfIntsAll = { 36,36,36,36,36,36,36,36};
+	vectorOfIntsAll.resize(n);
+	for (uint32_t i = dim; i < n; i++)
+		vectorOfIntsAll[i] = vectorOfIntsAll[i % dim];
+	Plaintext intArrayAll = cc->MakePackedPlaintext(vectorOfIntsAll);
+
+	Plaintext results1;
+	cc->Decrypt(kp.secretKey, ctsum1, &results1);
+	Plaintext results2;
+	cc->Decrypt(kp.secretKey, ctsum2, &results2);
+	Plaintext results3;
+	cc->Decrypt(kp.secretKey, ctsum3, &results3);
+
+	intArray1->SetLength(dim);
+	intArray2->SetLength(dim);
+	intArrayAll->SetLength(dim);
+	results1->SetLength(dim);
+	results2->SetLength(dim);
+	results3->SetLength(dim);
+
+	EXPECT_EQ(intArray1->GetPackedValue(), results1->GetPackedValue()) << failmsg << " EvalSum for batch size = 1 failed";
+	EXPECT_EQ(intArray2->GetPackedValue(), results2->GetPackedValue()) << failmsg << " EvalSum for batch size = 2 failed";
+	EXPECT_EQ(intArrayAll->GetPackedValue(), results3->GetPackedValue()) << failmsg << " EvalSum for batch size = 8 failed";
+
+}
+
+GENERATE_TEST_CASES_FUNC_EVALSUM(UTSHE, UnitTest_EvalSum, 512, 65537)
+
+TEST_F(UTSHE, UnitTest_EvalSum_BFVrns_All) {
+
+	uint32_t batchSize = 1<<12;
+
+	EncodingParams encodingParams(new EncodingParamsImpl(65537));
+	encodingParams->SetBatchSize(batchSize);
+	CryptoContext<DCRTPoly> cc = CryptoContextFactory<DCRTPoly>::genCryptoContextBFVrns(encodingParams,
+			HEStd_128_classic, 3.2, 0, 2, 0, OPTIMIZED, 2, 20, 60, batchSize);
+	cc->Enable(ENCRYPTION);
+	cc->Enable(SHE);
+
+	// Initialize the public key containers.
+	LPKeyPair<DCRTPoly> kp = cc->KeyGen();
+
+	std::vector<Ciphertext<DCRTPoly>> ciphertexts;
+
+	uint32_t n = cc->GetRingDimension();
+
+	std::vector<int64_t> vectorOfInts1 = { 1,2,3,4,5,6,7,8};
+	uint32_t dim = vectorOfInts1.size();
+	vectorOfInts1.resize(n);
+	for (uint32_t i = n - dim; i < n; i++)
+		vectorOfInts1[i] = i;
+
+	Plaintext intArray1 = cc->MakePackedPlaintext(vectorOfInts1);
+
+	std::vector<int64_t> vectorOfIntsAll = { 32768,32768,32768,32768,32768,32768,32768,32768};
+	Plaintext intArrayAll = cc->MakePackedPlaintext(vectorOfIntsAll);
+
+	auto ct1 = cc->Encrypt(kp.publicKey, intArray1);
+
+	cc->EvalSumKeyGen(kp.secretKey);
+
+	auto ctsum1 = cc->EvalSum(ct1,batchSize);
+
+	Plaintext results1;
+	cc->Decrypt(kp.secretKey, ctsum1, &results1);
+
+	intArrayAll->SetLength(dim);
+	results1->SetLength(dim);
+
+	EXPECT_EQ(intArrayAll->GetPackedValue(), results1->GetPackedValue()) << " BFVrns EvalSum for batch size = All failed";
+
+}
 
 TEST_F(UTSHE, keyswitch_SingleCRT) {
 

@@ -88,7 +88,7 @@ namespace lbcrypto {
 			 * @param bigModulusArb modulus used in polynomial multiplications in EvalMult (for arbitrary cyclotomics)
 			 * @param bigRootOfUnityArb root of unity for bigModulus (for arbitrary cyclotomics)
 			 * @param depth is the depth of computation circuit supported for these parameters (not used now; for future use).
-			 * @param maxDepth is the maximum homomorphic multiplication depth before performing relinearization
+			 * @param maxDepth the maximum power of secret key for which the relinearization key is generated
 			 */
 			LPCryptoParametersBFV(shared_ptr<typename Element::Params> params,
 				const PlaintextModulus &plaintextModulus, 
@@ -121,7 +121,7 @@ namespace lbcrypto {
 			* @param bigModulusArb modulus used in polynomial multiplications in EvalMult (arbitrary cyclotomics)
 			* @param bigRootOfUnityArb root of unity for bigModulus (arbitrary cyclotomics)
 			* @param depth is the depth of computation circuit supported for these parameters (not used now; for future use).
-			* @param maxDepth is the maximum homomorphic multiplication depth before performing relinearization
+			* @param maxDepth the maximum power of secret key for which the relinearization key is generated
 			*/
 			LPCryptoParametersBFV(shared_ptr<typename Element::Params> params,
 				EncodingParams encodingParams,
@@ -154,7 +154,7 @@ namespace lbcrypto {
 			* @param bigModulusArb modulus used in polynomial multiplications in EvalMult (arbitrary cyclotomics)
 			* @param bigRootOfUnityArb root of unity for bigModulus (arbitrary cyclotomics)
 			* @param depth is the depth of computation circuit supported for these parameters (not used now; for future use).
-			* @param maxDepth is the maximum homomorphic multiplication depth before performing relinearization
+			* @param maxDepth the maximum power of secret key for which the relinearization key is generated
 			*/
 			LPCryptoParametersBFV(shared_ptr<typename Element::Params> params,
 				EncodingParams encodingParams,
@@ -578,7 +578,7 @@ namespace lbcrypto {
 		LPEvalKey<Element> KeySwitchRelinGen(const LPPublicKey<Element> newPublicKey,
 			const LPPrivateKey<Element> origPrivateKey) const {
 			std::string errMsg = "LPAlgorithmSHEBFV:KeySwitchRelinGen is not needed for this scheme as relinearization is the default technique and no NTRU key generation is used.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -592,7 +592,7 @@ namespace lbcrypto {
 		Ciphertext<Element> KeySwitchRelin(const LPEvalKey<Element> evalKey,
 			ConstCiphertext<Element> ciphertext) const {
 			std::string errMsg = "LPAlgorithmSHEBFV:KeySwitchRelin is not needed for this scheme as relinearization is the default technique and no NTRU key generation is used.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -647,7 +647,7 @@ namespace lbcrypto {
 		shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAutomorphismKeyGen(const LPPublicKey<Element> publicKey,
 			const LPPrivateKey<Element> privateKey, const std::vector<usint> &indexList) const {
 			std::string errMsg = "LPAlgorithmSHEBFV::EvalAutomorphismKeyGen is not implemented for BFV SHE Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 	};
 

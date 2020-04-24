@@ -68,7 +68,7 @@ typename VecType::Integer DiscreteUniformGeneratorImpl<VecType>::GenerateInteger
 	uint32_t value;
 
 	if( m_modulus == typename VecType::Integer(0) ) {
-		throw std::logic_error("0 modulus?");
+		PALISADE_THROW(math_error, "0 modulus?");
 	}
 
 	do {

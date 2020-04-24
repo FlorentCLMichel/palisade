@@ -17,16 +17,19 @@ add_library (PALISADEpke SHARED $<TARGET_OBJECTS:pkeobj>)
 set_property(TARGET PALISADEpke PROPERTY VERSION ${PKE_VERSION})
 set_property(TARGET PALISADEpke PROPERTY SOVERSION ${PKE_VERSION_MAJOR})
 set_property(TARGET PALISADEpke PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-install(TARGETS PALISADEpke DESTINATION lib)
+install(TARGETS PALISADEpke
+	EXPORT PalisadeTargets
+	DESTINATION lib)
 if( ${BUILD_STATIC} MATCHES "YES" )
 	add_library (PALISADEpke_static STATIC $<TARGET_OBJECTS:pkeobj>)
 	set_property(TARGET PALISADEpke_static PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-	install(TARGETS PALISADEpke_static DESTINATION lib)
+	install(TARGETS PALISADEpke_static
+		EXPORT PalisadeTargets
+		DESTINATION lib)
 endif()
 
-install(DIRECTORY include/ DESTINATION include/palisade/pke)
-
-target_include_directories (PALISADEpke PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+install(DIRECTORY include/
+	DESTINATION include/palisade/pke)
 
 set (PKELIBS PUBLIC PALISADEpke PUBLIC PALISADEcore ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
 
@@ -43,20 +46,34 @@ target_link_libraries ( pke_tests ${PKELIBS} )
 endif()
 
 set(PKEAPPS "")
-file (GLOB PKE_DEMO_SRC_FILES CONFIGURE_DEPENDS demo/*.cpp)
-foreach (app ${PKE_DEMO_SRC_FILES})
+file (GLOB PKE_EXAMPLES_SRC_FILES CONFIGURE_DEPENDS examples/*.cpp)
+foreach (app ${PKE_EXAMPLES_SRC_FILES})
 	get_filename_component ( exe ${app} NAME_WE )
 	add_executable ( ${exe} ${app} )
-	set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/demo/pke)
+	set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/examples/pke)
 	set( PKEAPPS ${PKEAPPS} ${exe} )
 	target_link_libraries ( ${exe} ${PKELIBS} )
 endforeach()
 
-add_custom_target( allpkedemos )
-add_dependencies( allpkedemos ${PKEAPPS} )
+set( PKEEXTRAS "" )
+file (GLOB PKE_EXTRAS_SRC_FILES CONFIGURE_DEPENDS extras/*.cpp)
+foreach (app ${PKE_EXTRAS_SRC_FILES})
+	get_filename_component ( exe ${app} NAME_WE )
+	add_executable (${exe} ${app} )
+	set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/extras/pke)
+	set_property(TARGET ${exe} PROPERTY EXCLUDE_FROM_ALL True)
+	set( PKEEXTRAS ${PKEEXTRAS} ${exe} )
+	target_link_libraries ( ${exe} ${PKELIBS} )
+endforeach()
+
+add_custom_target( allpkeexamples )
+add_dependencies( allpkeexamples ${PKEAPPS} )
+
+add_custom_target( allpkeextras )
+add_dependencies( allpkeextras ${PKEEXTRAS} )
 
 add_custom_target( allpke )
-add_dependencies( allpke PALISADEpke allpkedemos )
+add_dependencies( allpke PALISADEpke allpkeexamples )
 
 if( ${BUILD_UNITTESTS} )
 add_dependencies( allpke pke_tests )

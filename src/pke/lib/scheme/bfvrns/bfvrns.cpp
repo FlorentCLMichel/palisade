@@ -162,13 +162,13 @@ void LPPublicKeyEncryptionSchemeBFVrns<Element>::Enable(PKESchemeFeature feature
 			this->m_algorithmMultiparty.reset( new LPAlgorithmMultipartyBFVrns<Element>() );
 		break; 
 	case FHE:
-		throw std::logic_error("FHE feature not supported for BFVrns scheme");
+		PALISADE_THROW(not_implemented_error, "FHE feature not supported for BFVrns scheme");
 	case LEVELEDSHE:
-		throw std::logic_error("LEVELEDSHE feature not supported for BFVrns scheme");
+		PALISADE_THROW(not_implemented_error, "LEVELEDSHE feature not supported for BFVrns scheme");
 	case ADVANCEDSHE:
-		throw std::logic_error("ADVANCEDSHE feature not supported for BFVrns scheme");
+		PALISADE_THROW(not_implemented_error, "ADVANCEDSHE feature not supported for BFVrns scheme");
 	case ADVANCEDMP:
-		throw std::logic_error("ADVANCEDMP feature not supported for BFVrns scheme");
+		PALISADE_THROW(not_implemented_error, "ADVANCEDMP feature not supported for BFVrns scheme");
 	}
 }
 

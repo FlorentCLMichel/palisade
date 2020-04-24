@@ -105,7 +105,7 @@ class CiphertextImpl;
 			encodingType = std::move(ciphertext->encodingType);
 		}
 
-		Ciphertext<Element> CloneEmpty() const {
+		virtual Ciphertext<Element> CloneEmpty() const {
 			Ciphertext<Element> ct( new CiphertextImpl<Element>(this->GetCryptoContext(), this->GetKeyTag(), this->GetEncodingType()) );
 			return ct;
 		}
@@ -175,7 +175,7 @@ class CiphertextImpl;
 				return m_elements[0];
 			else
 			{
-				throw std::logic_error("GetElement should only be used in cases with a Ciphertext with a single element");
+				PALISADE_THROW(config_error, "GetElement should only be used in cases with a Ciphertext with a single element");
 			}
 		}
 
@@ -196,7 +196,7 @@ class CiphertextImpl;
 			else if (m_elements.size() == 1)
 				m_elements[0] = element;
 			else
-				throw std::logic_error("SetElement should only be used in cases with a Ciphertext with a single element");
+				PALISADE_THROW(config_error, "SetElement should only be used in cases with a Ciphertext with a single element");
 		}
 
 		/**
@@ -257,7 +257,7 @@ class CiphertextImpl;
 			m_scalingFactor = sf;
 		}
 
-		Ciphertext<Element> Clone() const {
+		virtual Ciphertext<Element> Clone() const {
 			Ciphertext<Element> cRes = this->CloneEmpty();
 			cRes->SetElements(this->GetElements());
 			cRes->SetDepth(this->GetDepth());

@@ -24,29 +24,67 @@
  *
  */
 
-
 #ifndef SRC_CORE_LIB_UTILS_PARALLEL_H_
 #define SRC_CORE_LIB_UTILS_PARALLEL_H_
 
 #include "omp.h"
-
+//#include <iostream>
 namespace lbcrypto {
 
-class ParallelControls {
-	int machineThreads;
-public:
-	ParallelControls() {
-		machineThreads = omp_get_max_threads();
-		Enable();
-	}
+  class ParallelControls {
+    int machineThreads;
+  public:
+    // @Brief CTOR, enables parallel operations as default
+    // Cache the number of machine threads the system reports (can be
+    // overridden by environment variables)
+    // enable on startup by default
+    ParallelControls() {
+      machineThreads = omp_get_max_threads();
+      Enable();
+    }
+    // @Brief Enable() enables parallel operation
+    void Enable() {
+      omp_set_num_threads(machineThreads);
+    }
+    // @Brief Disable() disables parallel operation
+    void Disable() {
+      omp_set_num_threads(0);
+    }
 
-	void Enable() {
-		omp_set_num_threads(machineThreads);
-	}
+    int GetMachineThreads() const { return machineThreads; }
 
-	void Disable() {
-		omp_set_num_threads(0);
+    // @Brief returns current number of threads that are usable
+    // @return int # threads
+    int GetNumThreads() {
+      int out, nthreads, tid;
+	  	
+      // Fork a team of threads giving them their own copies of variables
+      //so we can see how many threads we have to work with
+#pragma omp parallel private( tid)
+      {
+	/* Obtain thread number */
+	tid = omp_get_thread_num();
+	
+	/* Only master thread does this */
+	if (tid == 0) {
+	  nthreads = omp_get_num_threads();
+	  out = nthreads;
 	}
+      }
+      //std::cout << "\nNumber of threads = " << out << std::endl;
+      return(out);
+    }
+       
+    // @Brief sets number of threads to use (limited by system value)
+
+    void SetNumThreads(int nthreads) {
+      //set number of thread, but limit it to the system set
+      //number of machine threads... 
+      if (nthreads > machineThreads) {
+	nthreads = machineThreads;
+      }
+      omp_set_num_threads(nthreads);
+    }
 };
 
 extern ParallelControls PalisadeParallelControls;
