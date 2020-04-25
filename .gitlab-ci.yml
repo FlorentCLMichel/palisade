@@ -1455,9 +1455,9 @@ noflag_mb4_extras_core:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  - ./build/bin/extras/core/temp-ntt
-  - ./build/bin/extras/core/temp-prng
-  - ./build/bin/extras/core/temp-xvector
+  # - ./build/bin/extras/core/temp-ntt
+  # - ./build/bin/extras/core/temp-prng
+  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - noflag_mb4_build
 
@@ -1531,9 +1531,9 @@ debug_mb2_extras_core:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  - ./build/bin/extras/core/temp-ntt
-  - ./build/bin/extras/core/temp-prng
-  - ./build/bin/extras/core/temp-xvector
+  # - ./build/bin/extras/core/temp-ntt
+  # - ./build/bin/extras/core/temp-prng
+  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - debug_mb2_build
 
@@ -1608,9 +1608,9 @@ debug_mb4_extras_core:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  - ./build/bin/extras/core/temp-ntt
-  - ./build/bin/extras/core/temp-prng
-  - ./build/bin/extras/core/temp-xvector
+  # - ./build/bin/extras/core/temp-ntt
+  # - ./build/bin/extras/core/temp-prng
+  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - debug_mb4_build
 
@@ -1685,9 +1685,9 @@ ntl_mb6_extras_core:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  - ./build/bin/extras/core/temp-ntt
-  - ./build/bin/extras/core/temp-prng
-  - ./build/bin/extras/core/temp-xvector
+  # - ./build/bin/extras/core/temp-ntt
+  # - ./build/bin/extras/core/temp-prng
+  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - ntl_mb6_build
 
@@ -1762,9 +1762,9 @@ tcm_mb2_extras_core:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  - ./build/bin/extras/core/temp-ntt
-  - ./build/bin/extras/core/temp-prng
-  - ./build/bin/extras/core/temp-xvector
+  # - ./build/bin/extras/core/temp-ntt
+  # - ./build/bin/extras/core/temp-prng
+  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - tcm_mb2_build
 
@@ -1839,9 +1839,9 @@ tcm_mb4_extras_core:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  - ./build/bin/extras/core/temp-ntt
-  - ./build/bin/extras/core/temp-prng
-  - ./build/bin/extras/core/temp-xvector
+  # - ./build/bin/extras/core/temp-ntt
+  # - ./build/bin/extras/core/temp-prng
+  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - tcm_mb4_build
 
@@ -1916,9 +1916,9 @@ tcm_ntl_mb6_extras_core:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  - ./build/bin/extras/core/temp-ntt
-  - ./build/bin/extras/core/temp-prng
-  - ./build/bin/extras/core/temp-xvector
+  # - ./build/bin/extras/core/temp-ntt
+  # - ./build/bin/extras/core/temp-prng
+  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - tcm_ntl_mb6_build
 
@@ -1993,9 +1993,9 @@ debug_tcm_ntl_mb6_extras_core:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  - ./build/bin/extras/core/temp-ntt
-  - ./build/bin/extras/core/temp-prng
-  - ./build/bin/extras/core/temp-xvector
+  # - ./build/bin/extras/core/temp-ntt
+  # - ./build/bin/extras/core/temp-prng
+  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - debug_tcm_ntl_mb6_build
 
@@ -3389,9 +3389,9 @@ noflag_mb4_extras_core_manual:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  - ./build/bin/extras/core/temp-ntt
-  - ./build/bin/extras/core/temp-prng
-  - ./build/bin/extras/core/temp-xvector
+  # - ./build/bin/extras/core/temp-ntt
+  # - ./build/bin/extras/core/temp-prng
+  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - noflag_mb4_build_manual
 
@@ -3462,9 +3462,9 @@ debug_mb2_extras_core_manual:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  - ./build/bin/extras/core/temp-ntt
-  - ./build/bin/extras/core/temp-prng
-  - ./build/bin/extras/core/temp-xvector
+  # - ./build/bin/extras/core/temp-ntt
+  # - ./build/bin/extras/core/temp-prng
+  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - debug_mb2_build_manual
 
@@ -3536,9 +3536,9 @@ debug_mb4_extras_core_manual:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  - ./build/bin/extras/core/temp-ntt
-  - ./build/bin/extras/core/temp-prng
-  - ./build/bin/extras/core/temp-xvector
+  # - ./build/bin/extras/core/temp-ntt
+  # - ./build/bin/extras/core/temp-prng
+  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - debug_mb4_build_manual
 
@@ -3610,9 +3610,9 @@ ntl_mb6_extras_core_manual:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  - ./build/bin/extras/core/temp-ntt
-  - ./build/bin/extras/core/temp-prng
-  - ./build/bin/extras/core/temp-xvector
+  # - ./build/bin/extras/core/temp-ntt
+  # - ./build/bin/extras/core/temp-prng
+  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - ntl_mb6_build_manual
 
@@ -3684,9 +3684,9 @@ tcm_mb2_extras_core_manual:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  - ./build/bin/extras/core/temp-ntt
-  - ./build/bin/extras/core/temp-prng
-  - ./build/bin/extras/core/temp-xvector
+  # - ./build/bin/extras/core/temp-ntt
+  # - ./build/bin/extras/core/temp-prng
+  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - tcm_mb2_build_manual
 
@@ -3758,9 +3758,9 @@ tcm_mb4_extras_core_manual:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  - ./build/bin/extras/core/temp-ntt
-  - ./build/bin/extras/core/temp-prng
-  - ./build/bin/extras/core/temp-xvector
+  # - ./build/bin/extras/core/temp-ntt
+  # - ./build/bin/extras/core/temp-prng
+  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - tcm_mb4_build_manual
 
@@ -3832,9 +3832,9 @@ tcm_ntl_mb6_extras_core_manual:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  - ./build/bin/extras/core/temp-ntt
-  - ./build/bin/extras/core/temp-prng
-  - ./build/bin/extras/core/temp-xvector
+  # - ./build/bin/extras/core/temp-ntt
+  # - ./build/bin/extras/core/temp-prng
+  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - tcm_ntl_mb6_build_manual
 
