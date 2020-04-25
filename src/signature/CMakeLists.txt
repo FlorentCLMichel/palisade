@@ -18,16 +18,19 @@ add_library (PALISADEsignature SHARED $<TARGET_OBJECTS:sigobj>)
 set_property(TARGET PALISADEsignature PROPERTY VERSION ${SIG_VERSION})
 set_property(TARGET PALISADEsignature PROPERTY SOVERSION ${SIG_VERSION_MAJOR})
 set_property(TARGET PALISADEsignature PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-install(TARGETS PALISADEsignature DESTINATION lib)
+install(TARGETS PALISADEsignature
+	EXPORT PalisadeTargets
+	DESTINATION lib)
 if( ${BUILD_STATIC} MATCHES "YES" )
 	add_library (PALISADEsignature_static STATIC $<TARGET_OBJECTS:sigobj>)
 	set_property(TARGET PALISADEsignature_static PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-	install(TARGETS PALISADEsignature_static DESTINATION lib)
+	install(TARGETS PALISADEsignature_static
+		EXPORT PalisadeTargets
+		DESTINATION lib)
 endif()
 
-install(DIRECTORY include/ DESTINATION include/palisade/signature)
-
-target_include_directories (PALISADEsignature PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+install(DIRECTORY include/
+	DESTINATION include/palisade/signature)
 
 set (SIGLIBS PUBLIC PALISADEsignature PUBLIC PALISADEcore ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
 
@@ -44,20 +47,20 @@ target_link_libraries ( signature_tests ${SIGLIBS} )
 endif()
 
 set (SIGAPPS "")
-file (GLOB SIG_DEMO_SRC_FILES CONFIGURE_DEPENDS demo/*.cpp)
-foreach (app ${SIG_DEMO_SRC_FILES})
+file (GLOB SIG_EXAMPLES_SRC_FILES CONFIGURE_DEPENDS examples/*.cpp)
+foreach (app ${SIG_EXAMPLES_SRC_FILES})
 	get_filename_component ( exe ${app} NAME_WE )
 	add_executable ( ${exe} ${app} )
-	set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/demo/signature)
+	set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/examples/signature)
 	set( SIGAPPS ${SIGAPPS} ${exe} )
 	target_link_libraries ( ${exe} ${SIGLIBS} )
 endforeach()
 
-add_custom_target( allsignaturedemos )
-add_dependencies( allsignaturedemos ${SIGAPPS} )
+add_custom_target( allsignatureexamples )
+add_dependencies( allsignatureexamples ${SIGAPPS} )
 
 add_custom_target( allsignature )
-add_dependencies( allsignature PALISADEsignature allsignaturedemos )
+add_dependencies( allsignature PALISADEsignature allsignatureexamples )
 
 if( ${BUILD_UNITTESTS} )
 add_dependencies( allsignature signature_tests )

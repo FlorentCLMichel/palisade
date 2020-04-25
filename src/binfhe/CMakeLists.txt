@@ -18,16 +18,19 @@ add_library (PALISADEbinfhe SHARED $<TARGET_OBJECTS:binfheobj>)
 set_property(TARGET PALISADEbinfhe PROPERTY VERSION ${BINFHE_VERSION})
 set_property(TARGET PALISADEbinfhe PROPERTY SOVERSION ${BINFHE_VERSION_MAJOR})
 set_property(TARGET PALISADEbinfhe PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-install(TARGETS PALISADEbinfhe DESTINATION lib)
+install(TARGETS PALISADEbinfhe
+	EXPORT PalisadeTargets
+	DESTINATION lib)
 if( ${BUILD_STATIC} MATCHES "YES" )
 	add_library (PALISADEbinfhe_static STATIC $<TARGET_OBJECTS:binfheobj>)
 	set_property(TARGET PALISADEbinfhe_static PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-	install(TARGETS PALISADEbinfhe_static DESTINATION lib)
+	install(TARGETS PALISADEbinfhe_static
+		EXPORT PalisadeTargets
+		DESTINATION lib)
 endif()
 
-install(DIRECTORY include/ DESTINATION include/palisade/binfhe)
-
-target_include_directories (PALISADEbinfhe PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+install(DIRECTORY include/
+	DESTINATION include/palisade/binfhe)
 
 set (BINFHELIBS PUBLIC PALISADEbinfhe PUBLIC PALISADEcore ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
 
@@ -44,20 +47,20 @@ target_link_libraries ( binfhe_tests ${BINFHELIBS} )
 endif()
 
 set (BINFHEAPPS "")
-file (GLOB BINFHE_DEMO_SRC_FILES CONFIGURE_DEPENDS demo/*.cpp)
-foreach (app ${BINFHE_DEMO_SRC_FILES})
+file (GLOB BINFHE_EXAMPLES_SRC_FILES CONFIGURE_DEPENDS examples/*.cpp)
+foreach (app ${BINFHE_EXAMPLES_SRC_FILES})
 	get_filename_component ( exe ${app} NAME_WE )
 	add_executable ( ${exe} ${app} )
-	set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/demo/binfhe)
+	set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/examples/binfhe)
 	set( BINFHEAPPS ${BINFHEAPPS} ${exe} )
 	target_link_libraries ( ${exe} ${BINFHELIBS} )
 endforeach()
 
-add_custom_target( allbinfhedemos )
-add_dependencies( allbinfhedemos ${BINFHEAPPS} )
+add_custom_target( allbinfheexamples )
+add_dependencies( allbinfheexamples ${BINFHEAPPS} )
 
 add_custom_target( allbinfhe )
-add_dependencies( allbinfhe PALISADEbinfhe allbinfhedemos )
+add_dependencies( allbinfhe PALISADEbinfhe allbinfheexamples )
 
 if( ${BUILD_UNITTESTS} )
 add_dependencies( allbinfhe binfhe_tests )

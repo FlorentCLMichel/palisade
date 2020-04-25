@@ -1,5 +1,5 @@
 /**
- * @file bindhecontext.h - Header file for BinFHEContext class, which is used for Boolean circuit FHE schemes
+ * @file binfhecontext.h - Header file for BinFHEContext class, which is used for Boolean circuit FHE schemes
  * @author  TPOC: contact@palisade-crypto.org
  *
  * @copyright Copyright (c) 2019, Duality Technologies Inc.
@@ -34,7 +34,7 @@
 // security levels for predefined parameter sets
 enum BINFHEPARAMSET {
 	TOY, // no security
-	MEDIUM, // 109 bits of security for classical and 102 bits for quantum
+	MEDIUM, // 108 bits of security for classical and 100 bits for quantum
 	STD128, // more than 128 bits of security for classical computer attacks - uses the same setup as HE standard
 	STD192, // more than 192 bits of security for classical computer attacks - uses the same setup as HE standard
 	STD256,  // more than 256 bits of security for classical computer attacks - uses the same setup as HE standard
@@ -79,18 +79,20 @@ namespace lbcrypto{
     		 * @param baseKS the base used for key switching
     		 * @param baseG the gadget base used in bootstrapping
     		 * @param baseR the base used for refreshing
+    		 * @param method the bootstrapping method (AP or GINX)
     		 * @return creates the cryptocontext
     		 */
             void GenerateBinFHEContext(uint32_t n, uint32_t N, const NativeInteger &q, const NativeInteger &Q, double std,
-            		uint32_t baseKS, uint32_t baseG, uint32_t baseR);
+            		uint32_t baseKS, uint32_t baseG, uint32_t baseR, BINFHEMETHOD method = GINX);
 
     		/**
     		 * Creates a crypto context using predefined parameters sets. Recommended for most users.
     		 *
     		 * @param set the parameter set: TOY, MEDIUM, STD128, STD192, STD256
+    		 * @param method the bootstrapping method (AP or GINX)
     		 * @return create the cryptocontext
     		 */
-            void GenerateBinFHEContext(BINFHEPARAMSET set);
+            void GenerateBinFHEContext(BINFHEPARAMSET set, BINFHEMETHOD method = GINX);
 
     		/**
     		 * Gets the refreshing key (used for serialization).
@@ -178,7 +180,7 @@ namespace lbcrypto{
       		/**
 			* Evaluates a binary gate (calls bootstrapping as a subroutine)
 			*
-			* @param gate the gate; can be AND, OR, NAND, or NOR
+			* @param gate the gate; can be AND, OR, NAND, NOR, XOR, or XNOR
 			* @param ct1 first ciphertext
 			* @param ct2 second ciphertext
 			* @return a shared pointer to the resulting ciphertext

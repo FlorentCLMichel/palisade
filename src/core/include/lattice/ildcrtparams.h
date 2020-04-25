@@ -128,8 +128,9 @@ public:
 		     const std::vector<NativeInteger> &moduliBig = {}, const std::vector<NativeInteger>& rootsOfUnityBig = {}, const IntType &inputOriginalModulus = IntType(0))
 		: ElemParams<IntType>(cyclotomic_order, 0, 0, 0, 0) {
 	        this->originalModulus = inputOriginalModulus;
-		if( moduli.size() != rootsOfUnity.size() )
-			throw std::logic_error("sizes of moduli and roots of unity do not match");
+		if( moduli.size() != rootsOfUnity.size() ) {
+			PALISADE_THROW(math_error, "sizes of moduli and roots of unity do not match");
+		}
 
 		if(moduliBig.size() == moduli.size())
 		{ 
@@ -211,9 +212,8 @@ public:
 	std::vector<std::shared_ptr<ILNativeParams>> GetParamPartition(uint32_t start, uint32_t end) const {
 
 		if (end < start || end > this->GetParams().size()) {
-			std::string errMsg = "Incorrect parameters for GetParamPartition - (start: " +
-					std::to_string(start) + ", end:" + std::to_string(end) + ")";
-			throw std::logic_error(errMsg);
+			PALISADE_THROW(math_error, "Incorrect parameters for GetParamPartition - (start: " +
+					std::to_string(start) + ", end:" + std::to_string(end) + ")");
 		}
 
 		std::vector<std::shared_ptr<ILNativeParams>> resParams =
@@ -222,7 +222,7 @@ public:
 		IntType q = IntType(1);
 		for (uint32_t i=0; i<=(end-start); i++) {
 			resParams[i] = this->GetParams()[i+start];
-			q = q.Times(IntType(this->GetParams()[i+start]->GetModulus()));
+			q = q.Mul(IntType(this->GetParams()[i+start]->GetModulus()));
 		}
 
 		return resParams;

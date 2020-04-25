@@ -92,7 +92,7 @@ namespace lbcrypto {
 			const LPPrivateKey<DCRTPoly> newPrivateKey) const  {
 
 		std::string errMsg = "LPAlgorithmSHECKKS::KeySwitchGHSGen is only supported for DCRTPoly.";
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(not_implemented_error, errMsg);
 	}
 
 	template <class Element>
@@ -100,7 +100,7 @@ namespace lbcrypto {
 		ConstCiphertext<Element> cipherText) const  {
 
 		std::string errMsg = "LPAlgorithmSHECKKS::KeySwitchGHS is only supported for DCRTPoly.";
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(not_implemented_error, errMsg);
 	}
 
 	template <class Element>
@@ -109,7 +109,7 @@ namespace lbcrypto {
 		ConstCiphertext<Element> ciphertext2) const {
 
 		std::string errMsg = "LPAlgorithmSHECKKS::AutomaticLevelReduce is only supported for DCRTPoly.";
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(not_implemented_error, errMsg);
 	}
 
 	template <class Element>
@@ -118,12 +118,12 @@ namespace lbcrypto {
 		ConstCiphertext<Element> ciphertext2) const
 	{
 		if (ciphertext1->GetDepth() != ciphertext2->GetDepth()) {
-			throw std::runtime_error("Depths of two ciphertexts do not match.");
+			PALISADE_THROW(config_error, "Depths of two ciphertexts do not match.");
 		}
 
 
 		if (ciphertext1->GetLevel() != ciphertext2->GetLevel()) {
-			throw std::runtime_error("EvalAddCore cannot add ciphertexts with different number of CRT components.");
+			PALISADE_THROW(config_error, "EvalAddCore cannot add ciphertexts with different number of CRT components.");
 		}
 
 		Ciphertext<Element> newCiphertext = ciphertext1->CloneEmpty();
@@ -173,7 +173,7 @@ namespace lbcrypto {
 		ConstCiphertext<Element> ciphertext2) const {
 
 		if (ciphertext1->GetDepth() != ciphertext2->GetDepth()) {
-			throw std::runtime_error("LPAlgorithmSHECKKS<Element>::EvalSubCore - Depths of two ciphertexts do not match.");
+			PALISADE_THROW(config_error, "LPAlgorithmSHECKKS<Element>::EvalSubCore - Depths of two ciphertexts do not match.");
 		}
 
 		Ciphertext<Element> newCiphertext = ciphertext1->CloneEmpty();
@@ -225,11 +225,11 @@ namespace lbcrypto {
 	{
 
 		if (ciphertext1->GetElements()[0].GetFormat() == Format::COEFFICIENT || ciphertext2->GetElements()[0].GetFormat() == Format::COEFFICIENT) {
-			throw std::runtime_error("EvalMult cannot multiply in COEFFICIENT domain.");
+			PALISADE_THROW(not_available_error, "EvalMult cannot multiply in COEFFICIENT domain.");
 		}
 
 		if (ciphertext1->GetLevel() != ciphertext2->GetLevel()) {
-			throw std::runtime_error("EvalMultCore cannot multiply ciphertexts with different number of CRT components.");
+			PALISADE_THROW(config_error, "EvalMultCore cannot multiply ciphertexts with different number of CRT components.");
 		}
 
 		Ciphertext<Element> newCiphertext = ciphertext1->CloneEmpty();
@@ -327,7 +327,7 @@ namespace lbcrypto {
 		// implementation of EvalAdd, by doing the operation
 		// in CRT.
 		if (depth > 2)
-			throw std::runtime_error("LPAlgorithmSHECKKS<Element>::EvalAdd is supported only for DCRTPoly.");
+			PALISADE_THROW(not_implemented_error, "LPAlgorithmSHECKKS<Element>::EvalAdd is supported only for DCRTPoly.");
 
 		double powP = pow(2,p*depth);
 
@@ -402,7 +402,7 @@ namespace lbcrypto {
 		// implementation of EvalSub, by doing the operation
 		// in CRT.
 		if (depth > 2)
-			throw std::runtime_error("LPAlgorithmSHECKKS<Element>::EvalSub is supported only for DCRTPoly.");
+			PALISADE_THROW(not_implemented_error, "LPAlgorithmSHECKKS<Element>::EvalSub is supported only for DCRTPoly.");
 
 		double powP = pow(2,p*depth);
 
@@ -436,7 +436,7 @@ namespace lbcrypto {
 		ConstCiphertext<Element> ciphertext,
 		ConstPlaintext plaintext) const
 	{
-		throw std::runtime_error("EvalMult is onlly implemented in DCRTPoly.");
+		PALISADE_THROW(not_implemented_error, "EvalMult is onlly implemented in DCRTPoly.");
 	}
 
 	template <class Element>
@@ -473,7 +473,7 @@ namespace lbcrypto {
 			Ciphertext<Element> c;
 			// First, rescale to bring ciphertext to depth 1
 			if (ciphertext->GetDepth() > 2) {
-				throw std::runtime_error("Exact rescaling works for ciphertexts of depth 1 and 2 only.");
+				PALISADE_THROW(not_available_error, "Exact rescaling works for ciphertexts of depth 1 and 2 only.");
 			}
 
 			double powP = ciphertext->GetScalingFactor();
@@ -728,7 +728,7 @@ namespace lbcrypto {
 		shared_ptr<std::map<usint, LPEvalKey<Element>>> evalKeys(new std::map<usint, LPEvalKey<Element>>());
 
 		if (indexList.size() > n - 1)
-			throw std::runtime_error("size exceeds the ring dimension");
+			PALISADE_THROW(math_error, "size exceeds the ring dimension");
 		else {
 
 			for (usint i = 0; i < indexList.size(); i++)
@@ -903,7 +903,7 @@ namespace lbcrypto {
 	Ciphertext<Element> LPLeveledSHEAlgorithmCKKS<Element>::ModReduce(ConstCiphertext<Element> cipherText) const {
 
 		std::string errMsg = "LPAlgorithmSHECKKS::ModReduce is only supported for DCRTPoly.";
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(not_implemented_error, errMsg);
 
 	}
 
@@ -912,7 +912,7 @@ namespace lbcrypto {
 			const LPEvalKey<Element> linearKeySwitchHint, size_t levels) const {
 
 		std::string errMsg = "LPAlgorithmSHECKKS::LevelReduce is only supported for DCRTPoly.";
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(not_implemented_error, errMsg);
 
 	}
 
@@ -929,7 +929,7 @@ namespace lbcrypto {
 		if ( cryptoParamsLWE->GetKeySwitchTechnique() != BV ) {
 			std::string errMsg =
 					"MultipartyKeyGen - Multiparty HE is only supported when using BV key switching.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_available_error, errMsg);
 		}
 
 		LPKeyPair<Element>	kp(new LPPublicKeyImpl<Element>(cc), new LPPrivateKeyImpl<Element>(cc));
@@ -979,7 +979,7 @@ LPKeyPair<Element> LPAlgorithmMultipartyCKKS<Element>::MultipartyKeyGen(CryptoCo
 		if ( cryptoParamsLWE->GetKeySwitchTechnique() != BV ) {
 			std::string errMsg =
 					"MultipartyKeyGen - Multiparty HE is only supported when using BV key switching.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_available_error, errMsg);
 		}
 
 		LPKeyPair<Element>	kp(new LPPublicKeyImpl<Element>(cc), new LPPrivateKeyImpl<Element>(cc));
@@ -1042,7 +1042,7 @@ Ciphertext<Element> LPAlgorithmMultipartyCKKS<Element>::MultipartyDecryptLead(co
 		if ( cryptoParamsLWE->GetKeySwitchTechnique() != BV ) {
 			std::string errMsg =
 					"MultipartyDecryptLead - Multiparty HE is only supported when using BV key switching.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_available_error, errMsg);
 		}
 
 		const shared_ptr<LPCryptoParameters<Element>> cryptoParams = privateKey->GetCryptoParameters();
@@ -1067,7 +1067,7 @@ Ciphertext<Element> LPAlgorithmMultipartyCKKS<Element>::MultipartyDecryptMain(co
 	if ( cryptoParamsLWE->GetKeySwitchTechnique() != BV ) {
 		std::string errMsg =
 				"MultipartyDecryptMain - Multiparty HE is only supported when using BV key switching.";
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(not_available_error, errMsg);
 	}
 
 	const shared_ptr<LPCryptoParameters<Element>> cryptoParams = privateKey->GetCryptoParameters();
@@ -1094,7 +1094,7 @@ DecryptResult LPAlgorithmMultipartyCKKS<Element>::MultipartyDecryptFusion(const 
 	if ( cryptoParamsLWE->GetKeySwitchTechnique() != BV ) {
 		std::string errMsg =
 				"MultipartyDecryptFusion - Multiparty HE is only supported when using BV key switching.";
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(not_available_error, errMsg);
 	}
 
 	const shared_ptr<LPCryptoParameters<Element>> cryptoParams = ciphertextVec[0]->GetCryptoParameters();
@@ -1124,7 +1124,7 @@ shared_ptr<vector<Element>> LPAlgorithmSHECKKS<Element>::EvalFastRotationPrecomp
 		) const {
 
 	std::string errMsg = "CKKS EvalFastRotationPrecomputeBV supports only DCRTPoly."; \
-	throw std::runtime_error(errMsg);
+	PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 template<class Element>
@@ -1133,7 +1133,7 @@ shared_ptr<vector<Element>> LPAlgorithmSHECKKS<Element>::EvalFastRotationPrecomp
 		) const {
 
 	std::string errMsg = "CKKS EvalFastRotationPrecomputeGHS supports only DCRTPoly."; \
-	throw std::runtime_error(errMsg);
+	PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 template<class Element>
@@ -1146,7 +1146,7 @@ Ciphertext<Element> LPAlgorithmSHECKKS<Element>::EvalFastRotationBV(
 		) const {
 
 	std::string errMsg = "CKKS EvalFastRotationBV supports only DCRTPoly."; \
-	throw std::runtime_error(errMsg);
+	PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 template<class Element>
@@ -1159,7 +1159,7 @@ Ciphertext<Element> LPAlgorithmSHECKKS<Element>::EvalFastRotationGHS(
 		) const {
 
 	std::string errMsg = "CKKS EvalFastRotationGHS supports only DCRTPoly."; \
-	throw std::runtime_error(errMsg);
+	PALISADE_THROW(not_available_error, errMsg);
 }
 
 	// Enable for LPPublicKeyEncryptionSchemeLTV
@@ -1196,11 +1196,11 @@ Ciphertext<Element> LPAlgorithmSHECKKS<Element>::EvalFastRotationGHS(
 				this->m_algorithmMultiparty.reset(new LPAlgorithmMultipartyCKKS<Element>());
 			break;
 		case FHE:
-			throw std::logic_error("FHE feature not supported for CKKS scheme");
+			PALISADE_THROW(not_implemented_error, "FHE feature not supported for CKKS scheme");
 		case ADVANCEDSHE:
-			throw std::logic_error("ADVANCEDSHE feature not supported for CKKS scheme");
+			PALISADE_THROW(not_implemented_error, "ADVANCEDSHE feature not supported for CKKS scheme");
 		case ADVANCEDMP:
-			throw std::logic_error("ADVANCEDMP feature not supported for CKKS scheme");
+			PALISADE_THROW(not_implemented_error, "ADVANCEDMP feature not supported for CKKS scheme");
 		}
 	}
 

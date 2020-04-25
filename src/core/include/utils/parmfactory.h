@@ -57,8 +57,9 @@ inline shared_ptr<ILDCRTParams<I>> GenerateDCRTParams(usint m, usint numOfTower,
 	DEBUGEXP(m);
 	DEBUGEXP(numOfTower);
 	DEBUGEXP(pbits);
-	if( numOfTower == 0 )
-		throw std::logic_error("Can't make parms with numOfTower == 0 ");
+	if ( numOfTower == 0 ) {
+		PALISADE_THROW(math_error, "Can't make parms with numOfTower == 0");
+	}
 
 	std::vector<NativeInteger> moduli(numOfTower);
 	std::vector<NativeInteger> rootsOfUnity(numOfTower);

@@ -231,7 +231,7 @@ public:
 			cerr << "Warning - SetPrivateKey is only intended to be used for debugging purposes - not for production systems." << endl;
 			this->privateKey = sk;
 #else
-			throw std::runtime_error("SetPrivateKey is only allowed if DEBUG_KEY is set in palisade.h");
+			PALISADE_THROW(not_available_error, "SetPrivateKey is only allowed if DEBUG_KEY is set in palisade.h");
 #endif
 	}
 
@@ -263,7 +263,7 @@ public:
 #ifdef DEBUG_KEY
 		return this->privateKey;
 #else
-		throw std::runtime_error("GetPrivateKey is only allowed if DEBUG_KEY is set in palisade.h");
+		PALISADE_THROW(not_available_error, "GetPrivateKey is only allowed if DEBUG_KEY is set in palisade.h");
 #endif
 	}
 
@@ -858,7 +858,7 @@ public:
 		const vector<Ciphertext<Element>>& ciphertext) const
 	{
 		if( privateKey == NULL || Mismatched(privateKey->GetCryptoContext()) )
-			throw std::logic_error("Information passed to MultipartyDecryptLead was not generated with this crypto context");
+			PALISADE_THROW(config_error, "Information passed to MultipartyDecryptLead was not generated with this crypto context");
 
         vector<Ciphertext<Element>> newCiphertext;
 
@@ -866,7 +866,7 @@ public:
 		if( doTiming ) TIC(t);
 		for( size_t i = 0; i < ciphertext.size(); i++ ) {
 			if( ciphertext[i] == NULL || Mismatched(ciphertext[i]->GetCryptoContext()) )
-				throw std::logic_error("A ciphertext passed to MultipartyDecryptLead was not generated with this crypto context");
+				PALISADE_THROW(config_error, "A ciphertext passed to MultipartyDecryptLead was not generated with this crypto context");
 
 			newCiphertext.push_back( GetEncryptionAlgorithm()->MultipartyDecryptLead(privateKey, ciphertext[i]) );
 
@@ -892,7 +892,7 @@ public:
 		const vector<Ciphertext<Element>>& ciphertext) const
 	{
 		if( privateKey == NULL || Mismatched(privateKey->GetCryptoContext()) )
-			throw std::logic_error("Information passed to MultipartyDecryptMain was not generated with this crypto context");
+			PALISADE_THROW(config_error, "Information passed to MultipartyDecryptMain was not generated with this crypto context");
 
 		vector<Ciphertext<Element>> newCiphertext;
 
@@ -901,7 +901,7 @@ public:
 
 		for( size_t i = 0; i < ciphertext.size(); i++ ) {
 			if( ciphertext[i] == NULL || Mismatched(ciphertext[i]->GetCryptoContext()) )
-				throw std::logic_error("A ciphertext passed to MultipartyDecryptMain was not generated with this crypto context");
+				PALISADE_THROW(config_error, "A ciphertext passed to MultipartyDecryptMain was not generated with this crypto context");
 
 			newCiphertext.push_back( GetEncryptionAlgorithm()->MultipartyDecryptMain(privateKey, ciphertext[i]) );
 		}
@@ -939,9 +939,9 @@ public:
 
 		for( size_t i = 0; i < last_ciphertext; i++ ) {
 			if (partialCiphertextVec[i] == NULL || Mismatched(partialCiphertextVec[i]->GetCryptoContext()))
-				throw std::logic_error("A ciphertext passed to MultipartyDecryptFusion was not generated with this crypto context");
+				PALISADE_THROW(config_error, "A ciphertext passed to MultipartyDecryptFusion was not generated with this crypto context");
 			if (partialCiphertextVec[i]->GetEncodingType() != partialCiphertextVec[0]->GetEncodingType())
-				throw std::logic_error("Ciphertexts passed to MultipartyDecryptFusion have mismatched encoding types");
+				PALISADE_THROW(type_error, "Ciphertexts passed to MultipartyDecryptFusion have mismatched encoding types");
 		}
 
 		// determine which type of plaintext that you need to decrypt into
@@ -1002,7 +1002,7 @@ public:
 		if( newKey == NULL || oldKey == NULL ||
 				Mismatched(newKey->GetCryptoContext()) ||
 				Mismatched(oldKey->GetCryptoContext()) )
-			throw std::logic_error("Keys passed to ReKeyGen were not generated with this crypto context");
+			PALISADE_THROW(config_error, "Keys passed to ReKeyGen were not generated with this crypto context");
 
 		TimeVar t;
 		if( doTiming ) TIC(t);
@@ -1067,7 +1067,7 @@ public:
 		if( key1 == NULL || key2 == NULL ||
 				Mismatched(key1->GetCryptoContext()) ||
 				Mismatched(key2->GetCryptoContext()) )
-			throw std::logic_error("Keys passed to KeySwitchGen were not generated with this crypto context");
+			PALISADE_THROW(config_error, "Keys passed to KeySwitchGen were not generated with this crypto context");
 
 		TimeVar t;
 		if( doTiming ) TIC(t);
@@ -1089,13 +1089,13 @@ public:
 			Plaintext plaintext)
 	{
 		if( publicKey == NULL )
-			throw std::logic_error("null key passed to Encrypt");
+			PALISADE_THROW(type_error, "null key passed to Encrypt");
 
 		if( plaintext == NULL )
-			throw std::logic_error("null plaintext passed to Encrypt");
+			PALISADE_THROW(type_error, "null plaintext passed to Encrypt");
 
 		if( Mismatched(publicKey->GetCryptoContext()) )
-			throw std::logic_error("key passed to Encrypt was not generated with this crypto context");
+			PALISADE_THROW(config_error, "key passed to Encrypt was not generated with this crypto context");
 
 		TimeVar t;
 		if( doTiming ) TIC(t);
@@ -1126,9 +1126,9 @@ public:
 		Plaintext plaintext) const
 	{
 		if( privateKey == NULL || Mismatched(privateKey->GetCryptoContext()) )
-			throw std::logic_error("key passed to Encrypt was not generated with this crypto context");
+			PALISADE_THROW(config_error, "key passed to Encrypt was not generated with this crypto context");
 		if( plaintext == NULL )
-			throw std::logic_error("null plaintext passed to Encrypt");
+			PALISADE_THROW(type_error, "null plaintext passed to Encrypt");
 
 		TimeVar t;
 		if( doTiming ) TIC(t);
@@ -1160,7 +1160,7 @@ public:
 		Matrix<Plaintext> &plaintext)
 	{
 		if (publicKey == NULL || Mismatched(publicKey->GetCryptoContext()))
-			throw std::logic_error("key passed to EncryptMatrix was not generated with this crypto context");
+			PALISADE_THROW(config_error, "key passed to EncryptMatrix was not generated with this crypto context");
 
 		auto zeroAlloc = [=]() { return RationalCiphertext<Element>(publicKey->GetCryptoContext(), true); };
 
@@ -1204,7 +1204,7 @@ public:
 		Matrix<Plaintext> &plaintext)
 	{
 		if (publicKey == NULL || Mismatched(publicKey->GetCryptoContext()))
-			throw std::logic_error("key passed to EncryptMatrix was not generated with this crypto context");
+			PALISADE_THROW(config_error, "key passed to EncryptMatrix was not generated with this crypto context");
 
 		auto zeroAlloc = [=]() { return Ciphertext<Element>(new CiphertextImpl<Element>(publicKey->GetCryptoContext())); };
 		Matrix<Ciphertext<Element>> cipherResults(zeroAlloc, plaintext.GetRows(), plaintext.GetCols());
@@ -1216,7 +1216,7 @@ public:
 			for (size_t col = 0; col < plaintext.GetCols(); col++)
 			{
 				if( plaintext(row,col)->Encode() == false )
-					throw std::logic_error("Plaintext is not encoded");
+					PALISADE_THROW(math_error, "Plaintext is not encoded");
 
 				Ciphertext<Element> ciphertext = GetEncryptionAlgorithm()->Encrypt(publicKey, plaintext(row,col)->GetElement<Element>());
 
@@ -1415,7 +1415,7 @@ public:
 			Plaintext* plaintext)
 	{
 		if( privateKey == NULL || Mismatched(privateKey->GetCryptoContext()) )
-			throw std::logic_error("Information passed to Decrypt was not generated with this crypto context");
+			PALISADE_THROW(config_error, "Information passed to Decrypt was not generated with this crypto context");
 
 		TimeVar t;
 		if( doTiming ) TIC(t);
@@ -1485,7 +1485,7 @@ public:
 			return DecryptResult();
 
 		if (privateKey == NULL || Mismatched(privateKey->GetCryptoContext()))
-			throw std::runtime_error("Information passed to DecryptMatrix was not generated with this crypto context");
+			PALISADE_THROW(config_error, "Information passed to DecryptMatrix was not generated with this crypto context");
 
 		const Ciphertext<Element> ctN = (*ciphertext)(0, 0).GetNumerator();
 
@@ -1502,7 +1502,7 @@ public:
 			for (size_t col = 0; col < ciphertext->GetCols(); col++)
 			{
 				if (Mismatched((*ciphertext)(row, col).GetCryptoContext()))
-					throw std::runtime_error("A ciphertext passed to DecryptMatrix was not generated with this crypto context");
+					PALISADE_THROW(config_error, "A ciphertext passed to DecryptMatrix was not generated with this crypto context");
 
 				const Ciphertext<Element> ctN = (*ciphertext)(row, col).GetNumerator();
 
@@ -1562,7 +1562,7 @@ public:
 			return DecryptResult();
 
 		if (privateKey == NULL || Mismatched(privateKey->GetCryptoContext()))
-			throw std::runtime_error("Information passed to DecryptMatrix was not generated with this crypto context");
+			PALISADE_THROW(config_error, "Information passed to DecryptMatrix was not generated with this crypto context");
 
 		const Ciphertext<Element> ctN = (ciphertext)(0, 0);
 
@@ -1578,7 +1578,7 @@ public:
 			for (size_t col = 0; col < ciphertext.GetCols(); col++)
 			{
 				if (Mismatched( (ciphertext(row, col))->GetCryptoContext() ))
-					throw std::runtime_error("A ciphertext passed to DecryptMatrix was not generated with this crypto context");
+					PALISADE_THROW(config_error, "A ciphertext passed to DecryptMatrix was not generated with this crypto context");
 
 				const Ciphertext<Element> ctN = (ciphertext)(row, col);
 
@@ -1619,14 +1619,14 @@ public:
 			return DecryptResult();
 
 		if (privateKey == NULL || Mismatched(privateKey->GetCryptoContext()))
-			throw std::runtime_error("Information passed to DecryptMatrix was not generated with this crypto context");
+			PALISADE_THROW(config_error, "Information passed to DecryptMatrix was not generated with this crypto context");
 
 		TimeVar t;
 		if (doTiming) TIC(t);
 
 		//force all precomputations to take place in advance
 		if( Mismatched((*ciphertext)(0, 0).GetCryptoContext()) )
-			throw std::runtime_error("A ciphertext passed to DecryptMatrix was not generated with this crypto context");
+			PALISADE_THROW(config_error, "A ciphertext passed to DecryptMatrix was not generated with this crypto context");
 
 		const Ciphertext<Element> ctN = (*ciphertext)(0, 0).GetNumerator();
 
@@ -1651,7 +1651,7 @@ public:
 				if (row + col > 0)
 				{
 					if( Mismatched((*ciphertext)(row, col).GetCryptoContext()) )
-						throw std::runtime_error("A ciphertext passed to DecryptMatrix was not generated with this crypto context");
+						PALISADE_THROW(config_error, "A ciphertext passed to DecryptMatrix was not generated with this crypto context");
 
 					const Ciphertext<Element> ctN = (*ciphertext)(row, col).GetNumerator();
 
@@ -1697,10 +1697,10 @@ public:
 		const LPPublicKey<Element> publicKey = nullptr) const
 	{
 		if( evalKey == NULL || Mismatched(evalKey->GetCryptoContext()) )
-			throw std::logic_error("Information passed to ReEncrypt was not generated with this crypto context");
+			PALISADE_THROW(config_error, "Information passed to ReEncrypt was not generated with this crypto context");
 
 		if( ciphertext == NULL || Mismatched(ciphertext->GetCryptoContext()) )
-			throw std::logic_error("The ciphertext passed to ReEncrypt was not generated with this crypto context");
+			PALISADE_THROW(config_error, "The ciphertext passed to ReEncrypt was not generated with this crypto context");
 
 		TimeVar t;
 		if( doTiming ) TIC(t);
@@ -2509,7 +2509,7 @@ public:
 	EvalNegate(ConstCiphertext<Element> ct) const
 	{
 		if (ct == NULL || Mismatched(ct->GetCryptoContext()) )
-			throw std::logic_error("Information passed to EvalNegate was not generated with this crypto context");
+			PALISADE_THROW(config_error, "Information passed to EvalNegate was not generated with this crypto context");
 
 		TimeVar t;
 		if( doTiming ) TIC(t);
@@ -2529,7 +2529,7 @@ public:
 	EvalNegateMatrix(const shared_ptr<Matrix<RationalCiphertext<Element>>> ct) const
 	{
 		if (ct == NULL || Mismatched((*ct)(0,0).GetCryptoContext()) )
-			throw std::logic_error("Information passed to EvalNegateMatrix was not generated with this crypto context");
+			PALISADE_THROW(config_error, "Information passed to EvalNegateMatrix was not generated with this crypto context");
 
 		TimeVar t;
 		if( doTiming ) TIC(t);
@@ -2878,10 +2878,10 @@ public:
 		ConstCiphertext<Element> ciphertext) const
 	{
 		if( keySwitchHint == NULL || Mismatched(keySwitchHint->GetCryptoContext()) )
-			throw std::logic_error("Key passed to KeySwitch was not generated with this crypto context");
+			PALISADE_THROW(config_error, "Key passed to KeySwitch was not generated with this crypto context");
 
 		if( ciphertext == NULL || Mismatched(ciphertext->GetCryptoContext()) )
-			throw std::logic_error("Ciphertext passed to KeySwitch was not generated with this crypto context");
+			PALISADE_THROW(config_error, "Ciphertext passed to KeySwitch was not generated with this crypto context");
 
 		TimeVar t;
 		if( doTiming ) TIC(t);
@@ -2901,7 +2901,7 @@ public:
 	 */
 	Ciphertext<Element> Rescale(ConstCiphertext<Element> ciphertext) const {
 		if( ciphertext == NULL || Mismatched(ciphertext->GetCryptoContext()) )
-			throw std::logic_error("Information passed to Rescale was not generated with this crypto context");
+			PALISADE_THROW(config_error, "Information passed to Rescale was not generated with this crypto context");
 
 		TimeVar t;
 		if( doTiming ) TIC(t);
@@ -2919,7 +2919,7 @@ public:
 	 */
 	Ciphertext<Element> ModReduce(ConstCiphertext<Element> ciphertext) const {
 		if( ciphertext == NULL || Mismatched(ciphertext->GetCryptoContext()) )
-			throw std::logic_error("Information passed to ModReduce was not generated with this crypto context");
+			PALISADE_THROW(config_error, "Information passed to ModReduce was not generated with this crypto context");
 
 		TimeVar t;
 		if( doTiming ) TIC(t);
@@ -2982,7 +2982,7 @@ public:
 
 		if( cipherText1 == NULL ||
 				Mismatched(cipherText1->GetCryptoContext()) ) {
-			throw std::logic_error("Information passed to LevelReduce was not generated with this crypto context");
+			PALISADE_THROW(config_error, "Information passed to LevelReduce was not generated with this crypto context");
 		}
 
 		TimeVar t;
@@ -2992,35 +2992,6 @@ public:
 			timeSamples->push_back( TimingInfo(OpLevelReduce, TOC_US(t)) );
 		}
 		return rv;
-	}
-
-	/**
-	* RingReduce - PALISADE RingReduce method
-	* @param ciphertext - vector of ciphertext
-	* @param keySwitchHint - the keySwitchHint from original private key to sparse private key
-	* @return vector of ring-reduced ciphertexts
-	*/
-
-	Ciphertext<Element> RingReduce(
-		ConstCiphertext<Element> ciphertext,
-		const LPEvalKey<Element> keySwitchHint) const
-	{
-		if( keySwitchHint == NULL ||
-				Mismatched(keySwitchHint->GetCryptoContext()) )
-			throw std::logic_error("Key passed to RingReduce was not generated with this crypto context");
-
-		if( ciphertext == NULL || Mismatched(ciphertext->GetCryptoContext()) )
-			throw std::logic_error("Ciphertext passed to RingReduce was not generated with this crypto context");
-
-		TimeVar t;
-		if( doTiming ) TIC(t);
-
-		auto newCiphertext = GetEncryptionAlgorithm()->RingReduce(ciphertext, keySwitchHint);
-
-		if( doTiming ) {
-			timeSamples->push_back( TimingInfo(OpRingReduce, TOC_US(t)) );
-		}
-		return newCiphertext;
 	}
 
 	/**
@@ -3036,7 +3007,7 @@ public:
 	{
 		if( ciphertext1 == NULL || ciphertext2 == NULL || ciphertext1->GetKeyTag() != ciphertext2->GetKeyTag() ||
 				Mismatched(ciphertext1->GetCryptoContext()) )
-			throw std::logic_error("Ciphertexts passed to ComposedEvalMult were not generated with this crypto context");
+			PALISADE_THROW(config_error, "Ciphertexts passed to ComposedEvalMult were not generated with this crypto context");
 
 		auto ek = GetEvalMultKeyVector(ciphertext1->GetKeyTag());
 
@@ -3514,8 +3485,7 @@ public:
 	* @param stDev
 	* @param mode
 	* @param depth
-	* @param maxDepth maximum depth of multiplications without
-	*    relinearization to support
+	* @param maxDepth the maximum power of secret key for which the relinearization key is generated
 	* @param ksTech key switching technique to use (e.g., GHS or BV)
 	* @param rsTech rescaling technique to use (e.g., APPROXRESCALE or EXACTRESCALE)
 	* @return new context
@@ -3523,7 +3493,7 @@ public:
 	static CryptoContext<Element> genCryptoContextCKKS(shared_ptr<typename Element::Params> params,
 		const PlaintextModulus plaintextmodulus,
 		usint relinWindow, float stDev,
-		MODE mode = RLWE, int depth = 1, int maxDepth = 1,
+		MODE mode = RLWE, int depth = 1, int maxDepth = 2,
 		KeySwitchTechnique ksTech = BV,
 		RescalingTechnique rsTech = APPROXRESCALE);
 
@@ -3536,8 +3506,7 @@ public:
 	* @param relinWindow
 	* @param stDev
 	* @param mode
-	* @param maxDepth is the maximum homomorphic multiplication depth
-	*    before performing relinearization
+	* @param maxDepth the maximum power of secret key for which the relinearization key is generated
 	* @param ksTech key switching technique to use (e.g., GHS or BV)
 	* @param rsTech rescaling technique to use (e.g., APPROXRESCALE or EXACTRESCALE)
 	* @return new context
@@ -3545,7 +3514,7 @@ public:
 	static CryptoContext<Element> genCryptoContextCKKS(shared_ptr<typename Element::Params> params,
 		EncodingParams encodingParams,
 		usint relinWindow, float stDev,
-		MODE mode = RLWE, int depth = 1, int maxDepth = 1,
+		MODE mode = RLWE, int depth = 1, int maxDepth = 2,
 		enum KeySwitchTechnique ksTech = BV,
 		RescalingTechnique rsTech = APPROXRESCALE);
 
@@ -3559,7 +3528,7 @@ public:
 	* @param batchSize the batch size of the ciphertext
 	* @param mode RLWE or OPTIMIZED
 	* @param depth
-	* @param maxDepth is the maximum homomorphic multiplication depth before performing relinearization
+	* @param maxDepth the maximum power of secret key for which the relinearization key is generated
 	* @param firstModSize the bit-length of the first modulus
 	* @param ksTech key switching technique to use (e.g., GHS or BV)
 	* @param rsTech rescaling technique to use (e.g., APPROXRESCALE or EXACTRESCALE)
@@ -3574,7 +3543,7 @@ public:
 		   usint batchSize,
 		   MODE mode,
 		   int depth = 1,
-		   int maxDepth = 1,
+		   int maxDepth = 2,
 		   usint firstModSize = 60,
 		   enum KeySwitchTechnique ksTech = BV,
 		   enum RescalingTechnique rsTech = APPROXRESCALE,
@@ -3591,7 +3560,7 @@ public:
 	* @param ksTech key switching technique to use (e.g., HYBRID, GHS or BV)
 	* @param rsTech rescaling technique to use (e.g., APPROXRESCALE or EXACTRESCALE)
 	* @param numLargeDigits the number of big digits to use in HYBRID key switching
-	* @param maxDepth is the maximum homomorphic multiplication depth before performing relinearization
+	* @param maxDepth the maximum power of secret key for which the relinearization key is generated
 	* @param firstModSize the bit-length of the first modulus
 	* @param relinWindow the relinearization windows (used in BV key switching, use 0 for RNS decomposition)
 	* @param mode RLWE (gaussian distribution) or OPTIMIZED (ternary distribution)
@@ -3606,7 +3575,7 @@ public:
 			   enum RescalingTechnique rsTech = EXACTRESCALE,
 			   enum KeySwitchTechnique ksTech = HYBRID,
 			   uint32_t numLargeDigits = 0,
-			   int maxDepth = 1,
+			   int maxDepth = 2,
 			   usint firstModSize = 60,
 			   usint relinWindow = 0,
 			   MODE mode = OPTIMIZED);

@@ -90,7 +90,6 @@ static struct FeatureMap FeatureMap[] = {
 		{ OpModReduceRational, "ModReduceRational", LEVELEDSHE },
 		{ OpModReduceMatrix, "ModReduceMatrix", LEVELEDSHE },
 		{ OpLevelReduce, "LevelReduce", LEVELEDSHE },
-		{ OpRingReduce, "RingReduce", LEVELEDSHE },
 		{ OpComposedEvalMult, "ComposedEvalMult", LEVELEDSHE },
 		{ OpEvalSumKeyGen, "EvalSumKeyGen", SHE },
 		{ OpEvalAtIndexKeyGen, "EvalAtIndexKeyGen", SHE },
@@ -160,7 +159,7 @@ MakeRandomPlaintext(CryptoContext<Element> cc, PlaintextEncodings pte) {
 
 	switch(pte) {
 	default:
-		throw std::logic_error("Unknown plaintext encoding type");
+		PALISADE_THROW(type_error, "Unknown plaintext encoding type");
 
 	case Scalar: {
 		return cc->MakeScalarPlaintext(randomInt());

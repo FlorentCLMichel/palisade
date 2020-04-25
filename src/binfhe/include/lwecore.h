@@ -1,5 +1,5 @@
 /*
- * @file binfhecore.h - Main Classes for Boolean circuit FHE.
+ * @file lwecore.h - Main Classes for Boolean circuit FHE.
  * @author  TPOC: contact@palisade-crypto.org
  *
  * @copyright Copyright (c) 2019, Duality Technologies Inc.
@@ -60,7 +60,7 @@ public:
 
 		if(Q.GetMSB() > MAX_MODULUS_SIZE) {
 			std::string errMsg = "ERROR: Maximum size of Q supported for FHEW is 60 bits.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(config_error, errMsg);
 		}
 
 		PreCompute();

@@ -36,6 +36,7 @@
 #include "utils/inttypes.h"
 #include "math/distrgen.h"
 #include "utils/parmfactory.h"
+#include "utils/exception.h"
 #include "lattice/elemparamfactory.h"
 
 using namespace std;
@@ -131,7 +132,7 @@ void DCRT_constructors(const string& msg) {
 			DEBUG(ii << " item " << ilvector2nVectorInconsistent.at(ii).GetParams().use_count());			
 
 		}
-		EXPECT_THROW(testDCRTPolyConstructorNegative(ilvector2nVectorInconsistent), std::logic_error)
+		EXPECT_THROW(testDCRTPolyConstructorNegative(ilvector2nVectorInconsistent), math_error)
 			<< msg << " Failure: ilvector2nVectorInconsistent";
 	}
 
@@ -485,7 +486,7 @@ void DCRT_arithmetic_ops_element(const string& msg) {
 		  << msg << " Failure: ilvectInv2 MultiplicativeInverse() modulus";
 		EXPECT_EQ(NativeInteger("156"), ilvectInv2.GetRootOfUnity())
 		  << msg << " Failure: ilvectInv2 MultiplicativeInverse() rootOfUnity";
-		EXPECT_THROW(ilva1.MultiplicativeInverse(), std::logic_error)      
+		EXPECT_THROW(ilva1.MultiplicativeInverse(), math_error)
 			<< msg << " Failure: throw MultiplicativeInverse()";
 	}
 
@@ -590,44 +591,6 @@ void DCRT_arithmetic_ops_element(const string& msg) {
 TEST(UTDCRTPoly, DCRT_arithmetic_ops_element) {
 	RUN_BIG_DCRTPOLYS(DCRT_arithmetic_ops_element, "DCRT_arithmetic_ops_element");
 }
-
-template<typename Element>
-void DCRT_decompose(const string& msg) {
-	usint order = 16;
-	usint nBits = 24;
-	usint towersize = 3;
-
-	float stdDev = 4;
-	typename Element::DggType dgg(stdDev);
-
-	shared_ptr<ILDCRTParams<typename Element::Integer>> params = GenerateDCRTParams<typename Element::Integer>(order, towersize, nBits);
-	Element DCRTPolyFirst(dgg, params, Format::COEFFICIENT);
-
-	Element DCRTPolyOriginal(DCRTPolyFirst);
-	DCRTPolyFirst.Decompose();
-
-	EXPECT_EQ(DCRTPolyOriginal.GetNumOfElements(), DCRTPolyFirst.GetNumOfElements())
-		<< msg << " Failure DCRTPoly.Decompose(): Mismatch in the number of towers";
-
-	for(usint i=0; i<DCRTPolyFirst.GetNumOfElements(); i++) {
-		NativePoly ilTowerOriginal(DCRTPolyOriginal.GetElementAtIndex(i));
-		NativePoly ilTowerDecomposed(DCRTPolyFirst.GetElementAtIndex(i));
-
-		EXPECT_EQ(ilTowerDecomposed.GetLength(), ilTowerOriginal.GetLength()/2)
-			<< msg << " Failure: DCRTPoly.Decompose(): ilVector2n element "<<i<<" in DCRTPoly is not half the length";
-
-		for(usint j=0; j<ilTowerDecomposed.GetLength(); j++) {
-			EXPECT_EQ(ilTowerDecomposed.at(j), ilTowerOriginal.at(2*j))
-				<< msg << " Failure: DCRTPoly.Decompose(): Value mismatch";
-		}
-	}
-
-}
-
-TEST(UTDCRTPoly, DCRT_decompose) {
-	RUN_BIG_DCRTPOLYS(DCRT_decompose, "decompose");
-}
-
 
 template<typename Element>
 void DCRT_mod_ops_on_two_elements(const string& msg) {

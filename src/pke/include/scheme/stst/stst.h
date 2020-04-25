@@ -343,7 +343,7 @@ public:
 		Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext1,
 			ConstCiphertext<Element> ciphertext2) const {
 			std::string errMsg = "LPAlgorithmSHEStSt::EvalMult is not implemented for StSt SHE Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -372,7 +372,7 @@ public:
 			ConstCiphertext<Element> ciphertext2,
 			const LPEvalKey<Element> evalKey) const {
 			std::string errMsg = "LPAlgorithmSHEStSt::EvalMult is not implemented for StSt SHE Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -387,7 +387,7 @@ public:
 			ConstCiphertext<Element> ciphertext2,
 			const vector<LPEvalKey<Element>> &ek) const {
 			std::string errMsg = "LPAlgorithmStSt::EvalMultAndRelinearize is not implemented for the Stehle-Steinfeld Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -414,7 +414,7 @@ public:
 			const LPPrivateKey<Element> k1,
 			const LPPrivateKey<Element> k2) const {
 			std::string errMsg = "LPAlgorithmStSt::KeySwitchGen is not implemented for the Stehle-Steinfeld Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -432,7 +432,7 @@ public:
 			const LPEvalKey<Element> keySwitchHint,
 			ConstCiphertext<Element> cipherText) const {
 			std::string errMsg = "LPAlgorithmStSt::KeySwitch is not implemented for the Stehle-Steinfeld Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -465,7 +465,7 @@ public:
 		*/
 		LPEvalKey<Element> EvalMultKeyGen(const LPPrivateKey<Element> originalPrivateKey) const {
 			std::string errMsg = "LPAlgorithmStSt::EvalMultKeyGen is not implemented for the Stehle-Steinfeld Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -476,7 +476,7 @@ public:
 		*/
 		vector<LPEvalKey<Element>> EvalMultKeysGen(const LPPrivateKey<Element> originalPrivateKey) const {
 			std::string errMsg = "LPAlgorithmStSt::EvalMultKeysGen is not implemented for the Stehle-Steinfeld Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -489,7 +489,7 @@ public:
 		*/
 		Ciphertext<Element> EvalAutomorphism(ConstCiphertext<Element> ciphertext, usint i,
 			const std::map<usint, LPEvalKey<Element>> &evalKeys) const {
-			throw std::runtime_error("LPAlgorithmSHEStSt::EvalAutomorphism is not implemented for Stehle-Steinfeld SHE Scheme.");
+			PALISADE_THROW(not_implemented_error, "LPAlgorithmSHEStSt::EvalAutomorphism is not implemented for Stehle-Steinfeld SHE Scheme.");
 		}
 
 		/**
@@ -497,12 +497,12 @@ public:
 		*/
 		shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAutomorphismKeyGen(const LPPublicKey<Element> publicKey,
 			const LPPrivateKey<Element> origPrivateKey, const std::vector<usint> &indexList) const {
-			throw std::runtime_error("LPAlgorithmSHEStSt::EvalAutomorphismKeyGen is not implemented for Stehle-Steinfeld SHE Scheme.");
+			PALISADE_THROW(not_implemented_error, "LPAlgorithmSHEStSt::EvalAutomorphismKeyGen is not implemented for Stehle-Steinfeld SHE Scheme.");
 		}
 
 		shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAutomorphismKeyGen(const LPPrivateKey<Element> privateKey,
 			const std::vector<usint> &indexList) const {
-			throw std::runtime_error("LPAlgorithmSHEStSt::EvalAutomorphismKeyGen is not implemented for Stehle-Steinfeld SHE Scheme.");
+			PALISADE_THROW(not_implemented_error, "LPAlgorithmSHEStSt::EvalAutomorphismKeyGen is not implemented for Stehle-Steinfeld SHE Scheme.");
 		}
 
 
@@ -512,7 +512,7 @@ public:
  * @brief This is the algorithms class for the Proxy Re-Encryption methods Re-Encryption Key Generation (ReKeyGen) and Re-Encryption (ReEncrypt) for the StSt encryption scheme.
  *
  * This basic public key scheme is defined here:
- *   - López-Alt, Adriana, Eran Tromer, and Vinod Vaikuntanathan. "On-the-fly multiparty computation on the cloud via multikey fully homomorphic encryption." Proceedings of the forty-fourth annual ACM symposium on Theory of computing. ACM, 2012.
+ *   - Lï¿½pez-Alt, Adriana, Eran Tromer, and Vinod Vaikuntanathan. "On-the-fly multiparty computation on the cloud via multikey fully homomorphic encryption." Proceedings of the forty-fourth annual ACM symposium on Theory of computing. ACM, 2012.
  *
  * Our PRE design and algorithms are informed by the design here:
  *   - Polyakov, Yuriy, Kurt Rohloff, Gyana Sahu and Vinod Vaikuntanathan. Fast Proxy Re-Encryption for Publish/Subscribe Systems. Under Review in ACM Transactions on Privacy and Security (ACM TOPS).
@@ -608,15 +608,15 @@ public:
 				this->m_algorithmSHE.reset( new LPAlgorithmSHEStSt<Element>() );
 			break;
 		case MULTIPARTY:
-			throw std::logic_error("MULTIPARTY feature not supported for StehleSteinfeld scheme");
+			PALISADE_THROW(not_implemented_error, "MULTIPARTY feature not supported for StehleSteinfeld scheme");
 		case LEVELEDSHE:
-			throw std::logic_error("LEVELEDSHE feature not supported for StehleSteinfeld scheme");
+			PALISADE_THROW(not_implemented_error, "LEVELEDSHE feature not supported for StehleSteinfeld scheme");
 		case FHE:
-			throw std::logic_error("FHE feature not supported for StehleSteinfeld scheme");
+			PALISADE_THROW(not_implemented_error, "FHE feature not supported for StehleSteinfeld scheme");
 		case ADVANCEDSHE:
-			throw std::logic_error("ADVANCEDSHE feature not supported for StehleSteinfeld scheme");
+			PALISADE_THROW(not_implemented_error, "ADVANCEDSHE feature not supported for StehleSteinfeld scheme");
 		case ADVANCEDMP:
-			throw std::logic_error("ADVANCEDMP feature not supported for StehleSteinfeld scheme");
+			PALISADE_THROW(not_implemented_error, "ADVANCEDMP feature not supported for StehleSteinfeld scheme");
 		}
 	}
 

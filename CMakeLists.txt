@@ -1,9 +1,26 @@
 cmake_minimum_required (VERSION 3.5.1)
 
+project (PALISADE C CXX)
+
+set(INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
+set(INSTALL_INCLUDE_DIR include/palisade CACHE PATH "Installation directory for headers")
+if(WIN32 AND NOT CYGWIN)
+  set(DEF_INSTALL_CMAKE_DIR CMake)
+else()
+  set(DEF_INSTALL_CMAKE_DIR lib/CMake/Palisade)
+endif()
+set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH
+  "Installation directory for CMake files")
+
+foreach(p LIB INCLUDE CMAKE)
+  set(var INSTALL_${p}_DIR)
+  if(NOT IS_ABSOLUTE "${${var}}")
+    set(${var} "${CMAKE_INSTALL_PREFIX}/${${var}}")
+  endif()
+endforeach()
+
 message("***** INSTALL IS AT ${CMAKE_INSTALL_PREFIX}; to change, run cmake with -DCMAKE_INSTALL_PREFIX=/your/path")
 set (CMAKE_INSTALL_MESSAGE LAZY)
-
-project (PALISADE C CXX)
 
 option( BUILD_UNITTESTS "Set to TRUE to build unit tests for the library" TRUE)
 
@@ -102,8 +119,8 @@ if( ${AUTOCONF_VER_LEN} EQUAL 0 )
 endif()
 
 set(PALISADE_VERSION_MAJOR 1)
-set(PALISADE_VERSION_MINOR 7)
-set(PALISADE_VERSION_PATCH 4)
+set(PALISADE_VERSION_MINOR 9)
+set(PALISADE_VERSION_PATCH 2)
 set(PALISADE_VERSION ${PALISADE_VERSION_MAJOR}.${PALISADE_VERSION_MINOR}.${PALISADE_VERSION_PATCH})
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -384,13 +401,13 @@ else()
 endif()
 
 if("${WITH_TCM}" STREQUAL "Y")
-	set(THIRDPARTYLIBS PUBLIC tcmalloc)
-	set(THIRDPARTYSTATICLIBS PUBLIC tcmalloc_static )
+	set(THIRDPARTYLIBS tcmalloc)
+	set(THIRDPARTYSTATICLIBS tcmalloc_static )
 endif()
 
 if("${WITH_NTL}" STREQUAL "Y")
-	set(THIRDPARTYLIBS "${THIRDPARTYLIBS}" PUBLIC ntl PUBLIC gmp )
-	set(THIRDPARTYSTATICLIBS "${THIRDPARTYSTATICLIBS}" PUBLIC ntl PUBLIC gmp )
+	set(THIRDPARTYLIBS "${THIRDPARTYLIBS}" ntl gmp )
+	set(THIRDPARTYSTATICLIBS "${THIRDPARTYSTATICLIBS}" ntl gmp )
 	add_definitions(-DWITH_NTL)
 else()
 	set(THIRDPARTYLIBS "${THIRDPARTYLIBS}" "${QUADMATHLIB}")
@@ -459,8 +476,12 @@ add_custom_target( testall
 )
 endif()
 
-add_custom_target( alldemos 
-	DEPENDS allcoredemos allpkedemos allabedemos allsignaturedemos allbinfhedemos
+add_custom_target( allexamples
+	DEPENDS allcoreexamples allpkeexamples allabeexamples allsignatureexamples allbinfheexamples
+)
+
+add_custom_target( allextras
+	DEPENDS allcoreextras allpkeextras
 )
 
 add_custom_target( allmodules
@@ -479,3 +500,33 @@ SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${clean_files}"
 if (NOT (OpenMP_CXX_FOUND OR OpenMP_FOUND))
 	message(SEND_ERROR "** ERROR ** OpenMP is not installed. If using macOS/clang, please run 'cmake ..' again.")
 endif()
+
+export(EXPORT PalisadeTargets FILE "${PROJECT_BINARY_DIR}/PalisadeTargets.cmake")
+
+export(PACKAGE Palisade)
+
+# Create the PalisadeConfig.cmake and PalisadeConfigVersion files
+file(RELATIVE_PATH REL_INCLUDE_DIR "${INSTALL_CMAKE_DIR}"
+   "${INSTALL_INCLUDE_DIR}")
+# ... for the build tree
+set(CONF_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}")
+configure_file(PalisadeConfig.cmake.in
+  "${PROJECT_BINARY_DIR}/PalisadeConfig.cmake" @ONLY)
+# ... for the install tree
+set(CONF_INCLUDE_DIRS "\${PALISADE_CMAKE_DIR}/${REL_INCLUDE_DIR}")
+configure_file(PalisadeConfig.cmake.in
+  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PalisadeConfig.cmake" @ONLY)
+# ... for both
+configure_file(PalisadeConfigVersion.cmake.in
+  "${PROJECT_BINARY_DIR}/PalisadeConfigVersion.cmake" @ONLY)
+
+# Install the PalisadeConfig.cmake and PalisadeConfigVersion.cmake
+install(FILES
+  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/PalisadeConfig.cmake"
+  "${PROJECT_BINARY_DIR}/PalisadeConfigVersion.cmake"
+  DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
+
+# Install the export set for use with the install-tree
+install(EXPORT PalisadeTargets DESTINATION
+  "${INSTALL_CMAKE_DIR}" COMPONENT dev)
+

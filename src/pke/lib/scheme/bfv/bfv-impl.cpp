@@ -56,13 +56,13 @@ template class LPAlgorithmSHEBFV<NativePoly>;
 template <>
 LPCryptoParametersBFV<DCRTPoly>::LPCryptoParametersBFV() {
 	std::string errMsg = "BFV does not support DCRTPoly. Use Poly instead.";
-	throw std::runtime_error(errMsg);
+	PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 template <>
 LPCryptoParametersBFV<DCRTPoly>::LPCryptoParametersBFV(const LPCryptoParametersBFV &rhs) {
 	std::string errMsg = "BFV does not support DCRTPoly. Use Poly instead.";
-	throw std::runtime_error(errMsg);
+	PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 template <>
@@ -81,7 +81,7 @@ LPCryptoParametersBFV<DCRTPoly>::LPCryptoParametersBFV(shared_ptr<typename DCRTP
 	int depth,
 	int maxDepth) {
 		std::string errMsg = "BFV does not support DCRTPoly. Use Poly instead.";
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 template <>
@@ -100,13 +100,13 @@ LPCryptoParametersBFV<DCRTPoly>::LPCryptoParametersBFV(shared_ptr<typename DCRTP
 	int depth,
 	int maxDepth)	{
 		std::string errMsg = "BFV does not support DCRTPoly. Use Poly instead.";
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(not_implemented_error, errMsg);
 	}
 
 template <>
 LPPublicKeyEncryptionSchemeBFV<DCRTPoly>::LPPublicKeyEncryptionSchemeBFV() {
 		std::string errMsg = "BFV does not support DCRTPoly. Use Poly instead.";
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 template class LPCryptoParametersBFV<DCRTPoly>;

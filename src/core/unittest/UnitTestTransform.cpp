@@ -61,6 +61,7 @@ void CRT_polynomial_mult(const string& msg) {
 	usint n = cycloOrder / 2;
 
 	typename V::Integer primitiveRootOfUnity = lbcrypto::RootOfUnity(cycloOrder, primeModulus);
+	ChineseRemainderTransformFTT<V>::PreCompute(primitiveRootOfUnity, cycloOrder, primeModulus);
 
 	V a(n, primeModulus);
 	a.at(0) = typename V::Integer("1");
@@ -70,14 +71,14 @@ void CRT_polynomial_mult(const string& msg) {
 	V b(a);
 
 	V A(cycloOrder/2);
-	ChineseRemainderTransformFTT<V>::ForwardTransform(a, primitiveRootOfUnity, cycloOrder, &A);
+	ChineseRemainderTransformFTT<V>::ForwardTransformToBitReverse(a, primitiveRootOfUnity, cycloOrder, &A);
 	V B(cycloOrder/2);
-	ChineseRemainderTransformFTT<V>::ForwardTransform(b, primitiveRootOfUnity, cycloOrder, &B);
+	ChineseRemainderTransformFTT<V>::ForwardTransformToBitReverse(b, primitiveRootOfUnity, cycloOrder, &B);
 
 	V AB = A*B;
 
 	V InverseFFTAB(cycloOrder/2);
-	ChineseRemainderTransformFTT<V>::InverseTransform(AB, primitiveRootOfUnity, cycloOrder, &InverseFFTAB);
+	ChineseRemainderTransformFTT<V>::InverseTransformFromBitReverse(AB, primitiveRootOfUnity, cycloOrder, &InverseFFTAB);
 
 	V expectedResult(n, primeModulus);
 	expectedResult.at(0) = typename V::Integer("94");
@@ -123,11 +124,11 @@ void CRT_polynomial_mult_small(const string& msg) {
 	b = { 5,6,7,8,9,10,11,12,13,14 };
 	auto B = ChineseRemainderTransformArb<V>::ForwardTransform(b, squareRootOfRoot, bigModulus, bigRoot, m);
 	DEBUG("5 " << B);
-
 	auto C = A*B;
 	DEBUG("6 " << C);
 
 	auto c = ChineseRemainderTransformArb<V>::InverseTransform(C, squareRootOfRoot, bigModulus, bigRoot, m);
+
 
 	DEBUG("7 " << c );
 	auto cCheck = PolynomialMultiplication(a, b);
@@ -138,7 +139,6 @@ void CRT_polynomial_mult_small(const string& msg) {
 	for (usint i = 0; i < n; i++) {
 		EXPECT_EQ(cCheck.at(i), c.at(i)) << msg;
 	}
-
 }
 
 TEST(UTTransform, CRT_polynomial_mult_small) {
@@ -176,7 +176,6 @@ void CRT_polynomial_mult_big_ring(const string& msg) {
 	auto cCheck = PolynomialMultiplication(a, b);
 
 	cCheck = PolyMod(cCheck, cycloPoly, modulus);
-
 	for (usint i = 0; i < n; i++) {
 		EXPECT_EQ(cCheck.at(i), c.at(i)) << msg;
 	}

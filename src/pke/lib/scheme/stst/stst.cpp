@@ -207,7 +207,7 @@ Ciphertext<Element> LPAlgorithmSHEStSt<Element>::EvalSub(
 {
 	if (!(ciphertext1->GetCryptoParameters() == ciphertext2->GetCryptoParameters())) {
 		std::string errMsg = "EvalSub crypto parameters are not the same";
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(config_error, errMsg);
 	}
 
 	Ciphertext<Element> newCiphertext = ciphertext1->CloneEmpty();
@@ -226,7 +226,7 @@ Ciphertext<Element> LPAlgorithmSHEStSt<Element>::EvalSub(
 {
 //	if (!(ciphertext1->GetCryptoParameters() == ciphertext2->GetCryptoParameters())) {
 //		std::string errMsg = "EvalSub crypto parameters are not the same";
-//		throw std::runtime_error(errMsg);
+//		PALISADE_THROW(palisade_error, errMsg);
 //	}
 
 	Ciphertext<Element> newCiphertext = ciphertext->CloneEmpty();
@@ -250,7 +250,7 @@ Ciphertext<Element> LPAlgorithmSHEStSt<Element>::EvalMult(
 	plaintext->SetFormat(EVALUATION);
 
 	if (ciphertext->GetElement().GetFormat() == Format::COEFFICIENT || plaintext->GetElement<Element>().GetFormat() == Format::COEFFICIENT ) {
-		throw std::runtime_error("EvalMult cannot multiply in COEFFICIENT domain.");
+		PALISADE_THROW(not_available_error, "EvalMult cannot multiply in COEFFICIENT domain.");
 	}
 
 	Element cResult = ciphertext->GetElement() * plaintext->GetElement<Element>();

@@ -372,7 +372,7 @@ namespace lbcrypto {
 			ConstCiphertext<Element> ciphertext2,
 			const vector<LPEvalKey<Element>> &ek) const {
 			std::string errMsg = "LPAlgorithmSHEBGV::EvalMultAndRelinearize is not implemented for the BGV Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -413,7 +413,7 @@ namespace lbcrypto {
 		LPEvalKey<Element> KeySwitchRelinGen(const LPPublicKey<Element> newPublicKey,
 			const LPPrivateKey<Element> origPrivateKey) const {
 			std::string errMsg = "LPAlgorithmSHEBGV:KeySwitchRelinGen is not implemented for BGV as relinearization is the default technique and no NTRU key generation is used in BGV.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -426,7 +426,7 @@ namespace lbcrypto {
 		Ciphertext<Element> KeySwitchRelin(const LPEvalKey<Element> evalKey,
 			ConstCiphertext<Element> ciphertext) const {
 			std::string errMsg = "LPAlgorithmSHEBGV:KeySwitchRelin is not implemented for BGV as relinearization is the default technique and no NTRU key generation is used in BGV.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -446,7 +446,7 @@ namespace lbcrypto {
 		*/
 		vector<LPEvalKey<Element>> EvalMultKeysGen(const LPPrivateKey<Element> originalPrivateKey) const {
 			std::string errMsg = "LPAlgorithmSHEBGV::EvalMultKeysGen is not implemented for BGV SHE Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -482,7 +482,7 @@ namespace lbcrypto {
 		shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAutomorphismKeyGen(const LPPublicKey<Element> publicKey,
 			const LPPrivateKey<Element> privateKey, const std::vector<usint> &indexList) const {
 			std::string errMsg = "LPAlgorithmSHEBGV::EvalAutomorphismKeyGen is not implemented for BGV SHE Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 	};
 
@@ -717,18 +717,6 @@ namespace lbcrypto {
 		virtual Ciphertext<Element> ModReduce(ConstCiphertext<Element> cipherText) const;
 
 		/**
-		* Method for RingReducing CipherText. Not implemented for the BGV/BGV scheme.
-		*
-		* @param cipherText is the ciphertext to perform ringreduce on.
-		* @param keySwitchHint is the keyswitchhint to switch the ciphertext from original private key to a sparse private key.
-		*/
-		virtual Ciphertext<Element> RingReduce(ConstCiphertext<Element> cipherText, const LPEvalKey<Element> keySwitchHint) const {
-
-			std::string errMsg = "LPAlgorithmSHEBGV::RindReduce is not currently implemented for the BGV/BGV Scheme.";
-			throw std::runtime_error(errMsg);
-		}
-
-		/**
 		* Method for Composed EvalMult, which includes homomorphic multiplication, key switching, and modulo reduction. Not implemented for the BGV/BGV scheme.
 		*
 		* @param cipherText1 ciphertext1, first input ciphertext to perform multiplication on.
@@ -742,7 +730,7 @@ namespace lbcrypto {
 			const LPEvalKey<Element> quadKeySwitchHint) const
 		{
 			std::string errMsg = "LPAlgorithmSHEBGV::ComposedEvalMult is not currently implemented for the BGV/BGV Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 
 		/**
@@ -757,22 +745,7 @@ namespace lbcrypto {
 			const LPEvalKey<Element> linearKeySwitchHint, size_t levels) const
 		{
 			std::string errMsg = "LPAlgorithmSHEBGV::LevelReduce is not currently implemented for the BGV/BGV Scheme.";
-			throw std::runtime_error(errMsg);
-		}
-
-		/**
-		* Function that determines if security requirements are met if ring dimension is reduced by half.
-		* Not implemented for the BGV/BGV scheme.
-		*
-		* @param ringDimension is the original ringDimension
-		* @param &moduli is the vector of moduli that is used
-		* @param rootHermiteFactor is the security threshold
-		* @return boolean value that determines if the ring is reducable.
-		*/
-		virtual bool CanRingReduce(usint ringDimension, const std::vector<BigInteger> &moduli, const double rootHermiteFactor) const
-		{
-			std::string errMsg = "LPAlgorithmSHEBGV::CanRingReduce is not currently implemented for the BGV/BGV Scheme.";
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_implemented_error, errMsg);
 		}
 	};
 

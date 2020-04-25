@@ -34,7 +34,7 @@ ScalarEncoding::Encode() {
 	PlaintextModulus mod = this->encodingParams->GetPlaintextModulus();
 
 	if( value <= LowBound() || value > HighBound() )
-		PALISADE_THROW( config_error, "Cannot encode integer " + std::to_string(value) + " because it is out of range of plaintext modulus " + std::to_string(mod) );
+		PALISADE_THROW(config_error, "Cannot encode integer " + std::to_string(value) + " because it is out of range of plaintext modulus " + std::to_string(mod) );
 
 	auto entry = value;
 

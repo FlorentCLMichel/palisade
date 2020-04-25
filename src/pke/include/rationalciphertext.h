@@ -80,7 +80,7 @@ namespace lbcrypto {
 		RationalCiphertext(const Ciphertext<Element> numerator, const Ciphertext<Element> denominator)
 			: CryptoObject<Element>(numerator->GetCryptoContext(), numerator->GetKeyTag()) {
 			if( numerator->GetCryptoContext() != denominator->GetCryptoContext() )
-				throw std::logic_error("Numerator and denominator ciphertexts are from different crypto contexts");
+				PALISADE_THROW(config_error, "Numerator and denominator ciphertexts are from different crypto contexts");
 			m_numerator = numerator;
 			m_denominator = denominator;
 			m_integerFlag = false;
@@ -219,7 +219,7 @@ namespace lbcrypto {
 		}
 
 		const RationalCiphertext<Element>& operator-=(const RationalCiphertext<Element> &other) {
-			throw std::logic_error("operator-= not implemented for RationalCiphertext");
+			PALISADE_THROW(not_implemented_error, "operator-= not implemented for RationalCiphertext");
 		}
 
 		/**
@@ -230,7 +230,7 @@ namespace lbcrypto {
 		*/
 		const RationalCiphertext<Element> operator-() {
 			if (m_numerator->GetElements().size() == 0)
-				throw std::logic_error("No elements in the ciphertext to be negated");
+				PALISADE_THROW(math_error, "No elements in the ciphertext to be negated");
 			else
 			{
 				RationalCiphertext<Element> a = RationalCiphertext<Element>(*this);

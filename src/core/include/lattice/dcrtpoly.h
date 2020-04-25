@@ -109,7 +109,7 @@ public:
 	DCRTPolyImpl(const DggType &dgg, const shared_ptr<Params> params, Format format = EVALUATION);
 
 	/**
-	* @brief Constructor based on binary distribution generator. This is not implemented. Will throw a logic_error.
+	* @brief Constructor based on binary distribution generator. This is not implemented. Will throw an error.
 	*
 	* @param &bug the input binary uniform generator. The bug will be the seed to populate the towers of the DCRTPoly with random numbers.
 	* @param params parameter set required for DCRTPoly.
@@ -533,14 +533,12 @@ public:
 	* @return is the result of the transposition.
 	*/
 	DCRTPolyType Transpose() const {
-	
-		if (m_format == COEFFICIENT)
-			throw std::logic_error("DCRTPolyImpl element transposition is currently implemented only in the Evaluation representation.");
-		else {
+		if (m_format == COEFFICIENT) {
+			PALISADE_THROW(not_implemented_error, "DCRTPolyImpl element transposition is currently implemented only in the Evaluation representation.");
+		} else {
 			usint m = m_params->GetCyclotomicOrder();
 			return AutomorphismTransform(m - 1);
 		}
-
 	}
 
 	/**
@@ -728,7 +726,7 @@ public:
 	* @return is the return value of the modulus.
 	*/
 	DCRTPolyType Mod(const Integer &modulus) const {
-		throw std::logic_error("Mod of an Integer not implemented on DCRTPoly");
+		PALISADE_THROW(not_implemented_error, "Mod of an Integer not implemented on DCRTPoly");
 	}
 
 	// OTHER FUNCTIONS AND UTILITIES
@@ -736,10 +734,10 @@ public:
 	/**
 	* @brief Get method that should not be used
 	*
-	* @return will throw a logic_error
+	* @return will throw an error.
 	*/
 	const VecType &GetValues() const {
-		throw std::logic_error("GetValues not implemented on DCRTPoly");
+		PALISADE_THROW(not_implemented_error, "GetValues not implemented on DCRTPoly");
 	}
 
 	/**
@@ -749,7 +747,7 @@ public:
 	* @param format
 	*/
 	void SetValues(const VecType &values, Format format) {
-		throw std::logic_error("SetValues not implemented on DCRTPoly");
+		PALISADE_THROW(not_implemented_error, "SetValues not implemented on DCRTPoly");
 	}
 
 	/**
@@ -775,7 +773,7 @@ public:
 	* @brief Add uniformly random values to all components except for the first one
 	*/
 	DCRTPolyType AddRandomNoise(const Integer &modulus) const {
-		throw std::logic_error("AddRandomNoise is not currently implemented for DCRTPoly");
+		PALISADE_THROW(not_implemented_error, "AddRandomNoise is not currently implemented for DCRTPoly");
 	}
 
 	/**
@@ -784,11 +782,6 @@ public:
 	* @param &wFactor ratio between the sparse and none-sparse values.
 	*/
 	void MakeSparse(const uint32_t &wFactor);
-
-	/**
-	* @brief Performs Poly::Decompose on each tower and adjusts the DCRTPoly.m_parameters accordingly. This method also reduces the ring dimension by half.
-	*/
-	void Decompose();
 
 	/**
 	* @brief Returns true if ALL the tower(s) are empty.
@@ -1152,7 +1145,7 @@ public:
 	* ASSUMPTION: This method assumes that the caller provides the correct rootOfUnity for the modulus
 	*/
 	void SwitchModulus(const Integer &modulus, const Integer &rootOfUnity, const Integer &modulusArb = Integer(0), const Integer &rootOfUnityArb = Integer(0)) {
-		throw std::logic_error("SwitchModulus not implemented on DCRTPoly");
+		PALISADE_THROW(not_implemented_error, "SwitchModulus not implemented on DCRTPoly");
 	}
 
 	/**

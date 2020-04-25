@@ -48,7 +48,7 @@ public:
 	virtual ~LPCryptoParametersNull() {}
 
 	void SetPlaintextModulus(const PlaintextModulus &plaintextModulus) {
-		throw std::logic_error("plaintext modulus is fixed to be == ciphertext modulus and cannot be changed");
+		PALISADE_THROW(config_error, "plaintext modulus is fixed to be == ciphertext modulus and cannot be changed");
 	}
 
 	/**
@@ -354,15 +354,6 @@ class LPLeveledSHEAlgorithmNull : public LPLeveledSHEAlgorithm<Element> {
 
 			return newcipherText;
 		}
-		/**
-		 * Method for RingReducing CipherText and the Private Key used for encryption.
-		 *
-		 * @param *cipherText Ciphertext to perform and apply ringreduce on.
-		 * @param *keySwitchHint is the keyswitchhint from the ciphertext's private key to a sparse key
-		 */
-		Ciphertext<Element> RingReduce(ConstCiphertext<Element> cipherText, const LPEvalKey<Element> keySwitchHint) const {
-			throw std::logic_error("RingReduce not implemented for Null");
-		}
 
 		/**
 		* Method for ComposedEvalMult
@@ -390,18 +381,7 @@ class LPLeveledSHEAlgorithmNull : public LPLeveledSHEAlgorithm<Element> {
 		*/
 		Ciphertext<Element> LevelReduce(ConstCiphertext<Element> cipherText1,
 				const LPEvalKey<Element> linearKeySwitchHint, size_t levels) const {
-			throw std::logic_error("LevelReduce not implemented for Null");
-		}
-
-		/**
-		* Function that determines if security requirements are met if ring dimension is reduced by half.
-		*
-		* @param ringDimension is the original ringDimension
-		* @param &moduli is the vector of moduli that is used
-		* @param rootHermiteFactor is the security threshold
-		*/
-		bool CanRingReduce(usint ringDimension, const std::vector<BigInteger> &moduli, const double rootHermiteFactor) const {
-			throw std::logic_error("CanRingReduce not implemented for Null");
+			PALISADE_THROW(not_implemented_error, "LevelReduce not implemented for Null");
 		}
 };
 
@@ -508,7 +488,7 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
 
 		Ciphertext<Poly> EvalMult(ConstCiphertext<Poly> ciphertext,
 				double constant) const{
-			throw std::logic_error("Scalar multiplication is not implemented for this scheme");
+			PALISADE_THROW(not_implemented_error, "Scalar multiplication is not implemented for this scheme");
 		}
 
 		/**
@@ -533,7 +513,7 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
 
 	Ciphertext<NativePoly> EvalMult(ConstCiphertext<NativePoly> ciphertext,
 							  double constant) const{
-		throw std::logic_error("Scalar multiplication is not implemented for this scheme");
+		PALISADE_THROW(not_implemented_error, "Scalar multiplication is not implemented for this scheme");
 	}
 
 		/**
@@ -558,7 +538,7 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
 
 	Ciphertext<DCRTPoly> EvalMult(ConstCiphertext<DCRTPoly> ciphertext,
 							  double constant) const{
-		throw std::logic_error("Scalar multiplication is not implemented for this scheme");
+		PALISADE_THROW(not_implemented_error, "Scalar multiplication is not implemented for this scheme");
 	}
 		/**
 		 * Function for evaluating multiplication on ciphertext followed by key switching operation.
@@ -686,7 +666,7 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
 		*/
 		vector<LPEvalKey<Element>> EvalMultKeysGen(const LPPrivateKey<Element> originalPrivateKey) const {
 				std::string errMsg = "LPAlgorithmSHENULL::EvalMultKeysGen is not implemented for NULL SHE Scheme.";
-				throw std::runtime_error(errMsg);
+				PALISADE_THROW(not_implemented_error, errMsg);
 			}
 
 		/**
@@ -788,7 +768,7 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
 
 			}
 			else
-				PALISADE_THROW( lbcrypto::math_error, "Polynomial multiplication in coefficient representation is not currently supported for non-power-of-two polynomials");
+				PALISADE_THROW(not_implemented_error, "Polynomial multiplication in coefficient representation is not currently supported for non-power-of-two polynomials");
 
 			return std::move( cResult );
 		}
@@ -867,7 +847,7 @@ public:
 				this->m_algorithmSHE.reset( new LPAlgorithmSHENull<Element>() );
 			break;
 		case FHE:
-			throw std::logic_error("FHE feature not supported for Null scheme");
+			PALISADE_THROW(not_implemented_error, "FHE feature not supported for Null scheme");
 		case LEVELEDSHE:
 			if (this->m_algorithmEncryption == NULL)
 				this->m_algorithmEncryption.reset( new LPAlgorithmNull<Element>() );
@@ -875,9 +855,9 @@ public:
 				this->m_algorithmLeveledSHE.reset( new LPLeveledSHEAlgorithmNull<Element>() );
 			break;
 		case ADVANCEDSHE:
-			throw std::logic_error("ADVANCEDSHE feature not supported for NULL scheme");
+			PALISADE_THROW(not_implemented_error, "ADVANCEDSHE feature not supported for NULL scheme");
 		case ADVANCEDMP:
-			throw std::logic_error("ADVANCEDMP feature not supported for NULL scheme");
+			PALISADE_THROW(not_implemented_error, "ADVANCEDMP feature not supported for NULL scheme");
 		}
 	}
 

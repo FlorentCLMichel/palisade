@@ -619,13 +619,12 @@ TEST(UTTrapdoor, TrapDoorGaussSampTestSquareMatricesDCRT) {
 
 	//makes sure the first integer is less than 2^60-1 to take advangate of NTL optimizations
 	NativeInteger firstInteger = FirstPrime<NativeInteger>(dcrtBits, 2 * n);
-	firstInteger -= 2*n*((uint64_t)(1)<<40);
-	moduli[0] = NextPrime<NativeInteger>(firstInteger, 2 * n);
+	moduli[0] = PreviousPrime<NativeInteger>(firstInteger, 2 * n);
 	roots[0] = RootOfUnity<NativeInteger>(2 * n, moduli[0]);
 
 	for (size_t i = 1; i < size; i++)
 	{
-		moduli[i] = NextPrime<NativeInteger>(moduli[i-1], 2 * n);
+		moduli[i] = PreviousPrime<NativeInteger>(moduli[i-1], 2 * n);
 		roots[i] = RootOfUnity<NativeInteger>(2 * n, moduli[i]);
 	}
 

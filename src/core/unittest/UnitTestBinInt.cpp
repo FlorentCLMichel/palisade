@@ -111,9 +111,9 @@ template<typename T>
 void basic_math_test(const string& msg) {
 
   /************************************************/
-  /* TESTING METHOD PLUS FOR ALL CONDITIONS       */
+  /* TESTING METHOD ADD FOR ALL CONDITIONS       */
   /************************************************/
-  // The method "Plus" does addition on two Ts a,b
+  // The method "Add" does addition on two Ts a,b
   // Returns a+b, which is stored in another T
   // calculatedResult ConvertToInt converts T
   // calculatedResult to integer
@@ -126,11 +126,11 @@ void basic_math_test(const string& msg) {
     T a("203450");
     T b("2034");
 
-    calculatedResult = a.Plus(b);
+    calculatedResult = a.Add(b);
     expectedResult = 205484;
 
     EXPECT_EQ(expectedResult, calculatedResult.ConvertToInt())
-      << msg << " Failure testing plus_a_greater_than_b";
+      << msg << " Failure testing add_a_greater_than_b";
   }
   // TEST_F CASE WHEN FIRST NUMBER IS LESS THAN SECOND NUMBER AND MSB
   // HAS NO OVERFLOW
@@ -139,11 +139,11 @@ void basic_math_test(const string& msg) {
     T b("203450");
 
 
-    calculatedResult = a.Plus(b);
+    calculatedResult = a.Add(b);
     expectedResult = 205484;
 
     EXPECT_EQ(expectedResult, calculatedResult.ConvertToInt())
-      << msg << " Failure testing plus_a_less_than_b";
+      << msg << " Failure testing add_a_less_than_b";
   }
   // TEST_F CASE WHEN MSB OF THE RESULT HAS BIT-OVERFLOW TO THE NEXT
   // BYTE
@@ -151,7 +151,7 @@ void basic_math_test(const string& msg) {
     T a("768900");
     T b("16523408");
 
-    calculatedResult = a.Plus(b);
+    calculatedResult = a.Add(b);
     expectedResult = 17292308;
 
     EXPECT_EQ(expectedResult,calculatedResult.ConvertToInt())
@@ -163,18 +163,18 @@ void basic_math_test(const string& msg) {
     T a("35");
     T b("1015");
 
-    calculatedResult = a.Plus(b);
+    calculatedResult = a.Add(b);
     expectedResult = 1050;
 
     EXPECT_EQ(expectedResult,calculatedResult.ConvertToInt())
-      << msg << " Failure testing plus_no_overflow_to_next_byte";
+      << msg << " Failure testing add_no_overflow_to_next_byte";
   }
 
   /************************************************/
   /* TESTING OPERATOR += FOR ALL CONDITIONS       */
   /************************************************/
 
-  // The operator "+=(Plus Equals)" does addition of two Big
+  // The operator "+=(Add Equals)" does addition of two Big
   // Integers a,b Calculates a+b, and stores result in a ConvertToInt
   // converts T a to integer
 
@@ -189,7 +189,7 @@ void basic_math_test(const string& msg) {
     expectedResult = 2237;
 
     EXPECT_EQ(expectedResult, a.ConvertToInt())
-      << " Failure testing plus_equals_a_greater_than_b";
+      << " Failure testing add_equals_a_greater_than_b";
   }
   // TEST_F CASE WHEN FIRST NUMBER IS LESS THAN SECOND NUMBER AND MSB
   // HAS NO OVERFLOW
@@ -201,7 +201,7 @@ void basic_math_test(const string& msg) {
     expectedResult = 205484;
 
     EXPECT_EQ(expectedResult, a.ConvertToInt())
-      << msg << " Failure testing plus_equals_a_less_than_b";
+      << msg << " Failure testing add_equals_a_less_than_b";
   }
   // TEST_F CASE WHEN MSB OF THE RESULT HAS BIT-OVERFLOW TO THE NEXT
   // BYTE
@@ -213,7 +213,7 @@ void basic_math_test(const string& msg) {
     expectedResult = 17292308;
 
     EXPECT_EQ(expectedResult,a.ConvertToInt())
-      << msg << " Failure testing plus_equals_overflow_to_next_byte";
+      << msg << " Failure testing add_equals_overflow_to_next_byte";
   }
   // TEST_F CASE WHEN MSB OF THE RESULT HAS BIT-OVERFLOW IN THE SAME
   // BYTE
@@ -225,13 +225,13 @@ void basic_math_test(const string& msg) {
     expectedResult = 1050;
 
     EXPECT_EQ(expectedResult,a.ConvertToInt())
-      << msg << " Failure testing plus_equals_no_overflow_to_next_byte";
+      << msg << " Failure testing add_equals_no_overflow_to_next_byte";
   }
   /************************************************/
-  /* TESTING METHOD MINUS FOR ALL CONDITIONS      */
+  /* TESTING METHOD SUB FOR ALL CONDITIONS      */
   /************************************************/
 
-  // The method "Minus" does subtraction on two Ts a,b
+  // The method "Sub" does subtraction on two Ts a,b
   // Returns a-b, which is stored in another T
   // calculatedResult When a<b, the result is 0, since there is no
   // support for negative numbers as of now ConvertToInt converts
@@ -243,53 +243,53 @@ void basic_math_test(const string& msg) {
 //    T a("20489");
 //    T b("2034455");
 //
-//    calculatedResult = a.Minus(b);
+//    calculatedResult = a.Sub(b);
 //    expectedResult = 0;
 //
 //    //SINCE THERE IS NO CONCEPT OF NEGATIVE NUMEBR RESULT SHOULD BE
 //    //ZERO
 //    EXPECT_EQ(expectedResult, calculatedResult.ConvertToInt())
-//      << msg << " Failure testing minus_a_less_than_b";
+//      << msg << " Failure testing sub_a_less_than_b";
 //  }
   // TEST_F CASE WHEN FIRST NUMBER IS EQUAL TO THE SECOND NUMBER
   {
     T a("2048956567");
     T b("2048956567");
 
-    calculatedResult = a.Minus(b);
+    calculatedResult = a.Sub(b);
     expectedResult = 0;
 
     EXPECT_EQ(expectedResult, calculatedResult.ConvertToInt())
-      << msg << " Failure testing minus_a_equal_to_b";
+      << msg << " Failure testing sub_a_equal_to_b";
   }
   // TEST_F CASE WHEN FIRST NUMBER IS GREATER THAN THE SECOND NUMBER
   {
     T a("2048956567");
     T b("2034455");
 
-    calculatedResult = a.Minus(b);
+    calculatedResult = a.Sub(b);
     expectedResult = 2046922112;
 
     EXPECT_EQ(expectedResult,calculatedResult.ConvertToInt())
-      << msg << " Failure testing minus_a_greater_than_b";
+      << msg << " Failure testing sub_a_greater_than_b";
   }
   // TEST_F CASE WHEN SUBTRACTION NEEDS BORROW FROM NEXT BYTE
   {
     T a("196737");
     T b("65406");
 
-    calculatedResult = a.Minus(b);
+    calculatedResult = a.Sub(b);
     expectedResult = 131331;
 
     EXPECT_EQ(expectedResult,calculatedResult.ConvertToInt())
-      << msg << " Failure testing minus_borrow_from_next_byte";
+      << msg << " Failure testing sub_borrow_from_next_byte";
   }
 
   /************************************************/
   /* TESTING OPERATOR -= FOR ALL CONDITIONS       */
   /************************************************/
 
-  // The operator "-=(Minus Equals)" does subtraction of two Big
+  // The operator "-=(Sub Equals)" does subtraction of two Big
   // Integers a,b Calculates a-b, and stores result in a Results to 0,
   // when a<b, since there is no concept of negative number as of now
   // ConvertToInt converts T a to integer
@@ -304,7 +304,7 @@ void basic_math_test(const string& msg) {
 //
 //    //SINCE THERE IS NO CONCEPT OF NEGATIVE NUMBER RESULT SHOULD BE ZERO
 //    EXPECT_EQ(expectedResult, a.ConvertToInt())
-//      << msg << " Failure testing minus_equals_a_less_than_b";
+//      << msg << " Failure testing sub_equals_a_less_than_b";
 //  }
   // TEST_F CASE WHEN FIRST NUMBER IS EQUAL TO THE SECOND NUMBER
   {
@@ -315,7 +315,7 @@ void basic_math_test(const string& msg) {
     expectedResult = 0;
 
     EXPECT_EQ(expectedResult, a.ConvertToInt())
-      << msg << " Failure testing minus_equals_a_equal_to_b";
+      << msg << " Failure testing sub_equals_a_equal_to_b";
   }
   // TEST_F CASE WHEN FIRST NUMBER IS GREATER THAN THE SECOND NUMBER
   {
@@ -327,7 +327,7 @@ void basic_math_test(const string& msg) {
     expectedResult = 2046922112;
 
     EXPECT_EQ(expectedResult,a.ConvertToInt())
-      << msg << " Failure testing minus_equals_a_greater_than_b";
+      << msg << " Failure testing sub_equals_a_greater_than_b";
   }
   // TEST_F CASE WHEN SUBTRACTION NEEDS BORROW FROM NEXT BYTE
   {
@@ -338,14 +338,14 @@ void basic_math_test(const string& msg) {
     expectedResult = 131331;
 
     EXPECT_EQ(expectedResult,a.ConvertToInt())
-      << msg << " Failure testing minus_equals_borrow_from_next_byte";
+      << msg << " Failure testing sub_equals_borrow_from_next_byte";
   }
 
   /************************************************/
-  /* TESTING METHOD TIMES FOR ALL CONDITIONS      */
+  /* TESTING METHOD MUL FOR ALL CONDITIONS      */
   /************************************************/
 
-  // The method "Times" does multiplication on two Ts
+  // The method "Mul" does multiplication on two Ts
   // a,b Returns a*b, which is stored in another T
   // calculatedResult ConvertToInt converts T
   // calculatedResult to integer
@@ -358,7 +358,7 @@ void basic_math_test(const string& msg) {
     expectedResult = 1286418;
 
     EXPECT_EQ(expectedResult,calculatedResult.ConvertToInt())
-      << msg << " Failure testing times_test";
+      << msg << " Failure testing mul_test";
   }
 
   /************************************************/
@@ -622,7 +622,7 @@ void mod_test(const string& msg) {
     T b("3591");
     T c("177");
 
-    T calculatedResult = a.ModBarrett(b,c);
+    T calculatedResult = a.Mod(b,c);
     int expectedResult = 205484;
 
     std::cout<<"\n"<<d.ConvertToInt()<<"\n";	//for testing purpose
@@ -1198,19 +1198,19 @@ TEST_F(UTBinInt,shift) {
 }
 
 /****************************************/
-/* TESTING METHOD  BitStringToBigInteger */
+/* TESTING METHOD  FromBinaryString */
 /****************************************/
 
 template<typename T>
 void binString(const string& msg) {
-	//TEST_F CASE FOR STATIC METHOD BitStringToBigInteger in BigInteger
+	//TEST_F CASE FOR STATIC METHOD FromBinaryString in BigInteger
 
 	string binaryString = "1011101101110001111010111011000000011";
-	T b = T::BitStringToBigInteger(binaryString);
+	T b = T::FromBinaryString(binaryString);
 
 	T expectedResult("100633769475");
 	EXPECT_EQ(expectedResult, b)
-	<< msg << " Failure testing BitStringToBigInteger";
+	<< msg << " Failure testing FromBinaryString";
 }
 
 TEST_F(UTBinInt,binString) {

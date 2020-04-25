@@ -329,7 +329,7 @@ bool LPAlgorithmParamsGenBFV<Element>::ParamsGen(shared_ptr<LPCryptoParameters<E
 	}
 
 	if (ceil(log2(q))+1 > 125)
-		PALISADE_THROW( lbcrypto::math_error, "BFV cannot autogenerate parameters for this case, please use BFVrns instead.");
+		PALISADE_THROW(math_error, "BFV cannot autogenerate parameters for this case, please use BFVrns instead.");
 
 	typename Element::Integer qPrime = FirstPrime<typename Element::Integer>(ceil(log2(q))+1, 2*n);
 	typename Element::Integer rootOfUnity = RootOfUnity<typename Element::Integer>(2 * n, qPrime);
@@ -515,7 +515,7 @@ Ciphertext<Element> LPAlgorithmSHEBFV<Element>::EvalAdd(ConstCiphertext<Element>
 
 	if (!(ciphertext1->GetCryptoParameters() == ciphertext2->GetCryptoParameters())) {
 		std::string errMsg = "LPAlgorithmSHEBFV::EvalAdd crypto parameters are not the same";
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(config_error, errMsg);
 	}
 
 	Ciphertext<Element> newCiphertext = ciphertext1->CloneEmpty();
@@ -592,7 +592,7 @@ Ciphertext<Element> LPAlgorithmSHEBFV<Element>::EvalSub(ConstCiphertext<Element>
 
 	if (!(ciphertext1->GetCryptoParameters() == ciphertext2->GetCryptoParameters())) {
 		std::string errMsg = "LPAlgorithmSHEBFV::EvalSub crypto parameters are not the same";
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(config_error, errMsg);
 	}
 
 	Ciphertext<Element> newCiphertext = ciphertext1->CloneEmpty();
@@ -641,7 +641,7 @@ Ciphertext<Element> LPAlgorithmSHEBFV<Element>::EvalSub(ConstCiphertext<Element>
 
 //	if (!(ciphertext1->GetCryptoParameters() == ciphertext2->GetCryptoParameters())) {
 //		std::string errMsg = "LPAlgorithmSHEBFV::EvalSub crypto parameters are not the same";
-//		throw std::runtime_error(errMsg);
+//		PALISADE_THROW(config_error, errMsg);
 //	}
 
 	Ciphertext<Element> newCiphertext = ciphertext->CloneEmpty();
@@ -698,17 +698,12 @@ Ciphertext<Element> LPAlgorithmSHEBFV<Element>::EvalMult(ConstCiphertext<Element
 
 	if (!(ciphertext1->GetCryptoParameters() == ciphertext2->GetCryptoParameters())) {
 		std::string errMsg = "LPAlgorithmSHEBFV::EvalMult crypto parameters are not the same";
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(config_error, errMsg);
 	}
 
 	Ciphertext<Element> newCiphertext = ciphertext1->CloneEmpty();
 
 	const shared_ptr<LPCryptoParametersBFV<Element>> cryptoParamsLWE = std::dynamic_pointer_cast<LPCryptoParametersBFV<Element>>(ciphertext1->GetCryptoContext()->GetCryptoParameters());
-	//Check if the multiplication supports the depth
-	if ( (ciphertext1->GetDepth() + ciphertext2->GetDepth()) > cryptoParamsLWE->GetMaxDepth() ) {
-			std::string errMsg = "LPAlgorithmSHEBFV::EvalMult multiplicative depth is not supported";
-			throw std::runtime_error(errMsg);
-	}
 
 	const auto p = cryptoParamsLWE->GetPlaintextModulus();
 
@@ -799,7 +794,7 @@ Ciphertext<Element> LPAlgorithmSHEBFV<Element>::EvalMult(ConstCiphertext<Element
 	const Element& ptElement = plaintext->GetElement<Element>();
 
 	if (ciphertext->GetElements()[0].GetFormat() == Format::COEFFICIENT || plaintext->GetElement<Element>().GetFormat() == Format::COEFFICIENT) {
-		throw std::runtime_error("LPAlgorithmSHEBFV::EvalMult cannot multiply in COEFFICIENT domain.");
+		PALISADE_THROW(type_error, "LPAlgorithmSHEBFV::EvalMult cannot multiply in COEFFICIENT domain.");
 	}
 
 	Element c0 = cipherTextElements[0] * ptElement;
@@ -1061,7 +1056,7 @@ shared_ptr<std::map<usint, LPEvalKey<Element>>> LPAlgorithmSHEBFV<Element>::Eval
 	shared_ptr<std::map<usint, LPEvalKey<Element>>> evalKeys(new std::map<usint, LPEvalKey<Element>>());
 
 	if (indexList.size() > n - 1)
-		throw std::runtime_error("size exceeds the ring dimension");
+		PALISADE_THROW(math_error, "size exceeds the ring dimension");
 	else {
 
 		for (usint i = 0; i < indexList.size(); i++)
@@ -1170,76 +1165,47 @@ Ciphertext<Element> LPAlgorithmPREBFV<Element>::ReEncrypt(const LPEvalKey<Elemen
 	ConstCiphertext<Element> ciphertext,
 	const LPPublicKey<Element> publicKey) const
 {
-	Ciphertext<Element> c = ciphertext->GetCryptoContext()->GetEncryptionAlgorithm()->KeySwitch(EK, ciphertext);
 
-	if (publicKey == nullptr) { // Recipient PK is not provided - CPA-secure PRE
+	if (publicKey == nullptr) { // Sender PK is not provided - CPA-secure PRE
+		Ciphertext<Element> c = ciphertext->GetCryptoContext()->GetEncryptionAlgorithm()->KeySwitch(EK, ciphertext);
 		return c;
-	} else { // Recipient PK provided - HRA-secure PRE
-		auto c = ciphertext->GetCryptoContext()->GetEncryptionAlgorithm()->KeySwitch(EK, ciphertext);
+	} else { // Sender PK provided - HRA-secure PRE
 
-		if (publicKey == nullptr) { // Recipient PK is not provided - CPA-secure PRE
-			return c;
-		} else {
-			// Recipient PK provided - HRA-secure PRE
-			// To obtain HRA security, we a fresh encryption of zero to the result
-			// with noise scaled by K (=log2(q)/relinWin).
-			CryptoContext<Element> cc = publicKey->GetCryptoContext();
+		// Get crypto and elements parameters
+		const shared_ptr<LPCryptoParametersRLWE<Element>> cryptoParamsLWE =
+			std::dynamic_pointer_cast<LPCryptoParametersRLWE<Element>>(publicKey->GetCryptoParameters());
+		const shared_ptr<typename Element::Params> elementParams = cryptoParamsLWE->GetElementParams();
 
-			// Creating the correct plaintext of zeroes, based on the
-			// encoding type of the ciphertext.
-			PlaintextEncodings encType = c->GetEncodingType();
+		const typename Element::DggType &dgg = cryptoParamsLWE->GetDiscreteGaussianGenerator();
+		typename Element::TugType tug;
 
-			// Encrypting with noise scaled by K
-			const shared_ptr<LPCryptoParametersBFV<Element>> cryptoPars =
-					std::dynamic_pointer_cast<LPCryptoParametersBFV<Element>>(publicKey->GetCryptoParameters());
-			const shared_ptr<typename Element::Params> elementParams = cryptoPars->GetElementParams();
+		PlaintextEncodings encType = ciphertext->GetEncodingType();
 
-			usint relinWin = cryptoPars->GetRelinWindow();
-			usint nBits = elementParams->GetModulus().GetLengthForBase(2);
-			// K = log2(q)/r, i.e., number of digits in PRE decomposition
-			usint K = 1;
-			if (relinWin > 0) {
-				K = nBits / relinWin;
-				if (nBits % relinWin > 0)
-					K++;
-			}
+		Ciphertext<Element> zeroCiphertext(new CiphertextImpl<Element>(publicKey));
+		zeroCiphertext->SetEncodingType(encType);
 
-			Ciphertext<Element> zeroCiphertext(new CiphertextImpl<Element>(publicKey));
-			zeroCiphertext->SetEncodingType(encType);
+		const Element &p0 = publicKey->GetPublicElements().at(0);
+		const Element &p1 = publicKey->GetPublicElements().at(1);
 
-			const typename Element::DggType &dgg = cryptoPars->GetDiscreteGaussianGenerator();
-			typename Element::TugType tug;
-			// Scaling the distribution standard deviation by K for HRA-security
-			auto stdDev = cryptoPars->GetDistributionParameter();
-			typename Element::DggType dgg_err(K*stdDev);
+		Element u;
 
-			const Element &p0 = publicKey->GetPublicElements().at(0);
-			const Element &p1 = publicKey->GetPublicElements().at(1);
+		if (cryptoParamsLWE->GetMode() == RLWE)
+			u = Element(dgg, elementParams, Format::EVALUATION);
+		else
+			u = Element(tug, elementParams, Format::EVALUATION);
 
-			Element u;
+		Element e1(dgg, elementParams, Format::EVALUATION);
+		Element e2(dgg, elementParams, Format::EVALUATION);
 
-			if (cryptoPars->GetMode() == RLWE)
-				u = Element(dgg, elementParams, Format::EVALUATION);
-			else
-				u = Element(tug, elementParams, Format::EVALUATION);
+		Element c0 = p0*u + e1;
+		Element c1 = p1*u + e2;
 
-			Element e1(dgg_err, elementParams, Format::EVALUATION);
-			Element e2(dgg_err, elementParams, Format::EVALUATION);
+		zeroCiphertext->SetElements({ c0, c1 });
 
-			Element c0(elementParams);
-			Element c1(elementParams);
+		// Add the encryption of zero for re-randomization purposes
+		auto c = ciphertext->GetCryptoContext()->GetEncryptionAlgorithm()->EvalAdd(ciphertext, zeroCiphertext);
 
-			c0 = p0*u + e1;
-			c1 = p1*u + e2;
-
-			zeroCiphertext->SetElements({ c0, c1 });
-
-			c->SetKeyTag(zeroCiphertext->GetKeyTag());
-
-			// Add the encryption of zeroes to the re-encrypted ciphertext
-			// and return the result.
-			return cc->EvalAdd(c, zeroCiphertext);
-		}
+		return ciphertext->GetCryptoContext()->GetEncryptionAlgorithm()->KeySwitch(EK, c);
 	}
 }
 
@@ -1323,7 +1289,7 @@ LPKeyPair<Element> LPAlgorithmMultipartyBFV<Element>::MultipartyKeyGen(CryptoCon
 		s.SwitchFormat();
 	}
 	else {
-		//throw std::logic_error("FusedKeyGen operation has not been enabled for OPTIMIZED cases");
+		//PALISADE_THROW(palisade_error, "FusedKeyGen operation has not been enabled for OPTIMIZED cases");
 		s = Element(tug, elementParams, Format::COEFFICIENT);
 		s.SwitchFormat();
 	}
@@ -1474,7 +1440,7 @@ shared_ptr<std::map<usint, LPEvalKey<Element>>> LPAlgorithmMultipartyBFV<Element
 		shared_ptr<std::map<usint, LPEvalKey<Element>>> evalKeys(new std::map<usint, LPEvalKey<Element>>());
 
 		if (indexList.size() > n - 1)
-			throw std::runtime_error("size exceeds the ring dimension");
+			PALISADE_THROW(math_error, "size exceeds the ring dimension");
 		else {
 
 			for (usint i = 0; i < indexList.size(); i++)
@@ -1661,13 +1627,13 @@ void LPPublicKeyEncryptionSchemeBFV<Element>::Enable(PKESchemeFeature feature) {
 			this->m_algorithmMultiparty.reset( new LPAlgorithmMultipartyBFV<Element>() );
 		break; 
 	case FHE:
-		throw std::logic_error("FHE feature not supported for BFV scheme");
+		PALISADE_THROW(not_implemented_error, "FHE feature not supported for BFV scheme");
 	case LEVELEDSHE:
-		throw std::logic_error("LEVELEDSHE feature not supported for BFV scheme");
+		PALISADE_THROW(not_implemented_error, "LEVELEDSHE feature not supported for BFV scheme");
 	case ADVANCEDSHE:
-		throw std::logic_error("ADVANCEDSHE feature not supported for BFV scheme");
+		PALISADE_THROW(not_implemented_error, "ADVANCEDSHE feature not supported for BFV scheme");
 	case ADVANCEDMP:
-		throw std::logic_error("ADVANCEDMP feature not supported for BFV scheme");
+		PALISADE_THROW(not_implemented_error, "ADVANCEDMP feature not supported for BFV scheme");
 	}
 }
 

@@ -47,10 +47,51 @@ protected:
 /*---------------------------------------	TESTING SERIALIZATION METHODS OF FHEW --------------------------------------------*/
 
 // Checks serialization for JSON mode
-TEST(UnitTestFHEWSerial,JSON) {
+TEST(UnitTestFHEWSerialAP,JSON) {
 
 	auto cc1 = BinFHEContext();
-	cc1.GenerateBinFHEContext(TOY);
+	cc1.GenerateBinFHEContext(TOY,AP);
+
+	auto sk1 = cc1.KeyGen();
+	//cc1.BTKeyGen(sk1);
+
+	// Encryption for a ciphertext that will be serialized
+	auto ct1 = cc1.Encrypt(sk1,1);
+
+	std::string msg = "JSON serialization test failed: ";
+
+	std::stringstream s;
+	Serial::Serialize(cc1, s, SerType::JSON);
+	BinFHEContext cc;
+	Serial::Deserialize(cc, s, SerType::JSON);
+
+	EXPECT_EQ( *cc.GetParams(), *cc1.GetParams() ) << msg << " Context mismatch";
+
+	s.str("");
+	s.clear();
+
+	Serial::Serialize(sk1, s, SerType::JSON);
+	LWEPrivateKey sk;
+	Serial::Deserialize(sk, s, SerType::JSON);
+
+	s.str("");
+	s.clear();
+
+	EXPECT_EQ( *sk1, *sk ) << msg << " Secret key mismatch";;
+
+	Serial::Serialize(ct1, s, SerType::JSON);
+	LWECiphertext ct;
+	Serial::Deserialize(ct, s, SerType::JSON);
+
+	EXPECT_EQ( *ct1, *ct ) << msg << " Ciphertext mismatch";
+
+}
+
+// Checks serialization for JSON mode
+TEST(UnitTestFHEWSerialGINX,JSON) {
+
+	auto cc1 = BinFHEContext();
+	cc1.GenerateBinFHEContext(TOY,GINX);
 
 	auto sk1 = cc1.KeyGen();
 	//cc1.BTKeyGen(sk1);
@@ -88,7 +129,72 @@ TEST(UnitTestFHEWSerial,JSON) {
 }
 
 // Checks serialization for BINARY mode
-TEST(UnitTestFHEWSerial,BINARY) {
+TEST(UnitTestFHEWSerialAP,BINARY) {
+
+	auto cc1 = BinFHEContext();
+	cc1.GenerateBinFHEContext(TOY,AP);
+
+	auto sk1 = cc1.KeyGen();
+	//cc1.BTKeyGen(sk1);
+
+	// Encryption for a ciphertext that will be serialized
+	auto ct111 = cc1.Encrypt(sk1,1);
+
+	std::string msg = "BINARY serialization test failed: ";
+
+	std::stringstream s;
+	Serial::Serialize(cc1, s, SerType::BINARY);
+	BinFHEContext cc;
+	Serial::Deserialize(cc, s, SerType::BINARY);
+
+	EXPECT_EQ( *cc.GetParams(), *cc1.GetParams() ) << msg << " Context mismatch";
+
+	/* commented out for now; the bootstrapping key is too large to fit in the stringstream
+
+	s.str("");
+	s.clear();
+
+	Serial::Serialize(cc.GetRefreshKey(), s, SerType::BINARY);
+	std::shared_ptr<RingGSWBTKey> refreshKey;
+	Serial::Deserialize(refreshKey, s, SerType::BINARY);
+
+	s.str("");
+	s.clear();
+
+	Serial::Serialize(cc.GetSwitchKey(), s, SerType::BINARY);
+	std::shared_ptr<LWESwitchingKey> switchKey;
+	Serial::Deserialize(switchKey, s, SerType::BINARY);
+
+	// Loading deserialized bootstrapping keys
+	cc.BTKeyLoad({refreshKey,switchKey});
+
+	EXPECT_EQ( *cc.GetRefreshKey(), *cc1.GetRefreshKey() ) << msg << " Bootstrapping key mismatch: refresh key";
+	//EXPECT_EQ( *cc.GetSwitchKey(), *cc1.GetSwitchKey() ) << msg << " Bootstrapping key mismatch: refresh key";
+
+	*/
+
+	s.str("");
+	s.clear();
+
+	Serial::Serialize(sk1, s, SerType::BINARY);
+	LWEPrivateKey sk;
+	Serial::Deserialize(sk, s, SerType::BINARY);
+
+	EXPECT_EQ( *sk1, *sk ) << msg << " Secret key mismatch";
+
+	s.str("");
+	s.clear();
+
+	Serial::Serialize(ct111, s, SerType::BINARY);
+	LWECiphertext ct;
+	Serial::Deserialize(ct, s, SerType::BINARY);
+
+	EXPECT_EQ( *ct111, *ct ) << msg << " Ciphertext mismatch";
+
+}
+
+// Checks serialization for BINARY mode
+TEST(UnitTestFHEWSerialGINX,BINARY) {
 
 	auto cc1 = BinFHEContext();
 	cc1.GenerateBinFHEContext(TOY);
@@ -151,4 +257,5 @@ TEST(UnitTestFHEWSerial,BINARY) {
 	EXPECT_EQ( *ct111, *ct ) << msg << " Ciphertext mismatch";
 
 }
+
 

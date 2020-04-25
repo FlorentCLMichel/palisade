@@ -95,6 +95,7 @@ void AtAndSetModulusTest(const string& msg) {
 	  EXPECT_EQ (expectedResult[i],calculatedResult[i].ConvertToInt())
 	    << msg << " Mod failed";
 	}
+
 	V n(len,q);
 	
 	n.at(0) = typename V::Integer("987968"); //note at() does not take modulus
@@ -119,21 +120,6 @@ void AtAndSetModulusTest(const string& msg) {
 		}
 	}
 
-	n.atMod(0,"987968"); //note atMod() does take modulus
-	n.atMod(1,"587679");
-	n.atMod(2,"456454");
-	n.atMod(3,"234343");
-	n.atMod(4,"769789");
-	n.atMod(5,"465654");
-	n.atMod(6,"79");
-	n.atMod(7,"346346");
-	n.atMod(8,"325328");
-	n.atMod(9,"7698798");	
-
-	for (usint i=0;i<len;i++){
-	  EXPECT_EQ (expectedResult[i], n[i].ConvertToInt())
-	    << "atMod failed";
-	}
 	V l(len,q);
 	//note list assignment does take modulus
 	l = {"987968", 
@@ -503,13 +489,13 @@ TEST(UTBinVect,modadd_vector_result_greater_modulus) {
 	RUN_BIG_BACKENDS(modadd_vector_result_greater_modulus, "modadd_vector_result_greater_modulus")
 }
 
-/*--------------TESTING METHOD PLUS EQUALS FOR ALL CONDITIONS---------------------------*/
+/*--------------TESTING METHOD ADD EQUALS FOR ALL CONDITIONS---------------------------*/
 
-/* 	The operator "Plus Equals" operates on Big Vectors m,n BigInteger q
+/* 	The operator "Add Equals" operates on Big Vectors m,n BigInteger q
   	Returns:  (m+n)mod q, and the result is stored in Big Vector a.
 */
 template<typename V>
-void method_plus_equals_vector_operation(const string& msg) {
+void method_add_equals_vector_operation(const string& msg) {
 	DEBUG_FLAG(false);
 	typename V::Integer q("657");
 	V m(5,q); // calling constructor to create a vector of length 5 and passing value of q
@@ -535,8 +521,8 @@ void method_plus_equals_vector_operation(const string& msg) {
 	}
 }
 
-TEST(UTBinVect,method_plus_equals_vector_operation) {
-	RUN_BIG_BACKENDS(method_plus_equals_vector_operation, "method_plus_equals_vector_operation")
+TEST(UTBinVect,method_add_equals_vector_operation) {
+	RUN_BIG_BACKENDS(method_add_equals_vector_operation, "method_add_equals_vector_operation")
 }
 
 /*--------------TESTING METHOD MODMUL FOR ALL CONDITIONS---------------------------*/

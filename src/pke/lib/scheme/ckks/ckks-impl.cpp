@@ -46,11 +46,11 @@ template class LPAlgorithmCKKS<DCRTPoly>;
 
 #define NOPOLY \
 		std::string errMsg = "CKKS PrecomputeCRTTables does not support Poly. Use DCRTPoly instead."; \
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(not_implemented_error, errMsg);
 
 #define NONATIVEPOLY \
 		std::string errMsg = "CKKS PrecomputeCRTTables does not support NativePoly. Use DCRTPoly instead."; \
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(not_implemented_error, errMsg);
 
 // Parameter generation for BFV-RNS
 template <>
@@ -70,7 +70,7 @@ shared_ptr<vector<Poly>> LPAlgorithmSHECKKS<Poly>::EvalFastRotationPrecompute(
 		) const {
 
 	std::string errMsg = "CKKS EvalFastRotationPrecompute does not support Poly. Use DCRTPoly instead."; \
-	throw std::runtime_error(errMsg);
+	PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 template<>
@@ -79,7 +79,7 @@ shared_ptr<vector<NativePoly>> LPAlgorithmSHECKKS<NativePoly>::EvalFastRotationP
 		) const {
 
 	std::string errMsg = "CKKS EvalFastRotationPrecompute does not support NativePoly. Use DCRTPoly instead."; \
-	throw std::runtime_error(errMsg);
+	PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 template<>
@@ -91,7 +91,7 @@ Ciphertext<Poly> LPAlgorithmSHECKKS<Poly>::EvalFastRotation(
 		) const {
 
 	std::string errMsg = "CKKS EvalFastRotation does not support Poly. Use DCRTPoly instead."; \
-	throw std::runtime_error(errMsg);
+	PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 template<>
@@ -103,7 +103,7 @@ Ciphertext<NativePoly> LPAlgorithmSHECKKS<NativePoly>::EvalFastRotation(
 		) const {
 
 	std::string errMsg = "CKKS EvalFastRotation does not support NativePoly. Use DCRTPoly instead."; \
-	throw std::runtime_error(errMsg);
+	PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 template <>
@@ -144,7 +144,7 @@ Ciphertext<NativePoly> LPAlgorithmCKKS<NativePoly>::Encrypt(const LPPublicKey<Na
 		NativePoly ptxt) const
 {
 	std::string errMsg = "LPAlgorithmCKKS<NativePoly>::Encrypt is not implemented for NativePoly.";
-	throw std::runtime_error(errMsg);
+	PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 
@@ -153,7 +153,7 @@ Ciphertext<Poly> LPAlgorithmCKKS<Poly>::Encrypt(const LPPublicKey<Poly> publicKe
 		Poly ptxt) const
 {
 	std::string errMsg = "LPAlgorithmCKKS<Poly>::Encrypt is not implemented for Poly.";
-	throw std::runtime_error(errMsg);
+	PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 template <>
@@ -161,7 +161,7 @@ Ciphertext<NativePoly> LPAlgorithmCKKS<NativePoly>::Encrypt(const LPPrivateKey<N
 		NativePoly ptxt) const
 {
 	std::string errMsg = "LPAlgorithmCKKS<NativePoly>::Encrypt is not implemented for NativePoly.";
-	throw std::runtime_error(errMsg);
+	PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 template <>
@@ -169,7 +169,7 @@ Ciphertext<Poly> LPAlgorithmCKKS<Poly>::Encrypt(const LPPrivateKey<Poly> private
 		Poly ptxt) const
 {
 	std::string errMsg = "LPAlgorithmCKKS<Poly>::Encrypt is not implemented for Poly.";
-	throw std::runtime_error(errMsg);
+	PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 template <>
@@ -178,7 +178,7 @@ DecryptResult LPAlgorithmCKKS<NativePoly>::Decrypt(const LPPrivateKey<NativePoly
 	Poly *plaintext) const
 {
 	std::string errMsg = "CKKS: Decryption to Poly from NativePoly is not supported as it may lead to incorrect results."; \
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_available_error, errMsg);
 
 }
 
@@ -278,7 +278,7 @@ DecryptResult LPAlgorithmMultipartyCKKS<NativePoly>::MultipartyDecryptFusion(con
 		Poly *plaintext) const
 {
 	std::string errMsg = "CKKS: Decryption to Poly from NativePoly is not supported as it may lead to incorrect results."; \
-			throw std::runtime_error(errMsg);
+			PALISADE_THROW(not_available_error, errMsg);
 }
 
 template <>
@@ -295,7 +295,7 @@ bool LPAlgorithmParamsGenCKKS<Poly>::ParamsGen(
 	    uint32_t numLargeDigits) const {
 
 	std::string errMsg = "LPAlgorithmParamsGenCKKS<Poly>::ParamsGen is only supported for DCRTPoly.";
-	throw std::runtime_error(errMsg);
+	PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 
@@ -313,7 +313,7 @@ bool LPAlgorithmParamsGenCKKS<NativePoly>::ParamsGen(
 		uint32_t numLargeDigits) const {
 
 	std::string errMsg = "LPAlgorithmParamsGenCKKS<NativePoly>::ParamsGen is only supported for DCRTPoly.";
-	throw std::runtime_error(errMsg);
+	PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 
@@ -322,7 +322,7 @@ Ciphertext<Poly> LPLeveledSHEAlgorithmCKKS<Poly>::LevelReduceInternal(ConstCiphe
 		const LPEvalKey<Poly> linearKeySwitchHint, size_t levels)  const {
 
 	std::string errMsg = "LPLeveledSHEAlgorithmCKKS<Poly>::LevelReduceInternal is only supported for DCRTPoly.";
-	throw std::runtime_error(errMsg);
+	PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 
@@ -331,26 +331,26 @@ Ciphertext<NativePoly> LPLeveledSHEAlgorithmCKKS<NativePoly>::LevelReduceInterna
 		const LPEvalKey<NativePoly> linearKeySwitchHint, size_t levels)  const {
 
 	std::string errMsg = "LPLeveledSHEAlgorithmCKKS<NativePoly>::LevelReduceInternal is only supported for DCRTPoly.";
-	throw std::runtime_error(errMsg);
+	PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 template <>
 Ciphertext<Poly> LPLeveledSHEAlgorithmCKKS<Poly>::ModReduceInternal(ConstCiphertext<Poly> cipherText) const {
 
 	std::string errMsg = "LPLeveledSHEAlgorithmCKKS<Poly>::ModReduceInternal is only supported for DCRTPoly.";
-	throw std::runtime_error(errMsg);
+	PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 template <>
 Ciphertext<NativePoly> LPLeveledSHEAlgorithmCKKS<NativePoly>::ModReduceInternal(ConstCiphertext<NativePoly> cipherText) const {
 
 	std::string errMsg = "LPLeveledSHEAlgorithmCKKS<NativePoly>::ModReduceInternal is only supported for DCRTPoly.";
-	throw std::runtime_error(errMsg);
+	PALISADE_THROW(not_implemented_error, errMsg);
 }
 
 #define NODCRTPOLY \
 		std::string errMsg = "CKKS does not support DCRTPoly. Use NativePoly/Poly instead."; \
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(not_implemented_error, errMsg);
 
 // Precomputation of CRT tables encryption, decryption, and homomorphic multiplication
 template <>
@@ -460,7 +460,7 @@ bool LPCryptoParametersCKKS<DCRTPoly>::PrecomputeCRTTables(
 					"switching parameters: Can't appropriately distribute " + to_string(numPrimesQ) +
 					" towers into " + to_string(this->m_dnum) +
 					" digits. Please select different number of digits.";
-			throw std::logic_error(str);
+			PALISADE_THROW(config_error, str);
 		}
 
 		this->m_numTowersPerDigit = a;
@@ -567,24 +567,23 @@ bool LPCryptoParametersCKKS<DCRTPoly>::PrecomputeCRTTables(
 		vector<NativeInteger> rootsP(numPrimesP);
 		// firstP contains a prime whose size is PModSize.
 		NativeInteger firstP = FirstPrime<NativeInteger>(PModSize, 2 * n);
-		firstP -= (int64_t) 2 * n *((int64_t)(1)<<(PModSize/3));
-		NativeInteger pNext = firstP;
+		NativeInteger pPrev = firstP;
 		m_modulusP = BigInteger(1);
 		for (usint i = 0; i < numPrimesP; i++) {
 			// The following loop makes sure that moduli in
 			// P and Q are different
 			bool foundInQ = false;
 			do {
-				moduliP[i] = NextPrime<NativeInteger>(pNext, 2 * n);
+				moduliP[i] = PreviousPrime<NativeInteger>(pPrev, 2 * n);
 				foundInQ = false;
 				for (usint j=0; j < numPrimesQ; j++)
 					if (moduliP[i] == moduliQ[j])
 						foundInQ = true;
-				pNext = moduliP[i];
+				pPrev = moduliP[i];
 			} while (foundInQ);
 			rootsP[i] = RootOfUnity<NativeInteger>(2 * n, moduliP[i]);
 			m_modulusP *= moduliP[i];
-			pNext = moduliP[i];
+			pPrev = moduliP[i];
 		}
 
 		// Store the created moduli and roots in m_paramsP
@@ -625,7 +624,7 @@ bool LPCryptoParametersCKKS<DCRTPoly>::PrecomputeCRTTables(
 		for (size_t j=0; j<numPrimesQ; j++) {
 			BigInteger pInvModQj = m_modulusP.ModInverse(moduliQ[j]);
 			m_pInvModQj[j] = pInvModQj.ConvertToInt();
-			m_pInvModQjPrecon[j] = m_pInvModQj[j].PrepModMulPreconOptimized(moduliQ[j]);
+			m_pInvModQjPrecon[j] = m_pInvModQj[j].PrepModMulConst(moduliQ[j]);
 		}
 
 		// 11./H.12. Pre-compute values \hat{p_i} mod q_j
@@ -639,7 +638,7 @@ bool LPCryptoParametersCKKS<DCRTPoly>::PrecomputeCRTTables(
 			BigInteger pHatInvModPi = pHat.ModInverse(moduliP[i]);
 			m_pHatModQj[i] = vector<NativeInteger>(numPrimesQ);
 			m_pHatInvModPi[i] = pHatInvModPi.ConvertToInt();
-			m_pHatInvModPiPrecon[i] = m_pHatInvModPi[i].PrepModMulPreconOptimized(moduliP[i]);
+			m_pHatInvModPiPrecon[i] = m_pHatInvModPi[i].PrepModMulConst(moduliP[i]);
 			for (size_t j=0; j<numPrimesQ; j++) {
 				BigInteger pHatModQj = pHat.Mod(moduliQ[j]);
 				m_pHatModQj[i][j] = pHatModQj.ConvertToInt();
@@ -666,7 +665,7 @@ bool LPCryptoParametersCKKS<DCRTPoly>::PrecomputeCRTTables(
 				BigInteger qHat = modulusQ/BigInteger(moduliQ[j]);
 				BigInteger qHatInvModQj = qHat.ModInverse(moduliQ[j]);
 				m_qHatInvModQj[numPrimesQ-l-1][j] = qHatInvModQj.ConvertToInt();
-				m_qHatInvModQjPrecon[numPrimesQ-l-1][j] = m_qHatInvModQj[numPrimesQ-l-1][j].PrepModMulPreconOptimized(moduliQ[j]);
+				m_qHatInvModQjPrecon[numPrimesQ-l-1][j] = m_qHatInvModQj[numPrimesQ-l-1][j].PrepModMulConst(moduliQ[j]);
 				for (size_t i=0; i<numPrimesP; i++) {
 					BigInteger qHatModPi = qHat.Mod(moduliP[i]);
 					m_qHatModPi[numPrimesQ-l-1][j][i] = qHatModPi.ConvertToInt();
@@ -784,7 +783,7 @@ bool LPCryptoParametersCKKS<DCRTPoly>::PrecomputeCRTTables(
 //							cout << "HYBRID - qHat[" << k << "][" << partNumPrimesQ-l-1 << "][" << j << "]: " << qHat << endl;
 							BigInteger qHatInvModQj = qHat.ModInverse(params[j]->GetModulus());
 							this->m_partitionQHatInvModQj[k][partNumPrimesQ-l-1][j] = qHatInvModQj.ConvertToInt();
-							this->m_partitionQHatInvModQjPrecon[k][partNumPrimesQ-l-1][j] = this->m_partitionQHatInvModQj[k][partNumPrimesQ-l-1][j].PrepModMulPreconOptimized(params[j]->GetModulus());
+							this->m_partitionQHatInvModQjPrecon[k][partNumPrimesQ-l-1][j] = this->m_partitionQHatInvModQj[k][partNumPrimesQ-l-1][j].PrepModMulConst(params[j]->GetModulus());
 //							cout << "HYBRID - qHat^-1 mod qj[" << k << "][" << partNumPrimesQ-l-1 <<
 //								"][" << j << "]: " << this->m_partitionQHatInvModQj[k][partNumPrimesQ-l-1][j] << endl;
 						}
@@ -862,7 +861,7 @@ bool LPCryptoParametersCKKS<DCRTPoly>::PrecomputeCRTTables(
 			this->m_scalingFactors[k] = tmp * this->m_scalingFactors[k-1];
 			double ratio = this->m_scalingFactors[k]/this->m_scalingFactors[0];
 			if (ratio <= 0.5 || ratio >= 2.0)
-				throw std::runtime_error("LPCryptoParametersCKKS<DCRTPoly>::PrecomputeCRTTables - EXACTRESCALE cannot support this number of levels in this parameter setting. Please use APPROXRESCALE.");
+				PALISADE_THROW(config_error, "LPCryptoParametersCKKS<DCRTPoly>::PrecomputeCRTTables - EXACTRESCALE cannot support this number of levels in this parameter setting. Please use APPROXRESCALE.");
 //std::cerr << std::setprecision(8) << std::fixed << "\t level " << k << ": " << this->m_scalingFactors[k] << " (ratio to q_L: " << ratio << ")" << std::endl;
 		}
 	}
@@ -925,14 +924,14 @@ bool LPAlgorithmParamsGenCKKS<DCRTPoly>::ParamsGen(
 			// Check whether particular selection is standards-compliant
 			auto he_std_n = nRLWE(qBound);
 			if (he_std_n > n) {
-				throw std::logic_error(
+				PALISADE_THROW(config_error,
 					"The specified ring dimension (" + to_string(n) +
 					") does not comply with HE standards recommendation (" +
 					to_string(he_std_n) + ")." );
 			}
 		}
 	} else if (n==0)
-		throw std::logic_error(
+		PALISADE_THROW(config_error,
 				"Please specify the ring dimension or desired security level." );
 	//// End HE Standards compliance logic/check
 
@@ -941,19 +940,12 @@ bool LPAlgorithmParamsGenCKKS<DCRTPoly>::ParamsGen(
 	vector<NativeInteger> init_moduli(numPrimes);
 	vector<NativeInteger> init_rootsOfUnity(numPrimes);
 
-	// Get the largest prime with size less or equal to firstModSize bits.
-	NativeInteger firstInteger = FirstPrime<NativeInteger>(firstModSize, cyclOrder);
-	firstInteger -= (int64_t)cyclOrder*((int64_t)(1)<<(firstModSize/3));
-	init_moduli[0] = NextPrime<NativeInteger>(firstInteger, cyclOrder);
-
 	NativeInteger q = FirstPrime<NativeInteger>(dcrtBits, cyclOrder);
 	init_moduli[numPrimes-1] = q;
-	init_rootsOfUnity[0] = RootOfUnity(cyclOrder, init_moduli[0]);
 	init_rootsOfUnity[numPrimes-1] = RootOfUnity(cyclOrder, init_moduli[numPrimes-1]);
 
 	NativeInteger qNext = q;
 	NativeInteger qPrev = q;
-
 	if ( numPrimes > 1 ) {
 		if ( rsTech == APPROXRESCALE ) {
 			uint32_t cnt = 0;
@@ -1030,6 +1022,16 @@ bool LPAlgorithmParamsGenCKKS<DCRTPoly>::ParamsGen(
 		}
 	}
 
+
+	if (firstModSize == dcrtBits) { // this requires dcrtBits < 60
+		init_moduli[0] = PreviousPrime<NativeInteger>(qPrev, cyclOrder);
+	} else {
+		NativeInteger firstInteger = FirstPrime<NativeInteger>(firstModSize, cyclOrder);
+		init_moduli[0] = PreviousPrime<NativeInteger>(firstInteger, cyclOrder);
+	}
+	init_rootsOfUnity[0] = RootOfUnity(cyclOrder, init_moduli[0]);
+
+
 	shared_ptr<ILDCRTParams<BigInteger>> paramsDCRT(
 							new ILDCRTParams<BigInteger>(
 									cyclOrder,
@@ -1037,6 +1039,15 @@ bool LPAlgorithmParamsGenCKKS<DCRTPoly>::ParamsGen(
 									init_rootsOfUnity));
 
 	cryptoParamsCKKS->SetElementParams(paramsDCRT);
+
+	// if no batch size was specified, we set batchSize = n/2 by default (for full packing)
+	const EncodingParams encodingParams = cryptoParamsCKKS->GetEncodingParams();
+	if (encodingParams->GetBatchSize() == 0)
+	{
+		uint32_t batchSize = n/2;
+		EncodingParams encodingParamsNew(new EncodingParamsImpl(encodingParams->GetPlaintextModulus(),batchSize));
+		cryptoParamsCKKS->SetEncodingParams(encodingParamsNew);
+	}
 
 	return cryptoParamsCKKS->PrecomputeCRTTables(ksTech, rsTech, numLargeDigits);
 
@@ -1219,7 +1230,7 @@ DecryptResult LPAlgorithmCKKS<DCRTPoly>::Decrypt(const LPPrivateKey<DCRTPoly> pr
 			if (b.GetParams()->GetParams().size() == 1)
 				*plaintext = Poly(b.GetElementAtIndex(0),COEFFICIENT);
 			else
-				PALISADE_THROW(lbcrypto::palisade_error, "Decryption failure: No towers left; consider increasing the depth.");
+				PALISADE_THROW(math_error, "Decryption failure: No towers left; consider increasing the depth.");
 		}
 
 		return DecryptResult(plaintext->GetLength());
@@ -1264,7 +1275,7 @@ DecryptResult LPAlgorithmCKKS<DCRTPoly>::Decrypt(const LPPrivateKey<DCRTPoly> pr
 		if (b.GetParams()->GetParams().size() == 1)
 			*plaintext = b.GetElementAtIndex(0);
 		else
-			PALISADE_THROW(lbcrypto::palisade_error, "Decryption failure: No towers left; consider increasing the depth.");
+			PALISADE_THROW(math_error, "Decryption failure: No towers left; consider increasing the depth.");
 
 		return DecryptResult(plaintext->GetLength());
 	}
@@ -2212,7 +2223,7 @@ Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalMultMutable(
 
 		// EXACTRESCALE expects all ciphertexts to be either of depth 1 or 2.
 		if (ciphertext->GetDepth() > 2) {
-			throw std::runtime_error("Exact rescaling works for ciphertexts " \
+			PALISADE_THROW(not_available_error, "Exact rescaling works for ciphertexts " \
 					"of depth 1 and 2 only, and depth of 1 is allowed only for fresh ciphertexts");
 		}
 
@@ -2286,12 +2297,12 @@ Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::AdjustLevelWithRescale(
 	uint32_t targetLevel) const
 {
 	if ( c1->GetDepth() != 1 ) {
-		throw std::logic_error("LPAlgorithmSHECKKS<DCRTPoly>::AdjustLevelWithRescale "
+		PALISADE_THROW(not_available_error, "LPAlgorithmSHECKKS<DCRTPoly>::AdjustLevelWithRescale "
 				"expects a ciphertext that's at depth 1.");
 	}
 
 	if ( c1->GetLevel() >= targetLevel ) {
-		throw std::logic_error("LPAlgorithmSHECKKS<DCRTPoly>::AdjustLevelWithRescale "
+		PALISADE_THROW(not_available_error, "LPAlgorithmSHECKKS<DCRTPoly>::AdjustLevelWithRescale "
 				"a ciphertext can only be adjusted to a larger level. Ciphertext level: " +
 				std::to_string(c1->GetLevel()) + " and target level is: " +
 				std::to_string(targetLevel));
@@ -2342,12 +2353,12 @@ Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::AdjustLevelWithoutRescale(
 	uint32_t targetLevel ) const
 {
 	if ( c1->GetDepth() != 1 ) {
-		throw std::logic_error("LPAlgorithmSHECKKS<DCRTPoly>::AdjustLevelWithoutRescale "
+		PALISADE_THROW(not_available_error, "LPAlgorithmSHECKKS<DCRTPoly>::AdjustLevelWithoutRescale "
 				"expects a ciphertext that's at depth 1.");
 	}
 
 	if ( c1->GetLevel() >= targetLevel ) {
-		throw std::logic_error("LPAlgorithmSHECKKS<DCRTPoly>::AdjustLevelWithoutRescale "
+		PALISADE_THROW(not_available_error, "LPAlgorithmSHECKKS<DCRTPoly>::AdjustLevelWithoutRescale "
 				"a ciphertext can only be adjusted to a larger level. Ciphertext level: " +
 				std::to_string(c1->GetLevel()) + " and target level is: " +
 				std::to_string(targetLevel) );
@@ -2421,7 +2432,7 @@ Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalAddCorePlaintext(
 		// Update ptElem with scaled up element
 		ptElem = ptElemClone.Times(currPowP);
 	} else if (ptDepth > ciphertext->GetDepth())
-		throw std::logic_error("LPAlgorithmSHECKKS<DCRTPoly>::EvalAdd " \
+		PALISADE_THROW(not_available_error, "LPAlgorithmSHECKKS<DCRTPoly>::EvalAdd " \
 				"- plaintext cannot be encoded at a larger depth than that of the ciphertext.");
 
 	DCRTPoly c2 = ptElem;
@@ -2483,7 +2494,7 @@ Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalSubCorePlaintext(
 		// Update ptElem with scaled up element
 		ptElem = ptElemClone.Times(currPowP);
 	} else if (ptDepth > ciphertext->GetDepth())
-		throw std::logic_error("LPAlgorithmSHECKKS<DCRTPoly>::EvalSub " \
+		PALISADE_THROW(not_available_error, "LPAlgorithmSHECKKS<DCRTPoly>::EvalSub " \
 				"- plaintext cannot be encoded at a larger depth than that of the ciphertext.");
 
 	DCRTPoly c2 = ptElem;
@@ -2597,7 +2608,7 @@ Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalAddApprox(
 	ConstCiphertext<DCRTPoly> ciphertext2) const {
 
 	if (ciphertext1->GetDepth() != ciphertext2->GetDepth()) {
-		throw std::runtime_error("Depths of two ciphertexts do not match.");
+		PALISADE_THROW(config_error, "Depths of two ciphertexts do not match.");
 	}
 
 	// Automatic lever-reduce
@@ -2796,7 +2807,7 @@ Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalSubApprox(
 	ConstCiphertext<DCRTPoly> ciphertext2) const {
 
 	if (ciphertext1->GetDepth() != ciphertext2->GetDepth()) {
-		throw std::runtime_error("Depths of two ciphertexts do not match.");
+		PALISADE_THROW(config_error, "Depths of two ciphertexts do not match.");
 	}
 
 	// Automatic lever-reduce
@@ -3079,7 +3090,7 @@ Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalMultApprox(
 		size_t towersToDrop = c2.GetParams()->GetParams().size() - c1[0].GetParams()->GetParams().size();
 		c2.DropLastElements(towersToDrop);
 	} else {
-		throw std::runtime_error("In APPROXRESCALE EvalMult, ciphertext cannot have more towers than the plaintext");
+		PALISADE_THROW(not_available_error, "In APPROXRESCALE EvalMult, ciphertext cannot have more towers than the plaintext");
 	}
 
 	c2.SetFormat(EVALUATION);
@@ -3195,7 +3206,7 @@ Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalLinearWSumInternalMutable
 	uint32_t n = ciphertexts.size();
 
 	if (n != constants.size() || n == 0)
-		throw std::runtime_error("LPAlgorithmSHECKKS<DCRTPoly>::EvalLinearWSum input vector sizes do not match.");
+		PALISADE_THROW(math_error, "LPAlgorithmSHECKKS<DCRTPoly>::EvalLinearWSum input vector sizes do not match.");
 
 	Ciphertext<DCRTPoly> weightedSum;
 
@@ -4217,11 +4228,11 @@ LPEvalKey<DCRTPoly> LPAlgorithmPRECKKS<DCRTPoly>::ReKeyGen(const LPPublicKey<DCR
 	} else if (cryptoParamsLWE->GetKeySwitchTechnique() == GHS) {
 		std::string errMsg =
 				"ReKeyGen - Proxy re-encryption not supported when using GHS key switching.";
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(not_available_error, errMsg);
 	} else { // Hybrid
 		std::string errMsg =
 				"ReKeyGen - Proxy re-encryption not supported when using HYBRID key switching.";
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(not_available_error, errMsg);
 	}
 
 }
@@ -4232,80 +4243,54 @@ Ciphertext<DCRTPoly> LPAlgorithmPRECKKS<DCRTPoly>::ReEncrypt(const LPEvalKey<DCR
 	const LPPublicKey<DCRTPoly> publicKey) const
 {
 
-	Ciphertext<DCRTPoly> newCiphertext = ciphertext->GetCryptoContext()->KeySwitch(ek, ciphertext);
-
 	const shared_ptr<LPCryptoParametersCKKS<DCRTPoly>> cryptoParamsLWE =
 					std::dynamic_pointer_cast<LPCryptoParametersCKKS<DCRTPoly>>(ek->GetCryptoParameters());
 
 	if ( cryptoParamsLWE->GetKeySwitchTechnique() != BV ) {
 		std::string errMsg =
 				"ReEncrypt - Proxy re-encryption is only supported when using BV key switching.";
-		throw std::runtime_error(errMsg);
+		PALISADE_THROW(not_available_error, errMsg);
 	}
 
-	if (publicKey == nullptr) { // Recipient PK is not provided - CPA-secure PRE
-		return newCiphertext;
-	} else { // Recipient PK provided - HRA-secure PRE
-		// To obtain HRA security, we a fresh encryption of zero to the result
-		// with noise scaled by K (=log2(q)/relinWin), where K is the number of digits.
-		CryptoContext<DCRTPoly> cc = publicKey->GetCryptoContext();
+	if (publicKey == nullptr) { // Sender PK is not provided - CPA-secure PRE
+		return ciphertext->GetCryptoContext()->KeySwitch(ek, ciphertext);
+	} else { // Sender PK provided - HRA-secure PRE
+		// Get crypto and elements parameters
+		const shared_ptr<typename DCRTPoly::Params> elementParams = cryptoParamsLWE->GetElementParams();
 
-		// Creating the correct plaintext of zeroes, based on the
-		// encoding type of the ciphertext.
-		PlaintextEncodings encType = newCiphertext->GetEncodingType();
+		const typename DCRTPoly::DggType &dgg = cryptoParamsLWE->GetDiscreteGaussianGenerator();
+		typename DCRTPoly::TugType tug;
 
-		// Encrypting with noise scaled by K
-		const shared_ptr<LPCryptoParametersCKKS<DCRTPoly>> cryptoPars =
-				std::dynamic_pointer_cast<LPCryptoParametersCKKS<DCRTPoly>>(publicKey->GetCryptoParameters());
-		const shared_ptr<DCRTPoly::Params> elementParams = cryptoPars->GetElementParams();
-
-		usint relinWindow = cryptoPars->GetRelinWindow();
-		// K = log2(q)/r, i.e., number of digits in PRE decomposition
-		usint K = 1;
-		if ( cryptoParamsLWE->GetKeySwitchTechnique() == BV &&  // GHS key switching has one digit.
-				relinWindow > 0) {
-			for (usint i = 0; i < ciphertext->GetElements()[0].GetNumOfElements(); i++) {
-				usint nBits = ciphertext->GetElements()[0].GetElementAtIndex(i).GetModulus().GetLengthForBase(2);
-				usint curWindows = nBits / relinWindow;
-				if (nBits % relinWindow > 0)
-					curWindows++;
-				K += curWindows;
-			}
-		}
+		PlaintextEncodings encType = ciphertext->GetEncodingType();
 
 		Ciphertext<DCRTPoly> zeroCiphertext(new CiphertextImpl<DCRTPoly>(publicKey));
 		zeroCiphertext->SetEncodingType(encType);
-
-		const DCRTPoly::DggType &dgg = cryptoPars->GetDiscreteGaussianGenerator();
-		DCRTPoly::TugType tug;
-		// Scaling the distribution standard deviation by K for HRA-security
-		auto stdDev = cryptoPars->GetDistributionParameter();
-		DCRTPoly::DggType dgg_err(K*stdDev);
 
 		const DCRTPoly &p0 = publicKey->GetPublicElements().at(0);
 		const DCRTPoly &p1 = publicKey->GetPublicElements().at(1);
 
 		DCRTPoly u;
-		if (cryptoPars->GetMode() == RLWE)
+
+		if (cryptoParamsLWE->GetMode() == RLWE)
 			u = DCRTPoly(dgg, elementParams, Format::EVALUATION);
 		else
 			u = DCRTPoly(tug, elementParams, Format::EVALUATION);
 
-		DCRTPoly e1(dgg_err, elementParams, Format::EVALUATION);
-		DCRTPoly e2(dgg_err, elementParams, Format::EVALUATION);
+		DCRTPoly e1(dgg, elementParams, Format::EVALUATION);
+		DCRTPoly e2(dgg, elementParams, Format::EVALUATION);
 
-		DCRTPoly c0(elementParams);
-		DCRTPoly c1(elementParams);
-
-		c0 = p0*u + e1;
-		c1 = p1*u + e2;
+		DCRTPoly c0 = p0*u + e1;
+		DCRTPoly c1 = p1*u + e2;
 
 		zeroCiphertext->SetElements({ c0, c1 });
 
-		newCiphertext->SetKeyTag(zeroCiphertext->GetKeyTag());
+		// Add the encryption of zero for re-randomization purposes
+		auto c = ciphertext->GetCryptoContext()->GetEncryptionAlgorithm()->EvalAdd(ciphertext, zeroCiphertext);
 
-		return cc->EvalAdd(newCiphertext, zeroCiphertext);
+		return ciphertext->GetCryptoContext()->KeySwitch(ek, c);
+
 	}
+
 }
 
 }

@@ -659,11 +659,6 @@ public:
 	void MakeSparse(const uint32_t &wFactor);
 
 	/**
-	 * @brief Interleaves values in the element with odd indices being all zeros.
-	 */
-	void Decompose();
-
-	/**
 	 * @brief Returns true if the vector is empty/ m_values==NULL
 	 */
 	bool IsEmpty() const;

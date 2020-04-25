@@ -134,7 +134,7 @@ private:
 			sizeof(m_counter),
 			m_seed.cbegin(), m_seed.size() * sizeof(result_type)) != 0)
 		{
-			throw std::runtime_error("PRNG: blake2xb failed");
+			PALISADE_THROW(math_error, "PRNG: blake2xb failed");
 		}
 		m_counter++;
 		return;
@@ -142,16 +142,16 @@ private:
 
     // counter used as input to the BLAKE2 hash function
     // gets incremented after each call
-    uint64_t m_counter;
+    uint64_t m_counter = 0;
 
     // the seed for the BLAKE2 hash function
-    std::array<result_type,16> m_seed;
+    std::array<result_type,16> m_seed{};
 
     // The vector that stores random samples generated using the hash function
-    std::array<result_type,PRNG_BUFFER_SIZE> m_buffer;
+    std::array<result_type,PRNG_BUFFER_SIZE> m_buffer{};
 
     // Index in m_buffer corresponding to the current PRNG sample
-    uint16_t m_bufferIndex;
+    uint16_t m_bufferIndex = 0;
 
 };
 

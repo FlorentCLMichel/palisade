@@ -6,7 +6,7 @@ PALISADE is a general lattice cryptography library that currently includes effic
    * Brakerski/Fan-Vercauteren scheme (3 variants)
    * Brakerski-Gentry-Vaikuntanathan scheme
    * Cheon-Kim-Kim-Song scheme
-   * FHEW (Ducas-Micciancio) scheme
+   * Ducas-Micciancio (FHEW) and Chillotti-Gama-Georgieva-Izabachene (TFHE) schemes
    * Stehle-Steinfeld scheme
 * Proxy Re-Encryption for all HE schemes
 * Digital Signature
@@ -36,11 +36,13 @@ Further information about PALISADE:
 
 [License Information](License.md)
 
-[Library Wiki with documentation](https://gitlab.com/palisade/palisade-release/wikis/home)
+[Library Wiki with documentation](https://gitlab.com/palisade/palisade-development/wikis/home)
 
 [Code of Conduct](Code-of-conduct.md)
 
 [Governance](Governance.md)
+
+[Contributing to PALISADE](Contributing.md)
 
 
 Build Instructions
@@ -94,7 +96,7 @@ make testall
 
 Run sample code to test, e.g., 
 ```
-bin/demo/pke/demo-simple-example
+bin/examples/pke/simple-integers
 ```
 
 To remove the files built by make, you can execute
@@ -102,20 +104,36 @@ To remove the files built by make, you can execute
 make clean
 ```
 
+Supported Operating Systems
+--------------------------
+PALISADE CI continually tests our builds on the following operating systems:
+
+* Ubuntu [18.04]
+* macOS [Mojave]
+* Centos 7
+* NVIDIA Xavier [Linux for Tegra 4.2.2]
+* MinGW (64-bit) on Windows 10
+
+PALISADE users have reported successful operation on the following systems:
+
+* Free BSD 
+* Ubuntu [16.04]
+
+Please let us know the results if you have run PALISADE any additional systems not listed above. 
 
 Detailed information about building PALISADE
 ------------------------------
 	
 More detailed steps for some common platforms are provided in the following Wiki articles:
 
-[Instructions for building PALISADE in Linux](https://gitlab.com/palisade/palisade-release/wikis/Instructions-for-building-PALISADE-in-Linux)
+[Instructions for building PALISADE in Linux](https://gitlab.com/palisade/palisade-development/wikis/Instructions-for-building-PALISADE-in-Linux)
 
-[Instructions for building PALISADE in Windows](https://gitlab.com/palisade/palisade-release/wikis/Instructions-for-building-PALISADE-in-Windows)
+[Instructions for building PALISADE in Windows](https://gitlab.com/palisade/palisade-development/wikis/Instructions-for-building-PALISADE-in-Windows)
 
-[Instructions for building PALISADE in macOS](https://gitlab.com/palisade/palisade-release/wikis/Instructions-for-building-PALISADE-in-macOS)
+[Instructions for building PALISADE in macOS](https://gitlab.com/palisade/palisade-development/wikis/Instructions-for-building-PALISADE-in-macOS)
 
 PALISADE provides many CMake/make configuration options, such as installing specific modules of the library, compiling only libraries w/o any unit tests and demos, choosing the Debug mode for compilation, turning on/off NTL/GMP. These options are described in detail in the following Wiki article:
 
-[Configuration flags to customize the build](https://gitlab.com/palisade/palisade-release/wikis/Configuration-flags-to-customize-the-build)
+[Configuration flags to customize the build](https://gitlab.com/palisade/palisade-development/wikis/Configuration-flags-to-customize-the-build)
 
-[Instructions for building C++ projects that use PALISADE](https://gitlab.com/palisade/palisade-release/wikis/Instructions-for-building-projects-that-use-PALISADE) 
+[Instructions for building C++ projects that use PALISADE](https://gitlab.com/palisade/palisade-development/wikis/Instructions-for-building-projects-that-use-PALISADE) 

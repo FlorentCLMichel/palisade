@@ -46,32 +46,32 @@ template class Matrix<RationalCiphertext<DCRTPoly>>;
 
 template<>
 Matrix<RationalCiphertext<Poly>>& Matrix<RationalCiphertext<Poly>>::Ones() {
-	throw std::logic_error("Cannot fill matrix of ciphertext with 1's");
+	PALISADE_THROW(not_available_error, "Cannot fill matrix of ciphertext with 1's");
 }
 
 template<>
 Matrix<RationalCiphertext<Poly>>& Matrix<RationalCiphertext<Poly>>::Identity() {
-	throw std::logic_error("Cannot create identity matrix of ciphertext");
+	PALISADE_THROW(not_available_error, "Cannot create identity matrix of ciphertext");
 }
 
 template<>
 Matrix<RationalCiphertext<Poly>> Matrix<RationalCiphertext<Poly>>::GadgetVector(int64_t base) const {
-	throw std::logic_error("Cannot create gadget matrix of ciphertext");
+	PALISADE_THROW(not_available_error, "Cannot create gadget matrix of ciphertext");
 }
 
 template<>
 Matrix<RationalCiphertext<NativePoly>>& Matrix<RationalCiphertext<NativePoly>>::Ones() {
-	throw std::logic_error("Cannot fill matrix of ciphertext with 1's");
+	PALISADE_THROW(not_available_error, "Cannot fill matrix of ciphertext with 1's");
 }
 
 template<>
 Matrix<RationalCiphertext<NativePoly>>& Matrix<RationalCiphertext<NativePoly>>::Identity() {
-	throw std::logic_error("Cannot create identity matrix of ciphertext");
+	PALISADE_THROW(not_available_error, "Cannot create identity matrix of ciphertext");
 }
 
 template<>
 Matrix<RationalCiphertext<NativePoly>> Matrix<RationalCiphertext<NativePoly>>::GadgetVector(int64_t base) const {
-	throw std::logic_error("Cannot create gadget matrix of ciphertext");
+	PALISADE_THROW(not_available_error, "Cannot create gadget matrix of ciphertext");
 }
 
 }

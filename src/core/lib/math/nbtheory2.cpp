@@ -95,7 +95,6 @@ namespace lbcrypto {
 	}
 
 	uint64_t GetTotient(const uint64_t n) {
-
 		std::set<NativeInteger> factors;
 		NativeInteger enn(n);
 		PrimeFactorize(enn, factors);
@@ -219,18 +218,12 @@ namespace lbcrypto {
 	}
 
 	uint32_t FindAutomorphismIndex2n(int32_t i, uint32_t m) {
-
 		uint32_t n = GetTotient(m);
-
 		uint32_t f1, f2;
-
-		if (i < 0)
-		{
+		if (i < 0) {
 			f1 = NativeInteger(5).ModInverse(m).ConvertToInt();
 			f2 = NativeInteger(m-1).ModInverse(m).ConvertToInt();
-		}
-		else
-		{
+		} else {
 			f1 = 5;
 			f2 = m-1;
 		}
@@ -240,66 +233,55 @@ namespace lbcrypto {
 		uint32_t g0 = f1;
 		uint32_t g;
 
-		if (i_unsigned < n/2)
-		{
+		if (i_unsigned < n/2) {
 			g = f1;
-			for (size_t j = 1; j < i_unsigned; j++)
+			for (size_t j = 1; j < i_unsigned; j++) {
 				g = (g * g0) % m;
-		}
-		else
-		{
+			}
+		} else {
 			g = f2;
-			for (size_t j = n/2; j < i_unsigned; j++)
+			for (size_t j = n/2; j < i_unsigned; j++) {
 				g = (g * g0) % m;
+			}
 		}
-
 		return g;
-
 	}
 
-	uint32_t FindAutomorphismIndexCyclic(int32_t i, uint32_t m, uint32_t g){
-
+	uint32_t FindAutomorphismIndexCyclic(int32_t i, uint32_t m, uint32_t g) {
 		int32_t n = GetTotient(m);
-
 		int32_t i_signed = i % n;
-		if (i_signed <= 0)
+		if (i_signed <= 0) {
 			i_signed += n;
+		}
 
 		uint32_t i_unsigned = (uint32_t)i_signed;
-
 		uint32_t k = g;
-
-		for (size_t i = 2; i < i_unsigned; i++)
+		for (size_t i = 2; i < i_unsigned; i++) {
 			k = (k * g) % m;
-
+		}
 		return k;
-
 	}
 
 	uint32_t FindAutomorphismIndex2nComplex(int32_t i, uint32_t m) {
-
-		if (i == int32_t(m-1)) // conjugation automorphism
+		// conjugation automorphism
+		if (i == int32_t(m-1)) {
 			return i;
-		else
-		{
+		} else {
 			// generator
 			int32_t g0;
 
-			if (i < 0)
+			if (i < 0) {
 				g0 = NativeInteger(5).ModInverse(m).ConvertToInt();
-			else
+			} else {
 				g0 = 5;
-
+			}
 			uint32_t i_unsigned = (uint32_t)std::abs(i);
 
 			int32_t g = g0;
-			for (size_t j = 1; j < i_unsigned; j++)
+			for (size_t j = 1; j < i_unsigned; j++) {
 				g = (g * g0) % m;
-
+			}
 			return g;
 		}
-
-
 	}
-
 }

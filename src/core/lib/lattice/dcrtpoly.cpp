@@ -68,7 +68,7 @@ DCRTPolyImpl<VecType>::operator=(const PolyLargeType &element)
 {
 
     if ( element.GetModulus() > m_params->GetModulus() ) {
-        throw std::logic_error("Modulus of element passed to constructor is bigger that DCRT big modulus");
+    	PALISADE_THROW(math_error, "Modulus of element passed to constructor is bigger that DCRT big modulus");
     }
     m_params->SetOriginalModulus(element.GetModulus());
 
@@ -106,7 +106,7 @@ DCRTPolyImpl<VecType>::operator=(const NativePoly &element)
 {
 
     if ( typename Params::Integer(element.GetModulus()) > m_params->GetModulus() ) {
-        throw std::logic_error("Modulus of element passed to constructor is bigger that DCRT big modulus");
+    	PALISADE_THROW(math_error, "Modulus of element passed to constructor is bigger that DCRT big modulus");
     }
 
     size_t vecCount = m_params->GetParams().size();
@@ -133,11 +133,12 @@ DCRTPolyImpl<VecType>::DCRTPolyImpl(const PolyLargeType &element, const shared_p
     try {
         format = element.GetFormat();
     } catch (const std::exception& e) {
-        throw std::logic_error("There is an issue with the format of the Poly passed to the constructor of DCRTPolyImpl");
+    	PALISADE_THROW(type_error, "There is an issue with the format of the Poly passed to the constructor of DCRTPolyImpl");
     }
 
-    if ( element.GetCyclotomicOrder() != params->GetCyclotomicOrder() )
-        throw std::logic_error("Cyclotomic order mismatch on input vector and parameters");
+    if ( element.GetCyclotomicOrder() != params->GetCyclotomicOrder() ) {
+    	PALISADE_THROW(math_error, "Cyclotomic order mismatch on input vector and parameters");
+    }
 
     m_format = format;
     m_params = params;
@@ -154,11 +155,11 @@ DCRTPolyImpl<VecType>::DCRTPolyImpl(const NativePoly &element, const shared_ptr<
     try {
         format = element.GetFormat();
     } catch (const std::exception& e) {
-        throw std::logic_error("There is an issue with the format of the NativePoly passed to the constructor of DCRTPolyImpl");
+        PALISADE_THROW(type_error, "There is an issue with the format of the NativePoly passed to the constructor of DCRTPolyImpl");
     }
 
     if ( element.GetCyclotomicOrder() != params->GetCyclotomicOrder() )
-        throw std::logic_error("Cyclotomic order mismatch on input vector and parameters");
+        PALISADE_THROW(math_error, "Cyclotomic order mismatch on input vector and parameters");
 
     m_format = format;
     m_params = params;
@@ -176,7 +177,7 @@ DCRTPolyImpl<VecType>::DCRTPolyImpl(const std::vector<PolyType> &towers)
     std::vector<std::shared_ptr<ILNativeParams>> parms;
     for (usint i = 0; i < towers.size(); i++) {
         if ( towers[i].GetCyclotomicOrder() != cyclotomicOrder ) {
-            throw std::logic_error("Polys provided to constructor must have the same ring dimension");
+            PALISADE_THROW(math_error, "Polys provided to constructor must have the same ring dimension");
         }
         parms.push_back( towers[i].GetParams() );
     }
@@ -369,9 +370,9 @@ template<typename VecType>
 const typename DCRTPolyImpl<VecType>::PolyType& DCRTPolyImpl<VecType>::GetElementAtIndex (usint i) const
 {
     if(m_vectors.empty())
-        throw std::logic_error("DCRTPolyImpl's towers are not initialized.");
+        PALISADE_THROW(config_error, "DCRTPolyImpl's towers are not initialized.");
     if(i > m_vectors.size()-1)
-        throw std::logic_error("Index: " + std::to_string(i) + " is out of range.");
+        PALISADE_THROW(math_error, "Index: " + std::to_string(i) + " is out of range.");
     return m_vectors[i];
 }
 
@@ -603,7 +604,7 @@ template<typename VecType>
 DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::Plus(const DCRTPolyImpl &element) const
 {
     if( m_vectors.size() != element.m_vectors.size() ) {
-        throw std::logic_error("tower size mismatch; cannot add");
+        PALISADE_THROW(math_error, "tower size mismatch; cannot add");
     }
     DCRTPolyImpl<VecType> tmp(*this);
 
@@ -631,7 +632,7 @@ template<typename VecType>
 DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::Minus(const DCRTPolyImpl &element) const
 {
     if( m_vectors.size() != element.m_vectors.size() ) {
-        throw std::logic_error("tower size mismatch; cannot subtract");
+        PALISADE_THROW(math_error, "tower size mismatch; cannot subtract");
     }
     DCRTPolyImpl<VecType> tmp(*this);
 
@@ -911,7 +912,7 @@ template<typename VecType>
 DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::Times(const DCRTPolyImpl & element) const
 {
     if( m_vectors.size() != element.m_vectors.size() ) {
-    	throw std::logic_error("tower size mismatch; cannot multiply");
+    	PALISADE_THROW(math_error, "tower size mismatch; cannot multiply");
     }
     DCRTPolyImpl<VecType> tmp(*this);
 
@@ -977,7 +978,7 @@ template<typename VecType>
 DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::MultiplyAndRound(const Integer &p, const Integer &q) const
 {
     std::string errMsg = "Operation not implemented yet";
-    throw std::runtime_error(errMsg);
+    PALISADE_THROW(not_implemented_error, errMsg);
     return *this;
 }
 
@@ -985,7 +986,7 @@ template<typename VecType>
 DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::DivideAndRound(const Integer &q) const
 {
     std::string errMsg = "Operation not implemented yet";
-    throw std::runtime_error(errMsg);
+    PALISADE_THROW(not_implemented_error, errMsg);
     return *this;
 }
 
@@ -1015,7 +1016,7 @@ template<typename VecType>
 void DCRTPolyImpl<VecType>::AddILElementOne()
 {
     if(m_format != Format::EVALUATION)
-        throw std::runtime_error("DCRTPolyImpl<VecType>::AddILElementOne cannot be called on a DCRTPolyImpl in COEFFICIENT format.");
+        PALISADE_THROW(not_available_error, "DCRTPolyImpl<VecType>::AddILElementOne cannot be called on a DCRTPolyImpl in COEFFICIENT format.");
     for(usint i = 0; i < m_vectors.size(); i++) {
         m_vectors[i].AddILElementOne();
     }
@@ -1027,28 +1028,6 @@ void DCRTPolyImpl<VecType>::MakeSparse(const uint32_t &wFactor)
     for(usint i = 0; i < m_vectors.size(); i++) {
         m_vectors[i].MakeSparse(wFactor);
     }
-}
-
-// This function modifies PolyArrayImpl to keep all the even indices in the tower.
-// It reduces the ring dimension of the tower by half.
-template<typename VecType>
-void DCRTPolyImpl<VecType>::Decompose()
-{
-
-    if(m_format != Format::COEFFICIENT) {
-        std::string errMsg = "DCRTPolyImpl not in COEFFICIENT format to perform Decompose.";
-        throw std::runtime_error(errMsg);
-    }
-
-    for( size_t i = 0; i < m_vectors.size(); i++) {
-        m_vectors[i].Decompose();
-    }
-
-    // the individual vectors parms have changed, so change the DCRT parms
-    std::vector<std::shared_ptr<ILNativeParams>> vparms(m_vectors.size());
-    for( size_t i = 0; i < m_vectors.size(); i++)
-        vparms[i] = m_vectors[i].GetParams();
-    m_params.reset( new DCRTPolyImpl::Params(vparms[0]->GetCyclotomicOrder(), vparms) );
 }
 
 template<typename VecType>
@@ -1065,7 +1044,7 @@ template<typename VecType>
 void DCRTPolyImpl<VecType>::DropLastElement()
 {
     if(m_vectors.size() == 0) {
-        throw std::out_of_range("Last element being removed from empty list");
+        PALISADE_THROW(math_error, "Last element being removed from empty list");
     }
 
     m_vectors.resize(m_vectors.size() - 1);
@@ -1078,7 +1057,7 @@ template<typename VecType>
 void DCRTPolyImpl<VecType>::DropLastElements(size_t i)
 {
 	if(m_vectors.size() < i) {
-		throw std::out_of_range("There are not enough towers in the current ciphertext to perform the modulus reduction");
+		PALISADE_THROW(config_error, "There are not enough towers in the current ciphertext to perform the modulus reduction");
 	}
 
 	m_vectors.resize(m_vectors.size() - i);
@@ -1114,27 +1093,16 @@ void DCRTPolyImpl<VecType>::DropLastElementAndScale(const std::vector<typename P
 		long double nu = (long double)xl.ConvertToInt()/(long double)qt.ConvertToInt();
 
 		typename PolyType::Integer rounded = std::llround(nu);
-
 		for( usint vIndex = 0; vIndex < m_vectors.size() - 1; vIndex++ ) {
-
 			NativeInteger curValue = 0;
-
 			const typename PolyType::Integer &qi = m_params->GetParams()[vIndex]->GetModulus();
-
-			curValue = omega[vIndex].ModMulFast(xl,qi);
-
+			curValue = omega[vIndex].ModMulFast(xl, qi);
 			curValue.ModAddFast(rounded,qi);
-
 			extra.m_vectors[vIndex][rIndex] = curValue;
-
 		}
-
 	}
-
 	DropLastElement();
-
 	extra.SetFormat(EVALUATION);
-
 	std::vector<PolyType::Integer> qtInverseModQi(m_vectors.size());
 
 #pragma omp parallel for
@@ -1166,7 +1134,7 @@ void DCRTPolyImpl<VecType>::ModReduce(const Integer &plaintextModulus)
 {
     DEBUG_FLAG(false);
     if(m_format != Format::EVALUATION) {
-        throw std::logic_error("Mod Reduce function expects EVAL Formatted DCRTPolyImpl. It was passed COEFF Formatted DCRTPolyImpl.");
+        PALISADE_THROW(type_error, "Mod Reduce function expects EVAL Formatted DCRTPolyImpl. It was passed COEFF Formatted DCRTPolyImpl.");
     }
     this->SwitchFormat();
 
@@ -1224,9 +1192,9 @@ template<typename VecType>
 typename DCRTPolyImpl<VecType>::Integer& DCRTPolyImpl<VecType>::at(usint i)
 {
   if (m_vectors.size() == 0)
-    throw std::logic_error("No values in DCRTPolyImpl");
+    PALISADE_THROW(math_error, "No values in DCRTPolyImpl");
   if (i >= GetLength())
-    throw std::logic_error("out of range in  DCRTPolyImpl.at()");
+    PALISADE_THROW(math_error, "out of range in  DCRTPolyImpl.at()");
   PolyLargeType tmp( CRTInterpolateIndex(i));
   return tmp[i];
 }
@@ -1235,9 +1203,9 @@ template<typename VecType>
 const typename DCRTPolyImpl<VecType>::Integer& DCRTPolyImpl<VecType>::at(usint i) const
 {
   if (m_vectors.size() == 0)
-    throw std::logic_error("No values in DCRTPolyImpl");
+    PALISADE_THROW(math_error, "No values in DCRTPolyImpl");
   if (i >= GetLength())
-    throw std::logic_error("out of range in  DCRTPolyImpl.at()");
+    PALISADE_THROW(math_error, "out of range in  DCRTPolyImpl.at()");
   PolyLargeType tmp(CRTInterpolateIndex(i));
   return tmp[i];
 }
@@ -1319,7 +1287,7 @@ typename DCRTPolyImpl<VecType>::PolyLargeType DCRTPolyImpl<VecType>::CRTInterpol
         DEBUG("tower " << vi << " is " << (*vecs)[vi]);
 
     //Precompute the Barrett mu parameter
-    Integer mu = ComputeMu<Integer>(bigModulus);
+    Integer mu = bigModulus.ComputeMu();
 
     // now, compute the values for the vector
 #pragma omp parallel for
@@ -1329,7 +1297,7 @@ typename DCRTPolyImpl<VecType>::PolyLargeType DCRTPolyImpl<VecType>::CRTInterpol
             coefficients[ri] += (Integer((*vecs)[vi].GetValues()[ri].ConvertToInt()) * multiplier[vi]);
         }
         DEBUG( (*vecs)[0].GetValues()[ri] << " * " << multiplier[0] << " == " << coefficients[ri] );
-        coefficients[ri].ModBarrettInPlace(bigModulus,mu);
+        coefficients[ri].ModEq(bigModulus,mu);
     }
 
     DEBUG("passed loops");
@@ -1415,7 +1383,7 @@ typename DCRTPolyImpl<VecType>::PolyLargeType DCRTPolyImpl<VecType>::CRTInterpol
 		DEBUG("tower " << vi << " is " << (*vecs)[vi]);
 
 	//Precompute the Barrett mu parameter
-	Integer mu = ComputeMu<Integer>(bigModulus);
+	Integer mu = bigModulus.ComputeMu();
 
 	// now, compute the value for the vector at element i
 
@@ -1426,7 +1394,7 @@ typename DCRTPolyImpl<VecType>::PolyLargeType DCRTPolyImpl<VecType>::CRTInterpol
 		    coefficients[ri] += (Integer((*vecs)[vi].GetValues()[ri].ConvertToInt()) * multiplier[vi]);
 		  }
 		  DEBUG( (*vecs)[0].GetValues()[ri] << " * " << multiplier[0] << " == " << coefficients[ri] );
-		  coefficients[ri].ModBarrettInPlace(bigModulus,mu);
+		  coefficients[ri].ModEq(bigModulus,mu);
 		}
 	}
 	
@@ -1496,7 +1464,7 @@ DCRTPolyImpl<VecType>::ScaleAndRound(const NativeInteger &p,
                 // We assume that that the value of p is smaller than 64 bits (like 58)
                 // Thus we do not make additional curIntSum.Mod(p) calls for each value of vi
                 //curIntSum += xi.ModMul(alpha[vi],p);
-                curIntSum += xi.ModMulPreconOptimized(alpha[vi],p,alphaPrecon[vi]);
+                curIntSum += xi.ModMulFastConst(alpha[vi],p,alphaPrecon[vi]);
 
                 curFloatSum += (double)(xi.ConvertToInt())*beta[vi];
             }
@@ -1516,7 +1484,7 @@ DCRTPolyImpl<VecType>::ScaleAndRound(const NativeInteger &p,
                 // We assume that that the value of p is smaller than 64 bits (like 58)
                 // Thus we do not make additional curIntSum.Mod(p) calls for each value of vi
                 //curIntSum += xi.ModMul(alpha[vi],p);
-                curIntSum += xi.ModMulPreconOptimized(alpha[vi],p,alphaPrecon[vi]);
+                curIntSum += xi.ModMulFastConst(alpha[vi],p,alphaPrecon[vi]);
 
                 curFloatSum += (long double)(xi.ConvertToInt())*extBeta[vi];
             }
@@ -1541,7 +1509,7 @@ DCRTPolyImpl<VecType>::ScaleAndRound(const NativeInteger &p,
                     // We assume that that the value of p is smaller than 64 bits (like 58)
                     // Thus we do not make additional curIntSum.Mod(p) calls for each value of vi
                     //curIntSum += xi.ModMul(alpha[vi],p);
-                    curIntSum += xi.ModMulPreconOptimized(alpha[vi],p,alphaPrecon[vi]);
+                    curIntSum += xi.ModMulFastConst(alpha[vi],p,alphaPrecon[vi]);
 
                     curFloatSum += ext_double::quadFloatFromInt64(xi.ConvertToInt())*quadBeta[vi];
                 }
@@ -1561,7 +1529,7 @@ DCRTPolyImpl<VecType>::ScaleAndRound(const NativeInteger &p,
                     // We assume that that the value of p is smaller than 64 bits (like 58)
                     // Thus we do not make additional curIntSum.Mod(p) calls for each value of vi
                     //curIntSum += xi.ModMul(alpha[vi],p);
-                    curIntSum += xi.ModMulPreconOptimized(alpha[vi],p,alphaPrecon[vi]);
+                    curIntSum += xi.ModMulFastConst(alpha[vi],p,alphaPrecon[vi]);
 
                     curFloatSum += ext_double::quadFloatFromInt64(xi.ConvertToInt())*quadBeta[vi];
                 }
@@ -1570,7 +1538,7 @@ DCRTPolyImpl<VecType>::ScaleAndRound(const NativeInteger &p,
             }
         }
 #else
-		PALISADE_THROW(math_error, "BFVrns.ScaleAndRound(): Number of bits in CRT moduli should be in < 58 for this architecture");
+		PALISADE_THROW(config_error, "BFVrns.ScaleAndRound(): Number of bits in CRT moduli should be in < 58 for this architecture");
 
 #endif
     }
@@ -1642,7 +1610,7 @@ DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::ApproxSwitchCRTBasis(
     	vector<DoubleNativeInt> sum(nTowersTo);
     	for( usint j = 0; j < nTowersFrom; j++ ) {
     		const NativeInteger &ai = m_vectors[j].GetValues()[rIndex];
-    		NativeInteger tmp1 = ai.ModMulPreconOptimized(hatInvModFrom[j],
+    		NativeInteger tmp1 = ai.ModMulFastConst(hatInvModFrom[j],
     				paramsFrom->GetParams()[j]->GetModulus(),
 					hatInvModFromPrecon[j]);
     		for (usint i = 0; i < nTowersTo; i ++ ) {
@@ -1741,7 +1709,7 @@ DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::ApproxModDown(
 			NativeInteger diff = m_vectors[j].at(rIndex).ModSubFast(
 					partPSwitchedToQ.m_vectors[j].at(rIndex), paramsQ->GetParams()[j]->GetModulus() );
 			result.m_vectors[j].at(rIndex) =
-					diff.ModMulPreconOptimized( pInvModQj[j],
+					diff.ModMulFastConst( pInvModQj[j],
 							paramsQ->GetParams()[j]->GetModulus(),
 							pInvModQjPrecon[j]);
 		}
@@ -1809,7 +1777,7 @@ DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::SwitchCRTBasis(
             const NativeInteger &qi = m_vectors[vIndex].GetModulus();
 
             //computes [xi (q/qi)^{-1}]_qi
-            xInvVector[vIndex] = xi.ModMulPreconOptimized(qInvModqi[vIndex],qi,qInvModqiPrecon[vIndex]);
+            xInvVector[vIndex] = xi.ModMulFastConst(qInvModqi[vIndex],qi,qInvModqiPrecon[vIndex]);
 
             //computes [xi (q/qi)^{-1}]_qi / qi to keep track of the number of q-overflows
             nu += (double)xInvVector[vIndex].ConvertToInt()/(double)qi.ConvertToInt();
@@ -1832,7 +1800,7 @@ DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::SwitchCRTBasis(
             const NativeInteger &curNativeValue = NativeInteger(BarrettUint128ModUint64( curValue, si.ConvertToInt(), siModulimu[newvIndex]));
 
             //second round - remove q-overflows
-            ans.m_vectors[newvIndex].at(rIndex) = curNativeValue.ModSubFast(alpha.ModMulFastOptimized(qModsi[newvIndex],si,mu[newvIndex]),si);
+            ans.m_vectors[newvIndex].at(rIndex) = curNativeValue.ModSubFast(alpha.ModMulFast(qModsi[newvIndex],si,mu[newvIndex]),si);
 
         }
 
@@ -1930,25 +1898,24 @@ DCRTPolyImpl<VecType>::ScaleAndRound(
             const NativeInteger &qi = qModuliTable[i];
             const NativeInteger &xi = m_vectors[i][k];
             tmp = xi;
-            tmp.ModMulPreconOptimizedEq( tgammaqDivqiModqiTable[i], qi, tgammaqDivqiModqiPreconTable[i] ); // xi*t*gamma*(q/qi)^-1 mod qi
+            tmp.ModMulFastConstEq( tgammaqDivqiModqiTable[i], qi, tgammaqDivqiModqiPreconTable[i] ); // xi*t*gamma*(q/qi)^-1 mod qi
 
-            tmpt = tmp.ModMulPreconOptimized( qDivqiModtgammaTable[i][0], t, qDivqiModtgammaPreconTable[i][0] ); // mod t
-            tmpgamma = tmp.ModMulPreconOptimized( qDivqiModtgammaTable[i][1], gamma, qDivqiModtgammaPreconTable[i][1] ); // mod gamma
+            tmpt = tmp.ModMulFastConst( qDivqiModtgammaTable[i][0], t, qDivqiModtgammaPreconTable[i][0] ); // mod t
+            tmpgamma = tmp.ModMulFastConst( qDivqiModtgammaTable[i][1], gamma, qDivqiModtgammaPreconTable[i][1] ); // mod gamma
 
-            st.ModAddFastOptimizedEq( tmpt, t.ConvertToInt() );
-            sgamma.ModAddFastOptimizedEq( tmpgamma, gamma );
+            st.ModAddFastEq( tmpt, t.ConvertToInt() );
+            sgamma.ModAddFastEq( tmpgamma, gamma );
         }
 
         // mul by -q^-1
-        st.ModMulPreconOptimizedEq(negqInvModtgammaTable[0], t, negqInvModtgammaPreconTable[0]);
-        sgamma.ModMulPreconOptimizedEq( negqInvModtgammaTable[1], gamma, negqInvModtgammaPreconTable[1] );
+        st.ModMulFastConstEq(negqInvModtgammaTable[0], t, negqInvModtgammaPreconTable[0]);
+        sgamma.ModMulFastConstEq( negqInvModtgammaTable[1], gamma, negqInvModtgammaPreconTable[1] );
 
-        if ( sgamma > (gamma >> 1) )
-            sgamma = sgamma.ModSubFast( gamma, t );
+        if (sgamma > (gamma >> 1)) sgamma.ModSubEq(gamma, t);
 
         tmp = st.ModSub( sgamma, t );
 
-        coefficients[k] = tmp.ModMulPreconOptimized( gammaInvModt, t, gammaInvModtPrecon ).ConvertToInt();
+        coefficients[k] = tmp.ModMulFastConst( gammaInvModt, t, gammaInvModtPrecon ).ConvertToInt();
     }
 
     // Setting the root of unity to ONE as the calculation is expensive
@@ -2016,7 +1983,7 @@ void DCRTPolyImpl<VecType>::FastBaseConvqToBskMontgomery(
 #pragma omp parallel for
         for (uint32_t k = 0; k < n; k++)
         {
-            ximtildeqiDivqModqi[i*n + k] = m_vectors[i][k].ModMulPreconOptimized( currentmtildeqDivqiModqi, qModuli[i], currentmtildeqDivqiModqiPrecon);
+            ximtildeqiDivqModqi[i*n + k] = m_vectors[i][k].ModMulFastConst( currentmtildeqDivqiModqi, qModuli[i], currentmtildeqDivqiModqiPrecon);
         }
     }
 
@@ -2059,7 +2026,7 @@ void DCRTPolyImpl<VecType>::FastBaseConvqToBskMontgomery(
     for ( uint32_t k = 0; k < n; k++ )
     {
         r_m_tildes[k] = m_vectors[numq+numBsk][k]; // c``_mtilde
-        r_m_tildes[k].ModMulPreconOptimizedEq(negqInvModmtilde, mtilde, negqInvModmtildePrecon); // c``_mtilde*-1/q mod mtilde
+        r_m_tildes[k].ModMulFastConstEq(negqInvModmtilde, mtilde, negqInvModmtildePrecon); // c``_mtilde*-1/q mod mtilde
     }
 
     for (uint32_t i = 0; i < numBsk; i++)
@@ -2073,9 +2040,9 @@ void DCRTPolyImpl<VecType>::FastBaseConvqToBskMontgomery(
             // collapsing
             NativeInteger r_m_tilde = r_m_tildes[k]; // m_tilde < than all Bsk_i
 	    if (r_m_tilde >= mtilde/2) r_m_tilde += BskmtildeModuli[i] - mtilde; // centred remainder
-            r_m_tilde.ModMulPreconOptimizedEq( currentqModBski, BskmtildeModuli[i], currentqModBskiPrecon ); // (r_mtilde) * q mod Bski
-            r_m_tilde.ModAddFastOptimizedEq( m_vectors[numq+i][k], BskmtildeModuli[i] ); // (c``_m + (r_mtilde* q)) mod Bski
-            m_vectors[numq+i][k] = r_m_tilde.ModMulPreconOptimized( mtildeInvModBskiTable[i], BskmtildeModuli[i], mtildeInvModBskiPreconTable[i] ); // (c``_m + (r_mtilde* q)) * mtilde mod Bski
+            r_m_tilde.ModMulFastConstEq( currentqModBski, BskmtildeModuli[i], currentqModBskiPrecon ); // (r_mtilde) * q mod Bski
+            r_m_tilde.ModAddFastEq( m_vectors[numq+i][k], BskmtildeModuli[i] ); // (c``_m + (r_mtilde* q)) mod Bski
+            m_vectors[numq+i][k] = r_m_tilde.ModMulFastConst( mtildeInvModBskiTable[i], BskmtildeModuli[i], mtildeInvModBskiPreconTable[i] ); // (c``_m + (r_mtilde* q)) * mtilde mod Bski
         }
     }
 
@@ -2150,7 +2117,7 @@ void DCRTPolyImpl<VecType>::FastRNSFloorq(
 #pragma omp parallel for
         for (uint32_t k = 0; k < n; k++) {
             // multiply by t*(q/qi)^-1 mod qi
-            m_vectors[i][k].ModMulPreconOptimizedEq(
+            m_vectors[i][k].ModMulFastConstEq(
                 currenttqDivqiModqi,
                 qModuli[i],
                 currenttqDivqiModqiPrecon);
@@ -2187,7 +2154,7 @@ void DCRTPolyImpl<VecType>::FastRNSFloorq(
             // Not worthy to use lazy reduction here
             m_vectors[i+numq][k].ModMulFastEq(t, BskModuli[i]);
             m_vectors[i+numq][k].ModSubEq(txiqiDivqModqi[i*n+k], BskModuli[i]);
-            m_vectors[i+numq][k].ModMulPreconOptimizedEq(
+            m_vectors[i+numq][k].ModMulFastConstEq(
                 currentqInvModBski,
                 BskModuli[i],
                 currentqInvModBskiPrecon);
@@ -2235,7 +2202,7 @@ void DCRTPolyImpl<VecType>::FastBaseConvSK(
         const NativeInteger &currentBDivBiModBiPrecon = BDivBiModBiPrecon[i];
 #pragma omp parallel for
         for (uint32_t k = 0; k < n; k++) {
-            m_vectors[numq+i][k].ModMulPreconOptimizedEq(
+            m_vectors[numq+i][k].ModMulFastConstEq(
                 currentBDivBiModBi,
                 BskModuli[i],
                 currentBDivBiModBiPrecon);
@@ -2288,7 +2255,7 @@ void DCRTPolyImpl<VecType>::FastBaseConvSK(
         alphaskxVector[k] = alphaskxVector[k].ModSubFast(
             m_vectors[numq+numBsk-1][k],
             BskModuli[numBsk-1]);
-        alphaskxVector[k].ModMulPreconOptimizedEq(
+        alphaskxVector[k].ModMulFastConstEq(
             BInvModmsk,
             BskModuli[numBsk-1],
             BInvModmskPrecon);
@@ -2307,7 +2274,7 @@ void DCRTPolyImpl<VecType>::FastBaseConvSK(
                 alphaskBModqi =
                     alphaskBModqi.ModSubFast(BskModuli[numBsk-1], qModuli[i]);
 
-            alphaskBModqi.ModMulPreconOptimizedEq(
+            alphaskBModqi.ModMulFastConstEq(
                 currentBModqi,
                 qModuli[i],
                 currentBModqiPrecon);
@@ -2407,7 +2374,7 @@ DCRTPolyImpl<VecType> DCRTPolyImpl<VecType>::ScaleAndRound(
                         siModulimu[newvIndex]));
 
                 ans.m_vectors[newvIndex].at(rIndex) =
-                    curNativeValue.ModAddFastOptimized(rounded, si);
+                    curNativeValue.ModAddFast(rounded, si);
             }
         }
 
@@ -2459,7 +2426,7 @@ void DCRTPolyImpl<VecType>::SwitchModulusAtIndex(
             + std::to_string(m_vectors.size())
             + " but SwitchModulus for tower at index "
             + std::to_string(index) + "is called.";
-        throw std::runtime_error(errMsg);
+        PALISADE_THROW(math_error, errMsg);
     }
 
     m_vectors[index].SwitchModulus(

@@ -41,7 +41,6 @@
 #include <set>
 #include <string>
 #include <random>
-#include <stdexcept>
 #include <memory>
 #include "../utils/inttypes.h"
 
@@ -151,7 +150,7 @@ namespace lbcrypto {
 				reverse_byte((num >> 24) & 0xff)) >> shift_trick[msb & 0x7];
 		default:
 			return -1;
-			//throw std::logic_error("msbb value not handled:" + std::to_string(msbb));
+			//PALISADE_THROW(math_error, "msbb value not handled:" + std::to_string(msbb));
 		}
 	}
 
@@ -405,15 +404,6 @@ namespace lbcrypto {
 	*/
 	template<typename IntType>
 	IntType FindGeneratorCyclic(const IntType& q);
-
-
-	/**
-	* Pre-computes the mu factor that is used in Barrett modulo reduction
-	* @param &q is the modulus
-	* @return the value of mu
-	*/
-	template<typename IntType>
-	IntType ComputeMu(const IntType& q);
 	
 	/**
 	* Find an automorphism index for a power-of-two cyclotomic order

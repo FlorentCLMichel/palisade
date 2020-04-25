@@ -42,7 +42,7 @@ public:
 
 		switch(encoding) {
 		case Unknown:
-			throw std::logic_error("Unknown plaintext encoding type in MakePlaintext");
+			PALISADE_THROW(type_error, "Unknown plaintext encoding type in MakePlaintext");
 			break;
 		case Scalar:
 			pt.reset( new ScalarEncoding(vp,ep) );
@@ -75,7 +75,7 @@ public:
 
 		switch(encoding) {
 		case Unknown:
-			throw std::logic_error("Unknown plaintext encoding type in MakePlaintext");
+			PALISADE_THROW(type_error, "Unknown plaintext encoding type in MakePlaintext");
 			break;
 		case Scalar:
 			pt.reset( new ScalarEncoding(vp,ep) );
@@ -108,7 +108,7 @@ public:
 
 		switch(encoding) {
 		case Unknown:
-			throw std::logic_error("Unknown plaintext encoding type in MakePlaintext");
+			PALISADE_THROW(type_error, "Unknown plaintext encoding type in MakePlaintext");
 			break;
 		case Scalar:
 			pt.reset( new ScalarEncoding(vp,ep) );

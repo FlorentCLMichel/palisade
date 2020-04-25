@@ -50,7 +50,7 @@ CryptoContext<Element>
 CryptoContextFactory<Element>::GetSingleContext() {
 	if( GetContextCount() == 1 )
 		return AllContexts[0];
-	throw std::logic_error("More than one context");
+	PALISADE_THROW(config_error, "More than one context");
 }
 
 template <typename Element>
@@ -178,7 +178,7 @@ CryptoContextFactory<T>::genCryptoContextBFV(
 	if (numKeyswitches > 0) nonZeroCount++;
 
 	if (nonZeroCount > 1)
-		throw std::logic_error("only one of (numAdds,numMults,numKeyswitches) can be nonzero in BFV context constructor");
+		PALISADE_THROW(config_error, "only one of (numAdds,numMults,numKeyswitches) can be nonzero in BFV context constructor");
 
 	shared_ptr<typename T::Params> ep(new typename T::Params(0, typename T::Integer(0), typename T::Integer(0)));
 
@@ -219,7 +219,7 @@ CryptoContextFactory<T>::genCryptoContextBFV(
 	if (numKeyswitches > 0) nonZeroCount++;
 
 	if (nonZeroCount > 1)
-		throw std::logic_error("only one of (numAdds,numMults,numKeyswitches) can be nonzero in BFV context constructor");
+		PALISADE_THROW(config_error, "only one of (numAdds,numMults,numKeyswitches) can be nonzero in BFV context constructor");
 
 	shared_ptr<typename T::Params> ep(new typename T::Params(0, typename T::Integer(0), typename T::Integer(0)));
 
@@ -261,7 +261,7 @@ CryptoContextFactory<T>::genCryptoContextBFVrns(
 	if( numKeyswitches > 0 ) nonZeroCount++;
 
 	if( nonZeroCount > 1 )
-		throw std::logic_error("only one of (numAdds,numMults,numKeyswitches) can be nonzero in BFVrns context constructor");
+		PALISADE_THROW(config_error, "only one of (numAdds,numMults,numKeyswitches) can be nonzero in BFVrns context constructor");
 
 	shared_ptr<typename T::Params> ep( new typename T::Params(0, typename T::Integer(0), typename T::Integer(0)) );
 
@@ -312,7 +312,7 @@ CryptoContextFactory<T>::genCryptoContextBFVrns(
 	if (numKeyswitches > 0) nonZeroCount++;
 
 	if (nonZeroCount > 1)
-		throw std::logic_error("only one of (numAdds,numMults,numKeyswitches) can be nonzero in BFVrns context constructor");
+		PALISADE_THROW(config_error, "only one of (numAdds,numMults,numKeyswitches) can be nonzero in BFVrns context constructor");
 
 	shared_ptr<typename T::Params> ep(new typename T::Params(0, typename T::Integer(0), typename T::Integer(0)));
 
@@ -349,7 +349,7 @@ CryptoContextFactory<T>::genCryptoContextBFVrns(
 	if (numKeyswitches > 0) nonZeroCount++;
 
 	if (nonZeroCount > 1)
-		throw std::logic_error("only one of (numAdds,numMults,numKeyswitches) can be nonzero in BFVrns context constructor");
+		PALISADE_THROW(config_error, "only one of (numAdds,numMults,numKeyswitches) can be nonzero in BFVrns context constructor");
 
 	shared_ptr<typename T::Params> ep(new typename T::Params(0, typename T::Integer(0), typename T::Integer(0)));
 
@@ -387,7 +387,7 @@ CryptoContextFactory<T>::genCryptoContextBFVrnsB(
 	if( numKeyswitches > 0 ) nonZeroCount++;
 
 	if( nonZeroCount > 1 )
-		throw std::logic_error("only one of (numAdds,numMults,numKeyswitches) can be nonzero in BFVrnsB context constructor");
+		PALISADE_THROW(config_error, "only one of (numAdds,numMults,numKeyswitches) can be nonzero in BFVrnsB context constructor");
 
 	shared_ptr<typename T::Params> ep( new typename T::Params(0, typename T::Integer(0), typename T::Integer(0)) );
 
@@ -439,7 +439,7 @@ CryptoContextFactory<T>::genCryptoContextBFVrnsB(
 	if (numKeyswitches > 0) nonZeroCount++;
 
 	if (nonZeroCount > 1)
-		throw std::logic_error("only one of (numAdds,numMults,numKeyswitches) can be nonzero in BFVrnsB context constructor");
+		PALISADE_THROW(config_error, "only one of (numAdds,numMults,numKeyswitches) can be nonzero in BFVrnsB context constructor");
 
 	shared_ptr<typename T::Params> ep(new typename T::Params(0, typename T::Integer(0), typename T::Integer(0)));
 
@@ -476,7 +476,7 @@ CryptoContextFactory<T>::genCryptoContextBFVrnsB(
 	if (numKeyswitches > 0) nonZeroCount++;
 
 	if (nonZeroCount > 1)
-		throw std::logic_error("only one of (numAdds,numMults,numKeyswitches) can be nonzero in BFVrnsB context constructor");
+		PALISADE_THROW(config_error, "only one of (numAdds,numMults,numKeyswitches) can be nonzero in BFVrnsB context constructor");
 
 	shared_ptr<typename T::Params> ep(new typename T::Params(0, typename T::Integer(0), typename T::Integer(0)));
 

@@ -18,16 +18,19 @@ add_library (PALISADEabe SHARED $<TARGET_OBJECTS:abeobj>)
 set_property(TARGET PALISADEabe PROPERTY VERSION ${ABE_VERSION})
 set_property(TARGET PALISADEabe PROPERTY SOVERSION ${ABE_VERSION_MAJOR})
 set_property(TARGET PALISADEabe PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-install(TARGETS PALISADEabe DESTINATION lib)
+install(TARGETS PALISADEabe
+	EXPORT PalisadeTargets
+	DESTINATION lib)
 if( ${BUILD_STATIC} MATCHES "YES" )
 	add_library (PALISADEabe_static STATIC $<TARGET_OBJECTS:abeobj>)
 	set_property(TARGET PALISADEabe_static PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-	install(TARGETS PALISADEabe_static DESTINATION lib)
+	install(TARGETS PALISADEabe_static
+		EXPORT PalisadeTargets
+		DESTINATION lib)
 endif()
 
-install(DIRECTORY include/ DESTINATION include/palisade/abe)
-
-target_include_directories (PALISADEabe PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+install(DIRECTORY include/
+	DESTINATION include/palisade/abe)
 
 set (ABELIBS PUBLIC PALISADEabe PUBLIC PALISADEcore ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
 
@@ -44,20 +47,20 @@ target_link_libraries ( abe_tests ${ABELIBS} )
 endif()
 
 set (ABEAPPS "")
-file (GLOB ABE_DEMO_SRC_FILES CONFIGURE_DEPENDS demo/*.cpp)
-foreach (app ${ABE_DEMO_SRC_FILES})
+file (GLOB ABE_EXAMPLES_SRC_FILES CONFIGURE_DEPENDS examples/*.cpp)
+foreach (app ${ABE_EXAMPLES_SRC_FILES})
 	get_filename_component ( exe ${app} NAME_WE )
 	add_executable ( ${exe} ${app} )
-	set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/demo/abe)
+	set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/examples/abe)
 	set( ABEAPPS ${ABEAPPS} ${exe} )
 	target_link_libraries ( ${exe} ${ABELIBS} )
 endforeach()
 
-add_custom_target( allabedemos )
-add_dependencies( allabedemos ${ABEAPPS} )
+add_custom_target( allabeexamples )
+add_dependencies( allabeexamples ${ABEAPPS} )
 
 add_custom_target( allabe )
-add_dependencies( allabe PALISADEabe allabedemos )
+add_dependencies( allabe PALISADEabe allabeexamples )
 
 if( ${BUILD_UNITTESTS} )
 add_dependencies( allabe abe_tests )
