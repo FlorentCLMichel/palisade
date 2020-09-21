@@ -1,11 +1,15 @@
+// @file TODO
+//
+// @copyright Copyright (c) TODO
+
 #ifndef _XALLOCATOR_H
 #define _XALLOCATOR_H
 
-
-#include "utils/inttypes.h"
 #include <stddef.h>
+#include "utils/inttypes.h"
 
-// See http://www.codeproject.com/Articles/1084801/Replace-malloc-free-with-a-Fast-Fixed-Block-Memory
+// See
+// http://www.codeproject.com/Articles/1084801/Replace-malloc-free-with-a-Fast-Fixed-Block-Memory
 
 #ifdef __cplusplus
 // Define AUTOMATIC_XALLOCATOR_INIT_DESTROY to automatically call
@@ -14,7 +18,7 @@
 // of RAM storage per translation unit by undefining
 // AUTOMATIC_XALLOCATOR_INIT_DESTROY and calling xalloc_init()
 // manually before the OS starts.
-#define AUTOMATIC_XALLOCATOR_INIT_DESTROY 
+#define AUTOMATIC_XALLOCATOR_INIT_DESTROY
 #ifdef AUTOMATIC_XALLOCATOR_INIT_DESTROY
 /// If a C++ translation unit, create a static instance of
 /// XallocInitDestroy. Any C++ file including xallocator.h will have
@@ -23,16 +27,16 @@
 /// the reverse order so xallocInitDestroy is called last. This way,
 /// any static user objects relying on xallocator will be destroyed
 /// first before xalloc_destroy() is called.
-class XallocInitDestroy
-{
-public:
-	XallocInitDestroy();
-	~XallocInitDestroy();
-private:
-	static usint refCount;
+class XallocInitDestroy {
+ public:
+  XallocInitDestroy();
+  ~XallocInitDestroy();
+
+ private:
+  static usint refCount;
 };
-#endif	// AUTOMATIC_XALLOCATOR_INIT_DESTROY
-#endif	// __cplusplus
+#endif  // AUTOMATIC_XALLOCATOR_INIT_DESTROY
+#endif  // __cplusplus
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,8 +63,8 @@ void xalloc_init();
 void xalloc_destroy();
 
 /// Allocate a block of memory
-/// @param[in] size - the size of the block to allocate. 
-void *xmalloc(size_t size);
+/// @param[in] size - the size of the block to allocate.
+void* xmalloc(size_t size);
 
 /// Frees a previously xalloc allocated block
 /// @param[in] ptr - a pointer to a previously allocated memory using xalloc.
@@ -69,23 +73,19 @@ void xfree(void* ptr);
 /// Reallocates an existing xalloc block to a new size
 /// @param[in] ptr - a pointer to a previously allocated memory using xalloc.
 /// @param[in] size - the size of the new block
-void *xrealloc(void *ptr, size_t size);	
+void* xrealloc(void* ptr, size_t size);
 
 /// Output allocator statistics to the standard output
 void xalloc_stats();
 
-// Macro to overload new/delete with xalloc/xfree  
-#define XALLOCATOR \
-    public: \
-        void* operator new(size_t size) { \
-            return xmalloc(size); \
-        } \
-        void operator delete(void* pObject) { \
-            xfree(pObject); \
-        } 
+// Macro to overload new/delete with xalloc/xfree
+#define XALLOCATOR                                          \
+ public:                                                    \
+  void* operator new(size_t size) { return xmalloc(size); } \
+  void operator delete(void* pObject) { xfree(pObject); }
 
-#ifdef __cplusplus 
+#ifdef __cplusplus
 }
 #endif
 
-#endif 
+#endif

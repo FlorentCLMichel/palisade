@@ -5,7 +5,7 @@ include_directories( ../src/binfhe/include )
 
 set( REGEX_FLAG -DHAVE_STD_REGEX )
 
-if ( APPLE )
+if ( "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
 	set( WARNING_FLAG "" )
 else()
 	set( WARNING_FLAG -Wno-unused-but-set-variable )

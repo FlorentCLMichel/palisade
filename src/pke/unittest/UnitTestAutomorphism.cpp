@@ -1,33 +1,31 @@
-/*
- * @file UnitTestAutomorphism for all transform testing
- * @author  TPOC: contact@palisade-crypto.org
- *
- * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
- * All rights reserved.
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- * 1. Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice, this
- * list of conditions and the following disclaimer in the documentation and/or other
- * materials provided with the distribution.
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
- * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- */
+// @file UnitTestAutomorphism for all transform testing
+// @author TPOC: contact@palisade-crypto.org
+//
+// @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
+// All rights reserved.
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+// 1. Redistributions of source code must retain the above copyright notice,
+// this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+// this list of conditions and the following disclaimer in the documentation
+// and/or other materials provided with the distribution. THIS SOFTWARE IS
+// PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+// IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+// EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "include/gtest/gtest.h"
+#include <algorithm>
 #include <iostream>
 #include <vector>
-#include <algorithm>
+#include "UnitTestUtils.h"
+#include "gtest/gtest.h"
 
 #include "cryptocontext.h"
 
@@ -38,351 +36,1126 @@
 using namespace std;
 using namespace lbcrypto;
 
+namespace {
 class UTAUTOMORPHISM : public ::testing::Test {
-protected:
-	void SetUp() {}
+ protected:
+  void SetUp() {}
 
-	void TearDown() {
-		CryptoContextFactory<Poly>::ReleaseAllContexts();
-		CryptoContextFactory<DCRTPoly>::ReleaseAllContexts();
-	}
+  void TearDown() {
+    CryptoContextFactory<Poly>::ReleaseAllContexts();
+    CryptoContextFactory<DCRTPoly>::ReleaseAllContexts();
+  }
 
-public:
+ public:
 };
 
-//declaration for Automorphism Test on BGV scheme with polynomial operation in arbitrary cyclotomics.
-std::vector<int64_t> ArbBGVAutomorphismPackedArray(usint i);
-//declaration for Automorphism Test on Null scheme with polynomial operation in power of 2 cyclotomics.
-std::vector<int64_t> NullAutomorphismPackedArray(usint i);
-//declaration for Automorphism Test on BGV scheme with polynomial operation in powerof 2 cyclotomics.
-std::vector<int64_t> BGVAutomorphismPackedArray(usint i);
-//declaration for Automorphism Test on BFV scheme with polynomial operation in power of 2 cyclotomics.
-std::vector<int64_t> BFVAutomorphismPackedArray(usint i);
-//declaration for Automorphism Test on BFVrns scheme with polynomial operation in power of 2 cyclotomics.
-std::vector<int64_t> BFVrnsAutomorphismPackedArray(usint i);
-//Helper to function to produce a output of the input vector by i to the left(cyclic rotation).
-std::vector<int64_t> Rotate(const std::vector<int64_t> &input,usint i);
-//Helper to function to check if the elements in perm are the same in the init vector.
-bool CheckAutomorphism(const std::vector<int64_t> &perm,const std::vector<int64_t> &init);
+const std::vector<int64_t> vector8  {1, 2, 3, 4, 5, 6, 7, 8};
+const std::vector<int64_t> vector10 {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+const std::vector<int64_t> vectorFailure {1, 2, 3, 4}; 
+const std::vector<usint> initIndexList {3, 5, 7, 9, 11, 13, 15};
+const usint invalidIndexAutomorphism = 4;
+const std::vector<std::complex<double>> vectorComplexFailure { 1.0, 2.0, 3.0, 4.0 };
+const std::vector<std::complex<double>> vector8Complex{ 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0 };
+const std::complex<double> vector8ComplexSum = std::accumulate(vector8Complex.begin(), vector8Complex.end(), std::complex<double>(0)); // 36.0;
+const int64_t vector8Sum = std::accumulate(vector8.begin(), vector8.end(), int64_t(0)); // 36
 
+enum TEST_ESTIMATED_RESULT {
+    SUCCESS,
+    INVALID_INPUT_DATA,
+    INVALID_PRIVATE_KEY,
+    INVALID_PUBLIC_KEY,
+    INVALID_EVAL_KEY,
+    INVALID_INDEX,
+    INVALID_BATCH_SIZE,
+    NO_KEY_GEN_CALL
+};
+
+} // anonymous namespace
+
+// declaration for Automorphism Test on BGV scheme with polynomial operation in
+// arbitrary cyclotomics.
+std::vector<int64_t> ArbBGVAutomorphismPackedArray(usint i,
+                                                   TEST_ESTIMATED_RESULT  testResult = SUCCESS) {
+  using Element = Poly;
+  usint m = 22;
+  usint p = 2333;
+  BigInteger modulusP(p);
+
+  BigInteger modulusQ("955263939794561");
+  BigInteger squareRootOfRoot("941018665059848");
+
+  // usint n = GetTotient(m);
+  BigInteger bigmodulus("80899135611688102162227204937217");
+  BigInteger bigroot("77936753846653065954043047918387");
+
+  auto cycloPoly = GetCyclotomicPolynomial<BigVector>(m, modulusQ);
+  ChineseRemainderTransformArb<BigVector>::SetCylotomicPolynomial(cycloPoly,
+                                                                  modulusQ);
+
+  float stdDev = 4;
+  auto params = std::make_shared<ILParams>(m, modulusQ, squareRootOfRoot,
+                                           bigmodulus, bigroot);
+
+  CryptoContext<Element> cc =
+      CryptoContextFactory<Element>::genCryptoContextBGV(params, p, 8, stdDev);
+
+  cc->Enable(ENCRYPTION);
+  cc->Enable(SHE);
+
+  // Initialize the public key containers.
+  LPKeyPair<Element> kp = cc->KeyGen();
+
+  i = (INVALID_INDEX == testResult) ?  invalidIndexAutomorphism : i;
+  std::vector<int64_t> inputVec = (INVALID_INPUT_DATA == testResult) ? vectorFailure : vector10;
+  Plaintext intArray = cc->MakePackedPlaintext(inputVec);
+
+  Ciphertext<Element> ciphertext = (INVALID_PUBLIC_KEY == testResult) ?
+                                    cc->Encrypt(nullptr, intArray) : cc->Encrypt(kp.publicKey, intArray);
+
+  std::vector<usint> indexList = GetTotientList(m);
+  indexList.erase(indexList.begin());
+
+  auto evalKeys = (INVALID_PRIVATE_KEY == testResult) ?
+    cc->EvalAutomorphismKeyGen(nullptr, indexList) : cc->EvalAutomorphismKeyGen(kp.secretKey, indexList);
+
+  Ciphertext<Element> p1 = (INVALID_EVAL_KEY == testResult) ?
+    cc->EvalAutomorphism(ciphertext, i, std::map<usint, LPEvalKey<Element>>()) :
+    cc->EvalAutomorphism(ciphertext, i, *evalKeys);
+
+  Plaintext intArrayNew;
+  cc->Decrypt(kp.secretKey, p1, &intArrayNew);
+
+  return intArrayNew->GetPackedValue();
+}
+
+// declaration for Automorphism Test on Null scheme with polynomial operation in
+// power of 2 cyclotomics.
+std::vector<int64_t> NullAutomorphismPackedArray(usint i,
+                                                 TEST_ESTIMATED_RESULT testResult = SUCCESS) {
+  using Element = Poly;
+  usint m = 16;
+  BigInteger q("67108913");
+  // BigInteger rootOfUnity("61564");
+  usint plaintextModulus = 17;
+
+  // float stdDev = 4;
+
+  // auto params = std::make_shared<ILParams>(m, q, rootOfUnity);
+
+  CryptoContext<Element> cc =
+      CryptoContextFactory<Element>::genCryptoContextNull(m, plaintextModulus);
+
+  cc->Enable(ENCRYPTION);
+  cc->Enable(SHE);
+
+  // Initialize the public key containers.
+  LPKeyPair<Element> kp = cc->KeyGen();
+
+  i = (INVALID_INDEX == testResult) ?  invalidIndexAutomorphism : i;
+  std::vector<int64_t> inputVec = (INVALID_INPUT_DATA == testResult) ? vectorFailure : vector8;
+  Plaintext intArray = cc->MakePackedPlaintext(inputVec);
+
+  Ciphertext<Element> ciphertext = (INVALID_PUBLIC_KEY == testResult) ?
+                                    cc->Encrypt(nullptr, intArray) : cc->Encrypt(kp.publicKey, intArray);
+
+  std::vector<usint> indexList(initIndexList);
+
+  auto evalKeys = (INVALID_PRIVATE_KEY == testResult) ?
+    cc->EvalAutomorphismKeyGen(kp.publicKey, nullptr, indexList) :
+    cc->EvalAutomorphismKeyGen(kp.publicKey, kp.secretKey, indexList);
+
+  Ciphertext<Element> p1 = (INVALID_EVAL_KEY == testResult) ?
+    cc->EvalAutomorphism(ciphertext, i, std::map<usint, LPEvalKey<Element>>()) :
+    cc->EvalAutomorphism(ciphertext, i, *evalKeys);
+
+  Plaintext intArrayNew;
+  cc->Decrypt(kp.secretKey, p1, &intArrayNew);
+
+  return intArrayNew->GetPackedValue();
+}
+
+// declaration for Automorphism Test on BGV scheme with polynomial operation in
+// powerof 2 cyclotomics.
+std::vector<int64_t> BGVAutomorphismPackedArray(usint i,
+                                                TEST_ESTIMATED_RESULT testResult = SUCCESS) {
+  using Element = Poly;
+  usint m = 16;
+  BigInteger q("67108913");
+  BigInteger rootOfUnity("61564");
+  usint plaintextModulus = 17;
+  float stdDev = 4;
+
+  auto params = std::make_shared<ILParams>(m, q, rootOfUnity);
+  CryptoContext<Element> cc = CryptoContextFactory<Element>::genCryptoContextBGV(
+      params, plaintextModulus, 1, stdDev);
+
+  cc->Enable(ENCRYPTION);
+  cc->Enable(SHE);
+
+  // Initialize the public key containers.
+  LPKeyPair<Element> kp = cc->KeyGen();
+
+  i = (INVALID_INDEX == testResult) ?  invalidIndexAutomorphism : i;
+  std::vector<int64_t> inputVec = (INVALID_INPUT_DATA == testResult) ? vectorFailure : vector8;
+  Plaintext intArray = cc->MakePackedPlaintext(inputVec);
+
+  Ciphertext<Element> ciphertext = (INVALID_PUBLIC_KEY == testResult) ?
+                                    cc->Encrypt(nullptr, intArray) : cc->Encrypt(kp.publicKey, intArray);
+
+  std::vector<usint> indexList(initIndexList);
+
+  auto evalKeys = (INVALID_PRIVATE_KEY == testResult) ?
+    cc->EvalAutomorphismKeyGen(nullptr, indexList) : cc->EvalAutomorphismKeyGen(kp.secretKey, indexList);
+
+  Ciphertext<Element> p1 = (INVALID_EVAL_KEY == testResult) ?
+    cc->EvalAutomorphism(ciphertext, i, std::map<usint, LPEvalKey<Element>>()) :
+    cc->EvalAutomorphism(ciphertext, i, *evalKeys);
+
+  Plaintext intArrayNew;
+  cc->Decrypt(kp.secretKey, p1, &intArrayNew);
+
+  return intArrayNew->GetPackedValue();
+}
+
+// declaration for Automorphism Test on BFV scheme with polynomial operation in
+// power of 2 cyclotomics.
+std::vector<int64_t> BFVAutomorphismPackedArray(usint i,
+                                                TEST_ESTIMATED_RESULT testResult = SUCCESS) {
+  using Element = Poly;
+  usint m = 16;
+  BigInteger q("67108913");
+  BigInteger rootOfUnity("61564");
+  usint plaintextModulus = 17;
+  usint relWindow = 1;
+  float stdDev = 4;
+
+  BigInteger BBIPlaintextModulus(plaintextModulus);
+  BigInteger delta(q.DividedBy(BBIPlaintextModulus));
+
+  auto params = std::make_shared<ILParams>(m, q, rootOfUnity);
+  CryptoContext<Element> cc = CryptoContextFactory<Element>::genCryptoContextBFV(
+      params, plaintextModulus, relWindow, stdDev, delta.ToString());
+
+  cc->Enable(ENCRYPTION);
+  cc->Enable(SHE);
+
+  // Initialize the public key containers.
+  LPKeyPair<Element> kp = cc->KeyGen();
+
+  i = (INVALID_INDEX == testResult) ?  invalidIndexAutomorphism : i;
+  std::vector<int64_t> inputVec = (INVALID_INPUT_DATA == testResult) ? vectorFailure : vector8;
+  Plaintext intArray = cc->MakePackedPlaintext(inputVec);
+
+  Ciphertext<Element> ciphertext = (INVALID_PUBLIC_KEY == testResult) ?
+                                    cc->Encrypt(nullptr, intArray) : cc->Encrypt(kp.publicKey, intArray);
+
+  std::vector<usint> indexList(initIndexList);
+
+  auto evalKeys = (INVALID_PRIVATE_KEY == testResult) ?
+    cc->EvalAutomorphismKeyGen(nullptr, indexList) : cc->EvalAutomorphismKeyGen(kp.secretKey, indexList);
+
+  Ciphertext<Element> p1 = (INVALID_EVAL_KEY == testResult) ?
+    cc->EvalAutomorphism(ciphertext, i, std::map<usint, LPEvalKey<Element>>()) :
+    cc->EvalAutomorphism(ciphertext, i, *evalKeys);
+
+  Plaintext intArrayNew;
+  cc->Decrypt(kp.secretKey, p1, &intArrayNew);
+
+  return intArrayNew->GetPackedValue();
+}
+
+// declaration for Automorphism Test on BFVrns scheme with polynomial operation
+// in power of 2 cyclotomics.
+std::vector<int64_t> BFVrnsAutomorphismPackedArray(usint i,
+                                                   TEST_ESTIMATED_RESULT testResult = SUCCESS) {
+  using Element = DCRTPoly;
+  PlaintextModulus p = 65537;
+  double sigma = 4;
+  double rootHermiteFactor = 1.006;
+
+  EncodingParams encodingParams(std::make_shared<EncodingParamsImpl>(p));
+
+  // Set Crypto Parameters
+  CryptoContext<Element> cc =
+      CryptoContextFactory<Element>::genCryptoContextBFVrns(
+          encodingParams, rootHermiteFactor, sigma, 0, 1, 0, OPTIMIZED, 2);
+
+  cc->Enable(ENCRYPTION);
+  cc->Enable(SHE);
+
+  // Initialize the public key containers.
+  LPKeyPair<Element> kp = cc->KeyGen();
+
+  i = (INVALID_INDEX == testResult) ?  invalidIndexAutomorphism : i;
+  std::vector<int64_t> inputVec = (INVALID_INPUT_DATA == testResult) ? vectorFailure : vector8;
+  Plaintext intArray = cc->MakePackedPlaintext(inputVec);
+
+  Ciphertext<Element> ciphertext = (INVALID_PUBLIC_KEY == testResult) ?
+                                    cc->Encrypt(nullptr, intArray) : cc->Encrypt(kp.publicKey, intArray);
+
+  std::vector<usint> indexList(initIndexList);
+
+  auto evalKeys = (INVALID_PRIVATE_KEY == testResult) ?
+    cc->EvalAutomorphismKeyGen(nullptr, indexList) : cc->EvalAutomorphismKeyGen(kp.secretKey, indexList);
+
+  Ciphertext<Element> p1 = (INVALID_EVAL_KEY == testResult) ?
+    cc->EvalAutomorphism(ciphertext, i, std::map<usint, LPEvalKey<Element>>()) :
+    cc->EvalAutomorphism(ciphertext, i, *evalKeys);
+
+  Plaintext intArrayNew;
+  cc->Decrypt(kp.secretKey, p1, &intArrayNew);
+
+  return intArrayNew->GetPackedValue();
+}
+//================================================================================================
 TEST_F(UTAUTOMORPHISM, Test_Null_Automorphism_PowerOf2) {
+  PackedEncoding::Destroy();
 
-	PackedEncoding::Destroy();
-
-	std::vector<int64_t> initVector = { 1,2,3,4,5,6,7,8 };
-
-	for (usint index = 3; index < 16; index = index + 2) {
-		auto morphedVector = NullAutomorphismPackedArray(index);
-		EXPECT_TRUE(CheckAutomorphism(morphedVector, initVector));
-	}
-
+  for (auto index : initIndexList) {
+    auto morphedVector = NullAutomorphismPackedArray(index);
+    EXPECT_TRUE(CheckAutomorphism(morphedVector, vector8));
+  }
 }
 
+TEST_F(UTAUTOMORPHISM, Test_Null_Automorphism_PowerOf2_INVALID_INPUT_DATA) {
+  PackedEncoding::Destroy();
+
+  for (auto index : initIndexList) {
+    auto morphedVector = NullAutomorphismPackedArray(index, INVALID_INPUT_DATA);
+    EXPECT_FALSE(CheckAutomorphism(morphedVector, vector8));
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_Null_Automorphism_PowerOf2_INVALID_PRIVATE_KEY) {
+  PackedEncoding::Destroy();
+
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = NullAutomorphismPackedArray(index, INVALID_PRIVATE_KEY);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_Null_Automorphism_PowerOf2_INVALID_PRIVATE_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_Null_Automorphism_PowerOf2_INVALID_PUBLIC_KEY) {
+  PackedEncoding::Destroy();
+
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = NullAutomorphismPackedArray(index, INVALID_PUBLIC_KEY);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_Null_Automorphism_PowerOf2_INVALID_PUBLIC_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_Null_Automorphism_PowerOf2_INVALID_EVAL_KEY) {
+  PackedEncoding::Destroy();
+
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = NullAutomorphismPackedArray(index, INVALID_EVAL_KEY);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_Null_Automorphism_PowerOf2_INVALID_EVAL_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_Null_Automorphism_PowerOf2_INVALID_INDEX) {
+  PackedEncoding::Destroy();
+
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = NullAutomorphismPackedArray(index, INVALID_INDEX);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_Null_Automorphism_PowerOf2_INVALID_INDEX exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+//================================================================================================
 TEST_F(UTAUTOMORPHISM, Test_BGV_Automorphism_PowerOf2) {
-	PackedEncoding::Destroy();
-	
-	std::vector<int64_t> initVector = { 1,2,3,4,5,6,7,8 };
+  PackedEncoding::Destroy();
 
-	for (usint index = 3; index < 16; index = index + 2) {
-		auto morphedVector = BGVAutomorphismPackedArray(index);
-		EXPECT_TRUE(CheckAutomorphism(morphedVector, initVector));
-	}
-
+  for (auto index : initIndexList) {
+    auto morphedVector = BGVAutomorphismPackedArray(index);
+    EXPECT_TRUE(CheckAutomorphism(morphedVector, vector8));
+  }
 }
 
+TEST_F(UTAUTOMORPHISM, Test_BGV_Automorphism_PowerOf2_INVALID_INPUT_DATA) {
+  PackedEncoding::Destroy();
+
+  for (auto index : initIndexList) {
+    auto morphedVector = BGVAutomorphismPackedArray(index, INVALID_INPUT_DATA);
+    EXPECT_FALSE(CheckAutomorphism(morphedVector, vector8));
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_BGV_Automorphism_PowerOf2_INVALID_PRIVATE_KEY) {
+  PackedEncoding::Destroy();
+
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = BGVAutomorphismPackedArray(index, INVALID_PRIVATE_KEY);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BGV_Automorphism_PowerOf2_INVALID_PRIVATE_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_BGV_Automorphism_PowerOf2_INVALID_PUBLIC_KEY) {
+  PackedEncoding::Destroy();
+
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = BGVAutomorphismPackedArray(index, INVALID_PUBLIC_KEY);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BGV_Automorphism_PowerOf2_INVALID_PUBLIC_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_BGV_Automorphism_PowerOf2_INVALID_EVAL_KEY) {
+  PackedEncoding::Destroy();
+
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = BGVAutomorphismPackedArray(index, INVALID_EVAL_KEY);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BGV_Automorphism_PowerOf2_INVALID_EVAL_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_BGV_Automorphism_PowerOf2_INVALID_INDEX) {
+  PackedEncoding::Destroy();
+
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = BGVAutomorphismPackedArray(index, INVALID_INDEX);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BGV_Automorphism_PowerOf2_INVALID_INDEX exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+//================================================================================================
 TEST_F(UTAUTOMORPHISM, Test_BFV_Automorphism_PowerOf2) {
-	PackedEncoding::Destroy();
+  PackedEncoding::Destroy();
 
-	std::vector<int64_t> initVector = { 1,2,3,4,5,6,7,8 };
-
-	for (usint index = 3; index < 16; index = index + 2) {
-		auto morphedVector = BFVAutomorphismPackedArray(index);
-		EXPECT_TRUE(CheckAutomorphism(morphedVector, initVector));
-	}
+  for (auto index : initIndexList) {
+    auto morphedVector = BFVAutomorphismPackedArray(index);
+    EXPECT_TRUE(CheckAutomorphism(morphedVector, vector8));
+  }
 }
 
+TEST_F(UTAUTOMORPHISM, Test_BFV_Automorphism_PowerOf2_INVALID_INPUT_DATA) {
+  PackedEncoding::Destroy();
+
+  for (auto index : initIndexList) {
+    auto morphedVector = BFVAutomorphismPackedArray(index, INVALID_INPUT_DATA);
+    EXPECT_FALSE(CheckAutomorphism(morphedVector, vector8));
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_BFV_Automorphism_PowerOf2_INVALID_PRIVATE_KEY) {
+  PackedEncoding::Destroy();
+
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = BFVAutomorphismPackedArray(index, INVALID_PRIVATE_KEY);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BFV_Automorphism_PowerOf2_INVALID_PRIVATE_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_BFV_Automorphism_PowerOf2_INVALID_PUBLIC_KEY) {
+  PackedEncoding::Destroy();
+
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = BFVAutomorphismPackedArray(index, INVALID_PUBLIC_KEY);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BFV_Automorphism_PowerOf2_INVALID_PUBLIC_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_BFV_Automorphism_PowerOf2_INVALID_EVAL_KEY) {
+  PackedEncoding::Destroy();
+
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = BFVAutomorphismPackedArray(index, INVALID_EVAL_KEY);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BFV_Automorphism_PowerOf2_INVALID_EVAL_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_BFV_Automorphism_PowerOf2_INVALID_INDEX) {
+  PackedEncoding::Destroy();
+
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = BFVAutomorphismPackedArray(index, INVALID_INDEX);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BFV_Automorphism_PowerOf2_INVALID_INDEX exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+//================================================================================================
 TEST_F(UTAUTOMORPHISM, Test_BFVrns_Automorphism_PowerOf2) {
-	PackedEncoding::Destroy();
+  PackedEncoding::Destroy();
 
-	std::vector<int64_t> initVector = { 1,2,3,4,5,6,7,8 };
-
-	for (usint index = 3; index < 16; index = index + 2) {
-		auto morphedVector = BFVrnsAutomorphismPackedArray(index);
-		EXPECT_TRUE(CheckAutomorphism(morphedVector, initVector));
-	}
+  for (auto index : initIndexList) {
+    auto morphedVector = BFVrnsAutomorphismPackedArray(index);
+    EXPECT_TRUE(CheckAutomorphism(morphedVector, vector8));
+  }
 }
 
+TEST_F(UTAUTOMORPHISM, Test_BFVrns_Automorphism_PowerOf2_INVALID_INPUT_DATA) {
+  PackedEncoding::Destroy();
+
+  for (auto index : initIndexList) {
+    auto morphedVector = BFVrnsAutomorphismPackedArray(index, INVALID_INPUT_DATA);
+    EXPECT_FALSE(CheckAutomorphism(morphedVector, vector8));
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_BFVrns_Automorphism_PowerOf2_INVALID_PRIVATE_KEY) {
+  PackedEncoding::Destroy();
+
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = BFVrnsAutomorphismPackedArray(index, INVALID_PRIVATE_KEY);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BFVrns_Automorphism_PowerOf2_INVALID_PRIVATE_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_BFVrns_Automorphism_PowerOf2_INVALID_PUBLIC_KEY) {
+  PackedEncoding::Destroy();
+
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = BFVrnsAutomorphismPackedArray(index, INVALID_PUBLIC_KEY);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BFVrns_Automorphism_PowerOf2_INVALID_PUBLIC_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_BFVrns_Automorphism_PowerOf2_INVALID_EVAL_KEY) {
+  PackedEncoding::Destroy();
+
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = BFVrnsAutomorphismPackedArray(index, INVALID_EVAL_KEY);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BFVrns_Automorphism_PowerOf2_INVALID_EVAL_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_BFVrns_Automorphism_PowerOf2_INVALID_INDEX) {
+  PackedEncoding::Destroy();
+
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = BFVrnsAutomorphismPackedArray(index, INVALID_INDEX);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BFVrns_Automorphism_PowerOf2_INVALID_INDEX exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+//================================================================================================
 TEST_F(UTAUTOMORPHISM, Test_BGV_Automorphism_Arb) {
-	PackedEncoding::Destroy();
+  PackedEncoding::Destroy();
 
-	usint m = 22;
+  usint m = 22;
+  auto totientList = GetTotientList(m);
 
-	auto totientList = GetTotientList(m);
-	std::vector<int64_t> initVector = { 1,2,3,4,5,6,7,8,9,10 };
-
-	for (usint index = 1; index < 10; index++) {
-		auto morphedVector = ArbBGVAutomorphismPackedArray(totientList[index]);
-		EXPECT_TRUE(CheckAutomorphism(morphedVector, initVector));
-	}
-
+  std::vector<int64_t> indexList(vector10);
+  indexList.pop_back();
+  for (auto index : indexList) {
+    auto morphedVector = ArbBGVAutomorphismPackedArray(totientList[index]);
+    EXPECT_TRUE(CheckAutomorphism(morphedVector, vector10));
+  }
 }
 
-TEST_F(UTAUTOMORPHISM, Test_BFV_Automorphism_Arb) {
-	
+TEST_F(UTAUTOMORPHISM, Test_BGV_Automorphism_Arb_INVALID_INPUT_DATA) {
+  PackedEncoding::Destroy();
 
-	EXPECT_EQ(1,1);
+  usint m = 22;
+  auto totientList = GetTotientList(m);
+
+  std::vector<int64_t> indexList(vector10);
+  indexList.pop_back();
+  for (auto index : indexList) {
+    auto morphedVector = ArbBGVAutomorphismPackedArray(totientList[index], INVALID_INPUT_DATA);
+    EXPECT_FALSE(CheckAutomorphism(morphedVector, vector10));
+  }
 }
 
-std::vector<int64_t> ArbBGVAutomorphismPackedArray(usint i) {
-	
-	
-	usint m = 22;
-	usint p = 2333;
-	BigInteger modulusP(p);
-	
-	BigInteger modulusQ("955263939794561");
-	BigInteger squareRootOfRoot("941018665059848");
-	
-	//usint n = GetTotient(m);
-	BigInteger bigmodulus("80899135611688102162227204937217");
-	BigInteger bigroot("77936753846653065954043047918387");
+TEST_F(UTAUTOMORPHISM, Test_BGV_Automorphism_Arb_INVALID_PRIVATE_KEY) {
+  PackedEncoding::Destroy();
 
-	auto cycloPoly = GetCyclotomicPolynomial<BigVector>(m, modulusQ);
-	ChineseRemainderTransformArb<BigVector>::SetCylotomicPolynomial(cycloPoly, modulusQ);
+  usint m = 22;
+  auto totientList = GetTotientList(m);
 
-
-	float stdDev = 4;
-
-	shared_ptr<ILParams> params(new ILParams(m, modulusQ, squareRootOfRoot, bigmodulus, bigroot));
-
-	CryptoContext<Poly> cc = CryptoContextFactory<Poly>::genCryptoContextBGV(params, p, 8, stdDev);
-
-	cc->Enable(ENCRYPTION);
-	cc->Enable(SHE);
-
-	// Initialize the public key containers.
-	LPKeyPair<Poly> kp = cc->KeyGen();
-
-	Ciphertext<Poly> ciphertext;
-
-	std::vector<int64_t> vectorOfInts = { 1,2,3,4,5,6,7,8,9,10 };
-	Plaintext intArray = cc->MakePackedPlaintext(vectorOfInts);
-
-	ciphertext = cc->Encrypt(kp.publicKey, intArray);
-
-	std::vector<usint> indexList = GetTotientList(m);
-	indexList.erase(indexList.begin());
-
-	auto evalKeys = cc->EvalAutomorphismKeyGen(kp.secretKey, indexList);
-
-	Ciphertext<Poly> p1;
-
-	p1 = cc->EvalAutomorphism(ciphertext, i, *evalKeys);
-
-	Plaintext intArrayNew;
-
-	cc->Decrypt(kp.secretKey, p1, &intArrayNew);
-
-	return intArrayNew->GetPackedValue();
-
+  std::vector<int64_t> indexList(vector10);
+  indexList.pop_back();
+  try {
+    for (auto index : indexList) {
+      auto morphedVector = ArbBGVAutomorphismPackedArray(totientList[index], INVALID_PRIVATE_KEY);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BGV_Automorphism_Arb_INVALID_PRIVATE_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
 }
 
-std::vector<int64_t> NullAutomorphismPackedArray(usint i) {
+TEST_F(UTAUTOMORPHISM, Test_BGV_Automorphism_Arb_INVALID_PUBLIC_KEY) {
+  PackedEncoding::Destroy();
 
-	usint m = 16;
-	BigInteger q("67108913");
-	//BigInteger rootOfUnity("61564");
-	usint plaintextModulus = 17;
+  usint m = 22;
+  auto totientList = GetTotientList(m);
 
-	//float stdDev = 4;
-
-	//shared_ptr<ILParams> params(new ILParams(m, q, rootOfUnity));
-
-	CryptoContext<Poly> cc = CryptoContextFactory<Poly>::genCryptoContextNull(m, plaintextModulus);
-	cc->Enable(ENCRYPTION);
-	cc->Enable(SHE);
-
-	// Initialize the public key containers.
-	LPKeyPair<Poly> kp = cc->KeyGen();
-
-	Ciphertext<Poly> ciphertext;
-
-	std::vector<int64_t> vectorOfInts = { 1,2,3,4,5,6,7,8 };
-	Plaintext intArray = cc->MakePackedPlaintext(vectorOfInts);
-
-	ciphertext = cc->Encrypt(kp.publicKey, intArray);
-
-	std::vector<usint> indexList = { 3,5,7,9,11,13,15 };
-
-	auto evalKeys = cc->EvalAutomorphismKeyGen(kp.publicKey, kp.secretKey, indexList);
-
-	Ciphertext<Poly> p1;
-
-	p1 = cc->EvalAutomorphism(ciphertext, i, *evalKeys);
-
-	Plaintext intArrayNew;
-
-	cc->Decrypt(kp.secretKey, p1, &intArrayNew);
-
-	return intArrayNew->GetPackedValue();
-
+  std::vector<int64_t> indexList(vector10);
+  indexList.pop_back();
+  try {
+    for (auto index : indexList) {
+      auto morphedVector = ArbBGVAutomorphismPackedArray(totientList[index], INVALID_PUBLIC_KEY);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BGV_Automorphism_Arb_INVALID_PUBLIC_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
 }
 
-std::vector<int64_t> BGVAutomorphismPackedArray(usint i) {
+TEST_F(UTAUTOMORPHISM, Test_BGV_Automorphism_Arb_INVALID_EVAL_KEY) {
+  PackedEncoding::Destroy();
 
-	usint m = 16;
-	BigInteger q("67108913");
-	BigInteger rootOfUnity("61564");
-	usint plaintextModulus = 17;
+  usint m = 22;
+  auto totientList = GetTotientList(m);
 
-	float stdDev = 4;
-
-	shared_ptr<ILParams> params(new ILParams(m, q, rootOfUnity));
-
-	CryptoContext<Poly> cc = CryptoContextFactory<Poly>::genCryptoContextBGV(params, plaintextModulus, 1, stdDev);
-
-	cc->Enable(ENCRYPTION);
-	cc->Enable(SHE);
-
-	// Initialize the public key containers.
-	LPKeyPair<Poly> kp = cc->KeyGen();
-
-	Ciphertext<Poly> ciphertext;
-
-	std::vector<int64_t> vectorOfInts = { 1,2,3,4,5,6,7,8 };
-	Plaintext intArray = cc->MakePackedPlaintext(vectorOfInts);
-
-	ciphertext = cc->Encrypt(kp.publicKey, intArray);
-
-	std::vector<usint> indexList = { 3,5,7,9,11,13,15 };
-
-	auto evalKeys = cc->EvalAutomorphismKeyGen(kp.secretKey, indexList);
-
-	Ciphertext<Poly> p1;
-
-	p1 = cc->EvalAutomorphism(ciphertext, i, *evalKeys);
-
-	Plaintext intArrayNew;
-
-	cc->Decrypt(kp.secretKey, p1, &intArrayNew);
-
-	return intArrayNew->GetPackedValue();
-
+  std::vector<int64_t> indexList(vector10);
+  indexList.pop_back();
+  try {
+    for (auto index : indexList) {
+      auto morphedVector = ArbBGVAutomorphismPackedArray(totientList[index], INVALID_EVAL_KEY);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BGV_Automorphism_Arb_INVALID_EVAL_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
 }
 
-std::vector<int64_t> BFVAutomorphismPackedArray(usint i) {
+TEST_F(UTAUTOMORPHISM, Test_BGV_Automorphism_Arb_INVALID_INDEX) {
+  PackedEncoding::Destroy();
 
-	usint m = 16;
-	BigInteger q("67108913");
-	BigInteger rootOfUnity("61564");
-	usint plaintextModulus = 17;
-	usint relWindow = 1;
-	float stdDev = 4;
+  usint m = 22;
+  auto totientList = GetTotientList(m);
 
-	BigInteger BBIPlaintextModulus(plaintextModulus);
-	BigInteger delta(q.DividedBy(BBIPlaintextModulus));
+  std::vector<int64_t> indexList(vector10);
+  indexList.pop_back();
+  try {
+    for (auto index : indexList) {
+      auto morphedVector = ArbBGVAutomorphismPackedArray(totientList[index], INVALID_INDEX);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BGV_Automorphism_Arb_INVALID_INDEX exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+//================================================================================================
+TEST_F(UTAUTOMORPHISM, Test_BFV_Automorphism_Arb) { EXPECT_EQ(1, 1); }
+//================================================================================================
+std::vector<std::complex<double>> CKKSEvalAtIndexPackedArray(usint i,
+                                                             TEST_ESTIMATED_RESULT testResult = SUCCESS) {
+  using Element = DCRTPoly;
+  uint32_t multDepth = 1;
+  uint32_t scaleFactorBits = 50;
+  uint32_t batchSize = 8;
+  SecurityLevel securityLevel = HEStd_NotSet;
+  usint ringDim = 16;
+  CryptoContext<Element> cc = CryptoContextFactory<Element>::genCryptoContextCKKS(multDepth,
+                                                                                  scaleFactorBits,
+                                                                                  batchSize,
+                                                                                  securityLevel,
+                                                                                  ringDim);
 
-	shared_ptr<ILParams> params(new ILParams(m, q, rootOfUnity));
+  cc->Enable(ENCRYPTION);
+  cc->Enable(SHE);
 
-	CryptoContext<Poly> cc = CryptoContextFactory<Poly>::genCryptoContextBFV(
-		params, plaintextModulus,
-		relWindow, stdDev, delta.ToString());
+  // Initialize the public key containers.
+  LPKeyPair<Element> kp = cc->KeyGen();
 
-	cc->Enable(ENCRYPTION);
-	cc->Enable(SHE);
+  int index = i;
+  std::vector<std::complex<double>> inputVec = (INVALID_INPUT_DATA == testResult) ?
+                                                vectorComplexFailure : vector8Complex;
+  Plaintext intArray = cc->MakeCKKSPackedPlaintext(inputVec);
+  //intArray->SetLength(inputVec.size());
 
-	// Initialize the public key containers.
-	LPKeyPair<Poly> kp = cc->KeyGen();
+  if( NO_KEY_GEN_CALL != testResult )
+  {
+    if( INVALID_PRIVATE_KEY == testResult )
+      cc->EvalAtIndexKeyGen(nullptr, {index, -index});
+    else
+      cc->EvalAtIndexKeyGen(kp.secretKey, {index, -index});
+  }
 
-	Ciphertext<Poly> ciphertext;
+  Ciphertext<Element> ciphertext = (INVALID_PUBLIC_KEY == testResult) ?
+                                    cc->Encrypt(nullptr, intArray) : cc->Encrypt(kp.publicKey, intArray);
 
-	std::vector<int64_t> vectorOfInts = { 1,2,3,4,5,6,7,8 };
-	Plaintext intArray = cc->MakePackedPlaintext(vectorOfInts);
+  if( INVALID_INDEX == testResult )
+    index = invalidIndexAutomorphism;
+  Ciphertext<Element> p1 = cc->EvalAtIndex(ciphertext, index);
+  Ciphertext<Element> p2 = cc->EvalAtIndex(p1, -index);
 
-	ciphertext = cc->Encrypt(kp.publicKey, intArray);
+  Plaintext intArrayNew;
+  cc->Decrypt(kp.secretKey, p2, &intArrayNew);
 
-	std::vector<usint> indexList = { 3,5,7,9,11,13,15 };
+  intArrayNew->SetLength(inputVec.size());
 
-	auto evalKeys = cc->EvalAutomorphismKeyGen(kp.secretKey, indexList);
+  return intArrayNew->GetCKKSPackedValue();
+}
+//================================================================================================
+TEST_F(UTAUTOMORPHISM, Test_CKKS_EvalAtIndex) {
+  PackedEncoding::Destroy();
 
-	Ciphertext<Poly> p1;
-
-	p1 = cc->EvalAutomorphism(ciphertext, i, *evalKeys);
-
-	Plaintext intArrayNew;
-
-	cc->Decrypt(kp.secretKey, p1, &intArrayNew);
-
-	return intArrayNew->GetPackedValue();
-
+  for (auto index : initIndexList) {
+    auto morphedVector = CKKSEvalAtIndexPackedArray(index);
+    EXPECT_TRUE(checkEquality(morphedVector, vector8Complex));
+  }
 }
 
-std::vector<int64_t> BFVrnsAutomorphismPackedArray(usint i) {
+TEST_F(UTAUTOMORPHISM, Test_CKKS_EvalAtIndex_INVALID_INPUT_DATA) {
+  PackedEncoding::Destroy();
 
-	PlaintextModulus p = 65537;
-	double sigma = 4;
-	double rootHermiteFactor = 1.006;
-
-	EncodingParams encodingParams(new EncodingParamsImpl(p));
-
-	//Set Crypto Parameters
-	CryptoContext<DCRTPoly> cc = CryptoContextFactory<DCRTPoly>::genCryptoContextBFVrns(
-			encodingParams, rootHermiteFactor, sigma, 0, 1, 0, OPTIMIZED,2);
-
-	cc->Enable(ENCRYPTION);
-	cc->Enable(SHE);
-
-	// Initialize the public key containers.
-	LPKeyPair<DCRTPoly> kp = cc->KeyGen();
-
-	Ciphertext<DCRTPoly> ciphertext;
-
-	std::vector<int64_t> vectorOfInts = { 1,2,3,4,5,6,7,8 };
-	Plaintext intArray = cc->MakePackedPlaintext(vectorOfInts);
-
-	ciphertext = cc->Encrypt(kp.publicKey, intArray);
-
-	std::vector<usint> indexList = { 3,5,7,9,11,13,15 };
-
-	auto evalKeys = cc->EvalAutomorphismKeyGen(kp.secretKey, indexList);
-
-	Ciphertext<DCRTPoly> p1;
-
-	p1 = cc->EvalAutomorphism(ciphertext, i, *evalKeys);
-
-	Plaintext intArrayNew;
-
-	cc->Decrypt(kp.secretKey, p1, &intArrayNew);
-
-	return intArrayNew->GetPackedValue();
-
+  for (auto index : initIndexList) {
+    auto morphedVector = CKKSEvalAtIndexPackedArray(index, INVALID_INPUT_DATA);
+    EXPECT_FALSE(checkEquality(morphedVector, vector8Complex));
+  }
 }
 
+TEST_F(UTAUTOMORPHISM, Test_CKKS_EvalAtIndex_INVALID_PRIVATE_KEY) {
+  PackedEncoding::Destroy();
 
-std::vector<int64_t> Rotate(const std::vector<int64_t>& input, usint i)
-{
-	usint n = input.size();
-	std::vector<int64_t> result(n,0);
-
-	for (usint j = 0; j < n; j++) {
-		usint newIndex = (n + j - i)%n;
-		result[newIndex] = input[j];
-	}
-
-	return result;
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = CKKSEvalAtIndexPackedArray(index, INVALID_PRIVATE_KEY);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_CKKS_EvalAtIndex_INVALID_PRIVATE_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
 }
 
-bool CheckAutomorphism(const std::vector<int64_t>& perm, const std::vector<int64_t>& init)
-{
-	bool result = true;
-	for (usint i = 0; i< init.size(); i++) {
-		usint val = init.at(i);
-		if (!(std::find(perm.begin(), perm.end(), val) != perm.end())) {
-			result = false;
-			break;
-		}			
+TEST_F(UTAUTOMORPHISM, Test_CKKS_EvalAtIndex_INVALID_PUBLIC_KEY) {
+  PackedEncoding::Destroy();
 
-	}
-
-	return result;
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = CKKSEvalAtIndexPackedArray(index, INVALID_PUBLIC_KEY);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_CKKS_EvalAtIndex_INVALID_PUBLIC_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
 }
+
+TEST_F(UTAUTOMORPHISM, Test_CKKS_EvalAtIndex_NO_KEY_GEN_CALL) {
+  PackedEncoding::Destroy();
+
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = CKKSEvalAtIndexPackedArray(index, NO_KEY_GEN_CALL);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_CKKS_EvalAtIndex_NO_KEY_GEN_CALL exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_CKKS_EvalAtIndex_INVALID_INDEX) {
+  PackedEncoding::Destroy();
+
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = CKKSEvalAtIndexPackedArray(index, INVALID_INDEX);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_CKKS_EvalAtIndex_INVALID_INDEX exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+//================================================================================================
+std::vector<std::complex<double>> CKKSEvalSumPackedArray(usint i,
+                                                         TEST_ESTIMATED_RESULT testResult = SUCCESS) {
+  using Element = DCRTPoly;
+  uint32_t multDepth = 1;
+  uint32_t scaleFactorBits = 50;
+  uint32_t batchSize = 8;
+  SecurityLevel securityLevel = HEStd_NotSet;
+  usint ringDim = 16;
+  CryptoContext<Element> cc = CryptoContextFactory<Element>::genCryptoContextCKKS(multDepth,
+                                                                                  scaleFactorBits,
+                                                                                  batchSize,
+                                                                                  securityLevel,
+                                                                                  ringDim);
+
+  cc->Enable(ENCRYPTION);
+  cc->Enable(SHE);
+
+  // Initialize the public key containers.
+  LPKeyPair<Element> kp = cc->KeyGen();
+
+  std::vector<std::complex<double>> inputVec = vector8Complex;
+  Plaintext intArray = cc->MakeCKKSPackedPlaintext(inputVec);
+
+  if( NO_KEY_GEN_CALL != testResult )
+  {
+    if( INVALID_PRIVATE_KEY == testResult )
+      cc->EvalSumKeyGen(nullptr);
+    else
+      cc->EvalSumKeyGen(kp.secretKey);
+  }
+
+  Ciphertext<Element> ciphertext = (INVALID_PUBLIC_KEY == testResult) ?
+                                    cc->Encrypt(nullptr, intArray) : cc->Encrypt(kp.publicKey, intArray);
+
+  uint32_t batchSz = (INVALID_BATCH_SIZE == testResult) ?  (batchSize*2) : batchSize;
+  Ciphertext<Element> p1 = cc->EvalSum(ciphertext, batchSz);
+
+  Plaintext intArrayNew;
+  cc->Decrypt(kp.secretKey, p1, &intArrayNew);
+
+  return intArrayNew->GetCKKSPackedValue();
+}
+//================================================================================================
+TEST_F(UTAUTOMORPHISM, Test_CKKS_EvalSum) {
+  PackedEncoding::Destroy();
+
+  auto morphedVector = CKKSEvalSumPackedArray(0);
+  EXPECT_TRUE(checkEquality(morphedVector[0], vector8ComplexSum));
+}
+
+TEST_F(UTAUTOMORPHISM, Test_CKKS_EvalSum_INVALID_PRIVATE_KEY) {
+  PackedEncoding::Destroy();
+
+  try {
+    auto morphedVector = CKKSEvalSumPackedArray(0, INVALID_PRIVATE_KEY);
+    EXPECT_EQ(0, 1);
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_CKKS_EvalSum_INVALID_PRIVATE_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_CKKS_EvalSum_INVALID_PUBLIC_KEY) {
+  PackedEncoding::Destroy();
+
+  try {
+    auto morphedVector = CKKSEvalSumPackedArray(0, INVALID_PUBLIC_KEY);
+    EXPECT_EQ(0, 1);
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_CKKS_EvalSum_INVALID_PUBLIC_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_CKKS_EvalSum_INVALID_BATCH_SIZE) {
+  PackedEncoding::Destroy();
+
+  try {
+    auto morphedVector = CKKSEvalSumPackedArray(0, INVALID_BATCH_SIZE);
+    EXPECT_EQ(0, 1);
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_CKKS_EvalSum_INVALID_BATCH_SIZE exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_CKKS_EvalSum_NO_KEY_GEN_CALL) {
+  PackedEncoding::Destroy();
+
+  try {
+    auto morphedVector = CKKSEvalSumPackedArray(0, NO_KEY_GEN_CALL);
+    EXPECT_EQ(0, 1);
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_CKKS_EvalSum_NO_KEY_GEN_CALL exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+//================================================================================================
+std::vector<int64_t> BGVrnsEvalAtIndexPackedArray(usint i,
+                                                  TEST_ESTIMATED_RESULT testResult = SUCCESS) {
+  using Element = DCRTPoly;
+  uint32_t depth = 1;
+  int plaintextModulus = 65537;
+
+  CryptoContext<Element> cc = CryptoContextFactory<Element>::genCryptoContextBGVrns(depth, plaintextModulus);
+
+  cc->Enable(ENCRYPTION);
+  cc->Enable(SHE);
+
+  // Initialize the public key containers.
+  LPKeyPair<Element> kp = cc->KeyGen();
+
+  int index = i;
+  std::vector<int64_t> inputVec = (INVALID_INPUT_DATA == testResult) ? vectorFailure : vector8;
+  Plaintext intArray = cc->MakePackedPlaintext(inputVec);
+
+  if( NO_KEY_GEN_CALL != testResult )
+  {
+    if( INVALID_PRIVATE_KEY == testResult )
+      cc->EvalAtIndexKeyGen(nullptr, {index, -index});
+    else
+      cc->EvalAtIndexKeyGen(kp.secretKey, {index, -index});
+  }
+
+  Ciphertext<Element> ciphertext = (INVALID_PUBLIC_KEY == testResult) ?
+                                    cc->Encrypt(nullptr, intArray) : cc->Encrypt(kp.publicKey, intArray);
+
+  if( INVALID_INDEX == testResult )
+    index = invalidIndexAutomorphism;
+  Ciphertext<Element> p1 = cc->EvalAtIndex(ciphertext, index);
+  Ciphertext<Element> p2 = cc->EvalAtIndex(p1, -index);
+
+  Plaintext intArrayNew;
+  cc->Decrypt(kp.secretKey, p2, &intArrayNew);
+  intArrayNew->SetLength(inputVec.size());
+
+  return intArrayNew->GetPackedValue();
+}
+//================================================================================================
+TEST_F(UTAUTOMORPHISM, Test_BGVrns_EvalAtIndex) {
+  PackedEncoding::Destroy();
+
+  for (auto index : initIndexList) {
+    auto morphedVector = BGVrnsEvalAtIndexPackedArray(index);
+    EXPECT_TRUE(checkEquality(morphedVector, vector8));
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_BGVrns_EvalAtIndex_INVALID_INPUT_DATA) {
+  PackedEncoding::Destroy();
+
+  for (auto index : initIndexList) {
+    auto morphedVector = BGVrnsEvalAtIndexPackedArray(index, INVALID_INPUT_DATA);
+    EXPECT_FALSE(checkEquality(morphedVector, vector8));
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_BGVrns_EvalAtIndex_INVALID_PRIVATE_KEY) {
+  PackedEncoding::Destroy();
+
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = BGVrnsEvalAtIndexPackedArray(index, INVALID_PRIVATE_KEY);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BGVrns_EvalAtIndex_INVALID_PRIVATE_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_BGVrns_EvalAtIndex_INVALID_PUBLIC_KEY) {
+  PackedEncoding::Destroy();
+
+  try {
+    for (auto index : initIndexList) {
+      auto morphedVector = BGVrnsEvalAtIndexPackedArray(index, INVALID_PUBLIC_KEY);
+      EXPECT_EQ(0, 1);
+    }
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BGVrns_EvalAtIndex_INVALID_PUBLIC_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_BGVrns_EvalAtIndex_NO_KEY_GEN_CALL) {
+  PackedEncoding::Destroy();
+
+  try {
+    auto morphedVector = BGVrnsEvalAtIndexPackedArray(0, NO_KEY_GEN_CALL);
+    EXPECT_EQ(0, 1);
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BGVrns_EvalAtIndex_NO_KEY_GEN_CALL exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+//================================================================================================
+std::vector<int64_t> BGVrnsEvalSumPackedArray(usint i,
+                                              TEST_ESTIMATED_RESULT testResult = SUCCESS) {
+  using Element = DCRTPoly;
+  uint32_t depth = 1;
+  int plaintextModulus = 65537;
+
+  CryptoContext<Element> cc = CryptoContextFactory<Element>::genCryptoContextBGVrns(depth, plaintextModulus);
+
+  cc->Enable(ENCRYPTION);
+  cc->Enable(SHE);
+
+  // Initialize the public key containers.
+  LPKeyPair<Element> kp = cc->KeyGen();
+
+  std::vector<int64_t> inputVec = vector8;
+  Plaintext intArray = cc->MakePackedPlaintext(inputVec);
+
+  if( NO_KEY_GEN_CALL != testResult )
+  {
+    if( INVALID_PRIVATE_KEY == testResult )
+      cc->EvalSumKeyGen(nullptr);
+    else
+      cc->EvalSumKeyGen(kp.secretKey);
+  }
+
+  Ciphertext<Element> ciphertext = (INVALID_PUBLIC_KEY == testResult) ?
+                                    cc->Encrypt(nullptr, intArray) : cc->Encrypt(kp.publicKey, intArray);
+
+  uint32_t batchSize = 8;
+  uint32_t batchSz = (INVALID_BATCH_SIZE == testResult) ?  (batchSize*1000) : batchSize;
+  Ciphertext<Element> p1 = cc->EvalSum(ciphertext, batchSz);
+
+  Plaintext intArrayNew;
+  cc->Decrypt(kp.secretKey, p1, &intArrayNew);
+
+  return intArrayNew->GetPackedValue();
+}
+//================================================================================================
+TEST_F(UTAUTOMORPHISM, Test_BGVrns_EvalSum) {
+  PackedEncoding::Destroy();
+
+  auto morphedVector = BGVrnsEvalSumPackedArray(0);
+  EXPECT_TRUE(checkEquality(morphedVector[0], vector8Sum));
+}
+
+TEST_F(UTAUTOMORPHISM, Test_BGVrns_EvalSum_INVALID_PRIVATE_KEY) {
+  PackedEncoding::Destroy();
+
+  try {
+    auto morphedVector = BGVrnsEvalSumPackedArray(0, INVALID_PRIVATE_KEY);
+    EXPECT_EQ(0, 1);
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BGVrns_EvalSum_INVALID_PRIVATE_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_BGVrns_EvalSum_INVALID_PUBLIC_KEY) {
+  PackedEncoding::Destroy();
+
+  try {
+    auto morphedVector = BGVrnsEvalSumPackedArray(0, INVALID_PUBLIC_KEY);
+    EXPECT_EQ(0, 1);
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BGVrns_EvalSum_INVALID_PUBLIC_KEY exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_BGVrns_EvalSum_INVALID_BATCH_SIZE) {
+  PackedEncoding::Destroy();
+
+  try {
+    auto morphedVector = BGVrnsEvalSumPackedArray(0, INVALID_BATCH_SIZE);
+    EXPECT_EQ(0, 1);
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BGVrns_EvalSum_INVALID_BATCH_SIZE exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+
+TEST_F(UTAUTOMORPHISM, Test_BGVrns_EvalSum_NO_KEY_GEN_CALL) {
+  PackedEncoding::Destroy();
+
+  try {
+    auto morphedVector = BGVrnsEvalSumPackedArray(0, NO_KEY_GEN_CALL);
+    EXPECT_EQ(0, 1);
+  }
+  catch(const exception& e) {
+    //std::cout << "Test_BGVrns_EvalSum_NO_KEY_GEN_CALL exception: " << e.what() << std::endl;
+    EXPECT_EQ(1, 1);
+  }
+}
+//================================================================================================

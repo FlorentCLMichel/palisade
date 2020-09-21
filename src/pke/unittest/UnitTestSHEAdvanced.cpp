@@ -1,165 +1,162 @@
-/*
- * @file 
- * @author  TPOC: contact@palisade-crypto.org
- *
- * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
- * All rights reserved.
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- * 1. Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice, this
- * list of conditions and the following disclaimer in the documentation and/or other
- * materials provided with the distribution.
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
- * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- */
+// @file
+// @author TPOC: contact@palisade-crypto.org
+//
+// @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
+// All rights reserved.
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+// 1. Redistributions of source code must retain the above copyright notice,
+// this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+// this list of conditions and the following disclaimer in the documentation
+// and/or other materials provided with the distribution. THIS SOFTWARE IS
+// PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+// IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+// EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "include/gtest/gtest.h"
+#include <cmath>
+
 #include <iostream>
 #include <vector>
+
+#include "gtest/gtest.h"
 
 #include "cryptocontext.h"
 
 #include "encoding/encodings.h"
 
+#include "lattice/elemparamfactory.h"
 #include "utils/debug.h"
 #include "utils/parmfactory.h"
-#include "lattice/elemparamfactory.h"
-
-#include <cmath>
-
 
 using namespace std;
 using namespace lbcrypto;
 
 // A new one of these is created for each test
-class UTSHEAdvanced : public testing::Test
-{
-public:
-	UTSHEAdvanced() {}
+class UTSHEAdvanced : public testing::Test {
+ public:
+  UTSHEAdvanced() {}
 
-	void SetUp()
-	{
-	}
+  void SetUp() {}
 
-	void TearDown() {
-		CryptoContextFactory<Poly>::ReleaseAllContexts();
-		CryptoContextFactory<DCRTPoly>::ReleaseAllContexts();
-	}
+  void TearDown() {
+    CryptoContextFactory<Poly>::ReleaseAllContexts();
+    CryptoContextFactory<DCRTPoly>::ReleaseAllContexts();
+  }
 };
 
 #if !defined(_MSC_VER)
 
 TEST_F(UTSHEAdvanced, test_eval_mult_single_crt) {
+  usint m = 16;
+  usint relin = 1;
+  float stdDev = 4;
+  PlaintextModulus ptm = 20;
 
-	usint m = 16;
-	usint relin = 1;
-	float stdDev = 4;
-	PlaintextModulus ptm = 20;
+  shared_ptr<Poly::Params> parms =
+      ElemParamFactory::GenElemParams<Poly::Params>(m, 50);
 
-	shared_ptr<Poly::Params> parms = ElemParamFactory::GenElemParams<Poly::Params>(m, 50);
+  CryptoContext<Poly> cc = CryptoContextFactory<Poly>::genCryptoContextBGV(
+      parms, ptm, relin, stdDev);
+  cc->Enable(ENCRYPTION);
+  cc->Enable(SHE);
+  cc->Enable(LEVELEDSHE);
 
-	CryptoContext<Poly> cc = CryptoContextFactory<Poly>::genCryptoContextBGV(parms, ptm, relin, stdDev);
-	cc->Enable(ENCRYPTION);
-	cc->Enable(SHE);
-	cc->Enable(LEVELEDSHE);
+  // Initialize the public key containers.
+  LPKeyPair<Poly> kp;
 
-	//Initialize the public key containers.
-	LPKeyPair<Poly> kp;
+  std::vector<int64_t> vectorOfInts1 = {2};
+  Plaintext intArray1 = cc->MakeCoefPackedPlaintext(vectorOfInts1);
 
-	std::vector<int64_t> vectorOfInts1 = { 2 };
-	Plaintext intArray1 = cc->MakeCoefPackedPlaintext(vectorOfInts1);
+  std::vector<int64_t> vectorOfInts2 = {3};
+  Plaintext intArray2 = cc->MakeCoefPackedPlaintext(vectorOfInts2);
 
-	std::vector<int64_t> vectorOfInts2 = { 3 };
-	Plaintext intArray2 = cc->MakeCoefPackedPlaintext(vectorOfInts2);
+  kp = cc->KeyGen();
+  cc->EvalMultKeyGen(kp.secretKey);
 
-	kp = cc->KeyGen();
-	cc->EvalMultKeyGen(kp.secretKey);
+  Ciphertext<Poly> ciphertext1;
+  Ciphertext<Poly> ciphertext2;
 
-	Ciphertext<Poly> ciphertext1;
-	Ciphertext<Poly> ciphertext2;
+  ciphertext1 = cc->Encrypt(kp.publicKey, intArray1);
+  ciphertext2 = cc->Encrypt(kp.publicKey, intArray2);
 
-	ciphertext1 = cc->Encrypt(kp.publicKey, intArray1);
-	ciphertext2 = cc->Encrypt(kp.publicKey, intArray2);
+  Ciphertext<Poly> cResult = cc->EvalMult(ciphertext1, ciphertext2);
 
-	Ciphertext<Poly> cResult =
-		cc->EvalMult(ciphertext1, ciphertext2);
+  LPKeyPair<Poly> newKp = cc->KeyGen();
 
-	LPKeyPair<Poly> newKp = cc->KeyGen();
+  LPEvalKey<Poly> keySwitchHint2 =
+      cc->KeySwitchGen(kp.secretKey, newKp.secretKey);
 
-	LPEvalKey<Poly> keySwitchHint2 = cc->KeySwitchGen(kp.secretKey, newKp.secretKey);
+  cResult = cc->KeySwitch(keySwitchHint2, cResult);
 
-	cResult = cc->KeySwitch(keySwitchHint2, cResult);
+  Plaintext results;
 
-	Plaintext results;
+  cc->Decrypt(newKp.secretKey, cResult, &results);
 
-	cc->Decrypt(newKp.secretKey, cResult, &results);
-
-	EXPECT_EQ(results->GetCoefPackedValue().at(0), 6);
+  EXPECT_EQ(results->GetCoefPackedValue().at(0), 6);
 }
 
 TEST_F(UTSHEAdvanced, test_eval_add_single_crt) {
-	DEBUG_FLAG(false);
-	usint m = 16;
-	PlaintextModulus ptm = 20;
+  DEBUG_FLAG(false);
+  usint m = 16;
+  PlaintextModulus ptm = 20;
 
-	float stdDev = 4;
+  float stdDev = 4;
 
-	shared_ptr<Poly::Params> parms = ElemParamFactory::GenElemParams<Poly::Params>(m);
+  shared_ptr<Poly::Params> parms =
+      ElemParamFactory::GenElemParams<Poly::Params>(m);
 
-	CryptoContext<Poly> cc = CryptoContextFactory<Poly>::genCryptoContextBGV(parms, ptm, 1, stdDev);
+  CryptoContext<Poly> cc =
+      CryptoContextFactory<Poly>::genCryptoContextBGV(parms, ptm, 1, stdDev);
 
-	cc->Enable(ENCRYPTION);
-	cc->Enable(SHE);
-	cc->Enable(LEVELEDSHE);
+  cc->Enable(ENCRYPTION);
+  cc->Enable(SHE);
+  cc->Enable(LEVELEDSHE);
 
-	//Initialize the public key containers.
-	LPKeyPair<Poly> kp;
+  // Initialize the public key containers.
+  LPKeyPair<Poly> kp;
 
-	DEBUG("Filling 1");
-	std::vector<int64_t> vectorOfInts1 = { 2, 3, 1, 4 };
-	Plaintext intArray1 = cc->MakeCoefPackedPlaintext(vectorOfInts1);
+  DEBUG("Filling 1");
+  std::vector<int64_t> vectorOfInts1 = {2, 3, 1, 4};
+  Plaintext intArray1 = cc->MakeCoefPackedPlaintext(vectorOfInts1);
 
-	DEBUG("Filling 2");
-	std::vector<int64_t> vectorOfInts2 = { 3, 6, 3, 1 };
-	Plaintext intArray2 = cc->MakeCoefPackedPlaintext(vectorOfInts2);
+  DEBUG("Filling 2");
+  std::vector<int64_t> vectorOfInts2 = {3, 6, 3, 1};
+  Plaintext intArray2 = cc->MakeCoefPackedPlaintext(vectorOfInts2);
 
-	DEBUG("getting pairs");
-	kp = cc->KeyGen();
+  DEBUG("getting pairs");
+  kp = cc->KeyGen();
 
-	DEBUG("got pairs");
-	Ciphertext<Poly> ciphertext1;
-	Ciphertext<Poly> ciphertext2;
+  DEBUG("got pairs");
+  Ciphertext<Poly> ciphertext1;
+  Ciphertext<Poly> ciphertext2;
 
-	ciphertext1 = cc->Encrypt(kp.publicKey, intArray1);
-	DEBUG("after crypt 1");
-	ciphertext2 = cc->Encrypt(kp.publicKey, intArray2);
-	DEBUG("after crypt 2");
+  ciphertext1 = cc->Encrypt(kp.publicKey, intArray1);
+  DEBUG("after crypt 1");
+  ciphertext2 = cc->Encrypt(kp.publicKey, intArray2);
+  DEBUG("after crypt 2");
 
-	Ciphertext<Poly> cResult;
-	DEBUG("before EA");
-	cResult = cc->EvalAdd(ciphertext1, ciphertext2);
-	DEBUG("after");
+  Ciphertext<Poly> cResult;
+  DEBUG("before EA");
+  cResult = cc->EvalAdd(ciphertext1, ciphertext2);
+  DEBUG("after");
 
-	Ciphertext<Poly> ciphertextResults({ cResult });
-	Plaintext results;
+  Ciphertext<Poly> ciphertextResults({cResult});
+  Plaintext results;
 
-	cc->Decrypt(kp.secretKey, ciphertextResults, &results);
+  cc->Decrypt(kp.secretKey, ciphertextResults, &results);
 
-	EXPECT_EQ(5, results->GetCoefPackedValue().at(0));
-	EXPECT_EQ(9, results->GetCoefPackedValue().at(1));
-	EXPECT_EQ(4, results->GetCoefPackedValue().at(2));
-	EXPECT_EQ(5, results->GetCoefPackedValue().at(3));
+  EXPECT_EQ(5, results->GetCoefPackedValue().at(0));
+  EXPECT_EQ(9, results->GetCoefPackedValue().at(1));
+  EXPECT_EQ(4, results->GetCoefPackedValue().at(2));
+  EXPECT_EQ(5, results->GetCoefPackedValue().at(3));
 }
 
 #endif

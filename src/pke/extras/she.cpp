@@ -1,38 +1,32 @@
-/*
- * @file she.cpp - Basic SHE operations.
- * @author  TPOC: contact@palisade-crypto.org
- *
- * @section LICENSE
- *
- * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT))
- * All rights reserved.
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- * 1. Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice, this
- * list of conditions and the following disclaimer in the documentation and/or other
- * materials provided with the distribution.
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
- * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * @section DESCRIPTION
- * Demo software for BFV multiparty operations.
- *
- */
+// @file she.cpp - Basic SHE operations.
+// @author TPOC: contact@palisade-crypto.org
+//
+// @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT))
+// All rights reserved.
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+// 1. Redistributions of source code must retain the above copyright notice,
+// this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+// this list of conditions and the following disclaimer in the documentation
+// and/or other materials provided with the distribution. THIS SOFTWARE IS
+// PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+// IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+// EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+// @section DESCRIPTION
+// Demo software for BFV multiparty operations.
 
-#include <iostream>
-#include <fstream>
-#include <iterator>
 #include <chrono>
+#include <fstream>
+#include <iostream>
 #include <iterator>
 
 #include "palisade.h"
@@ -41,215 +35,233 @@ using namespace std;
 using namespace lbcrypto;
 
 int main(int argc, char *argv[]) {
+  ////////////////////////////////////////////////////////////
+  // Set-up of parameters
+  ////////////////////////////////////////////////////////////
 
-#ifdef NO_QUADMATH
-  std::cout << "this demo is not working on this architecture"<<std::endl;
-  exit(0);
-#endif
-  
-	////////////////////////////////////////////////////////////
-	// Set-up of parameters
-	////////////////////////////////////////////////////////////
+  std::cout << "\nThis code demonstrates the use of the BFV scheme for basic "
+               "homomorphic encryption operations. "
+            << std::endl;
+  std::cout
+      << "This code shows how to auto-generate parameters during run-time "
+         "based on desired plaintext moduli and security levels. "
+      << std::endl;
+  std::cout << "In this demonstration we use three input plaintext and show "
+               "how to both add them together and multiply them together. "
+            << std::endl;
 
-	std::cout << "\nThis code demonstrates the use of the BFV scheme for basic homomorphic encryption operations. " << std::endl;
-	std::cout << "This code shows how to auto-generate parameters during run-time based on desired plaintext moduli and security levels. " << std::endl;
-	std::cout << "In this demonstration we use three input plaintext and show how to both add them together and multiply them together. " << std::endl;
+  // Generate parameters.
+  double diff, start, finish;
 
+  int plaintextModulus = 1024;
+  double sigma = 4;
+  SecurityLevel securityLevel = HEStd_128_classic;
 
-	//Generate parameters.
-	double diff, start, finish;
+  EncodingParams encodingParams(
+      std::make_shared<EncodingParamsImpl>(plaintextModulus));
 
-	int plaintextModulus = 1024;
-	double sigma = 4;
-	SecurityLevel securityLevel = HEStd_128_classic;
+  // Set Crypto Parameters
+  CryptoContext<DCRTPoly> cryptoContext =
+      CryptoContextFactory<DCRTPoly>::genCryptoContextBFVrns(
+          encodingParams, securityLevel, sigma, 0, 2, 0, OPTIMIZED);
 
-	EncodingParams encodingParams(new EncodingParamsImpl(plaintextModulus));
+  // enable features that you wish to use
+  cryptoContext->Enable(ENCRYPTION);
+  cryptoContext->Enable(SHE);
 
-	//Set Crypto Parameters	
-	CryptoContext<DCRTPoly> cryptoContext = CryptoContextFactory<DCRTPoly>::genCryptoContextBFVrns(
-			encodingParams, securityLevel, sigma, 0, 2, 0, OPTIMIZED);
+  std::cout << "p = "
+            << cryptoContext->GetCryptoParameters()->GetPlaintextModulus()
+            << std::endl;
+  std::cout << "n = "
+            << cryptoContext->GetCryptoParameters()
+                       ->GetElementParams()
+                       ->GetCyclotomicOrder() /
+                   2
+            << std::endl;
+  std::cout << "log2 q = "
+            << log2(cryptoContext->GetCryptoParameters()
+                        ->GetElementParams()
+                        ->GetModulus()
+                        .ConvertToDouble())
+            << std::endl;
 
-	// enable features that you wish to use
-	cryptoContext->Enable(ENCRYPTION);
-	cryptoContext->Enable(SHE);
-	
-	std::cout << "p = " << cryptoContext->GetCryptoParameters()->GetPlaintextModulus() << std::endl;
-	std::cout << "n = " << cryptoContext->GetCryptoParameters()->GetElementParams()->GetCyclotomicOrder() / 2 << std::endl;
-	std::cout << "log2 q = " << log2(cryptoContext->GetCryptoParameters()->GetElementParams()->GetModulus().ConvertToDouble()) << std::endl;
+  // std::cout << "Press any key to continue." << std::endl;
+  // std::cin.get();
 
-	//std::cout << "Press any key to continue." << std::endl;
-	//std::cin.get();
-	
-	// Initialize Public Key Containers
-	LPKeyPair<DCRTPoly> keyPair;
-	
-	////////////////////////////////////////////////////////////
-	// Perform Key Generation Operation
-	////////////////////////////////////////////////////////////
+  // Initialize Public Key Containers
+  LPKeyPair<DCRTPoly> keyPair;
 
-	std::cout << "Running key generation (used for source data)..." << std::endl;
+  ////////////////////////////////////////////////////////////
+  // Perform Key Generation Operation
+  ////////////////////////////////////////////////////////////
 
-	start = currentDateTime();
+  std::cout << "Running key generation (used for source data)..." << std::endl;
 
-	keyPair = cryptoContext->KeyGen();
-	cryptoContext->EvalMultKeyGen(keyPair.secretKey);
+  start = currentDateTime();
 
-	finish = currentDateTime();
-	diff = finish - start;
-	cout << "Key generation time: " << "\t" << diff << " ms" << endl;
+  keyPair = cryptoContext->KeyGen();
+  cryptoContext->EvalMultKeyGen(keyPair.secretKey);
 
-	if( !keyPair.good() ) {
-		std::cout << "Key generation failed!" << std::endl;
-		exit(1);
-	}
+  finish = currentDateTime();
+  diff = finish - start;
+  cout << "Key generation time: "
+       << "\t" << diff << " ms" << endl;
 
-	////////////////////////////////////////////////////////////
-	// Encode source data
-	////////////////////////////////////////////////////////////
+  if (!keyPair.good()) {
+    std::cout << "Key generation failed!" << std::endl;
+    exit(1);
+  }
 
-	std::vector<int64_t> vectorOfInts1 = {3,2,1,3,2,1,0,0,0,0,0,0};
-	std::vector<int64_t> vectorOfInts2 = {2,0,0,0,0,0,0,0,0,0,0,0};
-	std::vector<int64_t> vectorOfInts3 = {1,0,0,0,0,0,0,0,0,0,0,0};
-	Plaintext plaintext1 = cryptoContext->MakeCoefPackedPlaintext(vectorOfInts1);
-	Plaintext plaintext2 = cryptoContext->MakeCoefPackedPlaintext(vectorOfInts2);
-	Plaintext plaintext3 = cryptoContext->MakeCoefPackedPlaintext(vectorOfInts3);
+  ////////////////////////////////////////////////////////////
+  // Encode source data
+  ////////////////////////////////////////////////////////////
 
-	////////////////////////////////////////////////////////////
-	// Encryption
-	////////////////////////////////////////////////////////////
+  std::vector<int64_t> vectorOfInts1 = {3, 2, 1, 3, 2, 1, 0, 0, 0, 0, 0, 0};
+  std::vector<int64_t> vectorOfInts2 = {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  std::vector<int64_t> vectorOfInts3 = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  Plaintext plaintext1 = cryptoContext->MakeCoefPackedPlaintext(vectorOfInts1);
+  Plaintext plaintext2 = cryptoContext->MakeCoefPackedPlaintext(vectorOfInts2);
+  Plaintext plaintext3 = cryptoContext->MakeCoefPackedPlaintext(vectorOfInts3);
 
-	start = currentDateTime();
+  ////////////////////////////////////////////////////////////
+  // Encryption
+  ////////////////////////////////////////////////////////////
 
-	auto ciphertext1 = cryptoContext->Encrypt(keyPair.publicKey, plaintext1);
-	auto ciphertext2 = cryptoContext->Encrypt(keyPair.publicKey, plaintext2);
-	auto ciphertext3 = cryptoContext->Encrypt(keyPair.publicKey, plaintext3);
-	
-	finish = currentDateTime();
-	diff = finish - start;
-	cout << "Encryption time: " << "\t" << diff << " ms" << endl;
+  start = currentDateTime();
 
-	////////////////////////////////////////////////////////////
-	//Decryption of Ciphertext
-	////////////////////////////////////////////////////////////
+  auto ciphertext1 = cryptoContext->Encrypt(keyPair.publicKey, plaintext1);
+  auto ciphertext2 = cryptoContext->Encrypt(keyPair.publicKey, plaintext2);
+  auto ciphertext3 = cryptoContext->Encrypt(keyPair.publicKey, plaintext3);
 
-	Plaintext plaintext1Dec;
-	Plaintext plaintext2Dec;
-	Plaintext plaintext3Dec;
+  finish = currentDateTime();
+  diff = finish - start;
+  cout << "Encryption time: "
+       << "\t" << diff << " ms" << endl;
 
-	start = currentDateTime();
+  ////////////////////////////////////////////////////////////
+  // Decryption of Ciphertext
+  ////////////////////////////////////////////////////////////
 
-	cryptoContext->Decrypt(keyPair.secretKey, ciphertext1, &plaintext1Dec);
-	cryptoContext->Decrypt(keyPair.secretKey, ciphertext2, &plaintext2Dec);
-	cryptoContext->Decrypt(keyPair.secretKey, ciphertext3, &plaintext3Dec);
+  Plaintext plaintext1Dec;
+  Plaintext plaintext2Dec;
+  Plaintext plaintext3Dec;
 
-	finish = currentDateTime();
-	diff = finish - start;
-	cout << "Decryption time: " << "\t" << diff << " ms" << endl;
+  start = currentDateTime();
 
-	//std::cin.get();
+  cryptoContext->Decrypt(keyPair.secretKey, ciphertext1, &plaintext1Dec);
+  cryptoContext->Decrypt(keyPair.secretKey, ciphertext2, &plaintext2Dec);
+  cryptoContext->Decrypt(keyPair.secretKey, ciphertext3, &plaintext3Dec);
 
-	plaintext1Dec->SetLength(plaintext1->GetLength());
-	plaintext2Dec->SetLength(plaintext1->GetLength());
-	plaintext3Dec->SetLength(plaintext1->GetLength());
+  finish = currentDateTime();
+  diff = finish - start;
+  cout << "Decryption time: "
+       << "\t" << diff << " ms" << endl;
 
-	cout << "\n Original Plaintext: \n";
-	cout << plaintext1 << endl;
-	cout << plaintext2 << endl;
-	cout << plaintext3 << endl;
+  // std::cin.get();
 
-	cout << "\n Resulting Decryption of Ciphertext: \n";
-	cout << plaintext1Dec << endl;
-	cout << plaintext2Dec << endl;
-	cout << plaintext3Dec << endl;
+  plaintext1Dec->SetLength(plaintext1->GetLength());
+  plaintext2Dec->SetLength(plaintext1->GetLength());
+  plaintext3Dec->SetLength(plaintext1->GetLength());
 
-	cout << "\n";
+  cout << "\n Original Plaintext: \n";
+  cout << plaintext1 << endl;
+  cout << plaintext2 << endl;
+  cout << plaintext3 << endl;
 
-	////////////////////////////////////////////////////////////
-	// EvalAdd Operation
-	////////////////////////////////////////////////////////////
+  cout << "\n Resulting Decryption of Ciphertext: \n";
+  cout << plaintext1Dec << endl;
+  cout << plaintext2Dec << endl;
+  cout << plaintext3Dec << endl;
 
-	start = currentDateTime();
+  cout << "\n";
 
-	auto ciphertextAdd12 = cryptoContext->EvalAdd(ciphertext1,ciphertext2);
-	auto ciphertextAddVect = cryptoContext->EvalAdd(ciphertextAdd12,ciphertext3);
+  ////////////////////////////////////////////////////////////
+  // EvalAdd Operation
+  ////////////////////////////////////////////////////////////
 
-	finish = currentDateTime();
-	diff = finish - start;
-	cout << "EvalAdd time: " << "\t" << diff << " ms" << endl;
+  start = currentDateTime();
 
+  auto ciphertextAdd12 = cryptoContext->EvalAdd(ciphertext1, ciphertext2);
+  auto ciphertextAddVect = cryptoContext->EvalAdd(ciphertextAdd12, ciphertext3);
 
-	////////////////////////////////////////////////////////////
-	//Decryption after Accumulation Operation
-	////////////////////////////////////////////////////////////
+  finish = currentDateTime();
+  diff = finish - start;
+  cout << "EvalAdd time: "
+       << "\t" << diff << " ms" << endl;
 
-	Plaintext plaintextAdd;
+  ////////////////////////////////////////////////////////////
+  // Decryption after Accumulation Operation
+  ////////////////////////////////////////////////////////////
 
-	start = currentDateTime();
+  Plaintext plaintextAdd;
 
-	cryptoContext->Decrypt(keyPair.secretKey, ciphertextAddVect, &plaintextAdd);
+  start = currentDateTime();
 
-	finish = currentDateTime();
-	diff = finish - start;
+  cryptoContext->Decrypt(keyPair.secretKey, ciphertextAddVect, &plaintextAdd);
 
-	//std::cin.get();
+  finish = currentDateTime();
+  diff = finish - start;
 
-	plaintextAdd->SetLength(plaintext1->GetLength());
+  // std::cin.get();
 
-	cout << "\n Original Plaintext: \n";
-	cout << plaintext1 << endl;
-	cout << plaintext2 << endl;
-	cout << plaintext3 << endl;
+  plaintextAdd->SetLength(plaintext1->GetLength());
 
-	cout << "\n Resulting Added Plaintext: \n";
-	cout << plaintextAdd << endl;
+  cout << "\n Original Plaintext: \n";
+  cout << plaintext1 << endl;
+  cout << plaintext2 << endl;
+  cout << plaintext3 << endl;
 
-	cout << "\n";
+  cout << "\n Resulting Added Plaintext: \n";
+  cout << plaintextAdd << endl;
 
-	////////////////////////////////////////////////////////////
-	// EvalMult Operation
-	////////////////////////////////////////////////////////////
+  cout << "\n";
 
-	start = currentDateTime();
+  ////////////////////////////////////////////////////////////
+  // EvalMult Operation
+  ////////////////////////////////////////////////////////////
 
-	auto ciphertextMul12 = cryptoContext->EvalMult(ciphertext1,ciphertext2);
-	auto ciphertextMulVect = cryptoContext->EvalMult(ciphertextMul12,ciphertext3);
+  start = currentDateTime();
 
-	finish = currentDateTime();
-	diff = finish - start;
-	cout << "EvalMult time: " << "\t" << diff << " ms" << endl;
+  auto ciphertextMul12 = cryptoContext->EvalMult(ciphertext1, ciphertext2);
+  auto ciphertextMulVect =
+      cryptoContext->EvalMult(ciphertextMul12, ciphertext3);
 
+  finish = currentDateTime();
+  diff = finish - start;
+  cout << "EvalMult time: "
+       << "\t" << diff << " ms" << endl;
 
-	////////////////////////////////////////////////////////////
-	//Decryption after Accumulation Operation on Re-Encrypted Data
-	////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////
+  // Decryption after Accumulation Operation on Re-Encrypted Data
+  ////////////////////////////////////////////////////////////
 
-	Plaintext plaintextMul;
+  Plaintext plaintextMul;
 
-	start = currentDateTime();
+  start = currentDateTime();
 
-	cryptoContext->Decrypt(keyPair.secretKey, ciphertextMulVect, &plaintextMul);
+  cryptoContext->Decrypt(keyPair.secretKey, ciphertextMulVect, &plaintextMul);
 
-	finish = currentDateTime();
-	diff = finish - start;
+  finish = currentDateTime();
+  diff = finish - start;
 
-	//std::cin.get();
+  // std::cin.get();
 
-	plaintextMul->SetLength(plaintext1->GetLength());
+  plaintextMul->SetLength(plaintext1->GetLength());
 
-	cout << "\n Original Plaintext: \n";
-	cout << plaintext1 << endl;
-	cout << plaintext2 << endl;
-	cout << plaintext3 << endl;
+  cout << "\n Original Plaintext: \n";
+  cout << plaintext1 << endl;
+  cout << plaintext2 << endl;
+  cout << plaintext3 << endl;
 
-	cout << "\n Resulting Plaintext (after polynomial multiplication): \n";
-	cout << plaintextMul << endl;
+  cout << "\n Resulting Plaintext (after polynomial multiplication): \n";
+  cout << plaintextMul << endl;
 
-	cout << "\n";
-	////////////////////////////////////////////////////////////
-	// Done
-	////////////////////////////////////////////////////////////
+  cout << "\n";
+  ////////////////////////////////////////////////////////////
+  // Done
+  ////////////////////////////////////////////////////////////
 
-	std::cout << "Execution Completed." << std::endl;
+  std::cout << "Execution Completed." << std::endl;
 
-	return 0;
+  return 0;
 }

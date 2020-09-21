@@ -1,141 +1,136 @@
-/*
- * @file  simple-integers.cpp - Simple example for BFVrns (integer arithmetic).
- * @author  TPOC: contact@palisade-crypto.org
- *
- * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
- * All rights reserved.
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- * 1. Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice, this
- * list of conditions and the following disclaimer in the documentation and/or other
- * materials provided with the distribution.
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
- * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- */
+// @file  simple-integers.cpp - Simple example for BFVrns (integer arithmetic).
+// @author TPOC: contact@palisade-crypto.org
+//
+// @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT))
+// All rights reserved.
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+// 1. Redistributions of source code must retain the above copyright notice,
+// this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+// this list of conditions and the following disclaimer in the documentation
+// and/or other materials provided with the distribution. THIS SOFTWARE IS
+// PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+// IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+// EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "palisade.h"
 
 using namespace lbcrypto;
 
-int main()
-{
-#ifdef NO_QUADMATH
-  std::cout << "This demo uses BFVrns which is currently not available for this architecture"<<std::endl;
-  exit(0);
-#endif
+int main() {
+  // Sample Program: Step 1: Set CryptoContext
 
+  // Set the main parameters
+  int plaintextModulus = 65537;
+  double sigma = 3.2;
+  SecurityLevel securityLevel = HEStd_128_classic;
+  uint32_t depth = 2;
 
-	// Sample Program: Step 1 � Set CryptoContext
+  // Instantiate the crypto context
+  CryptoContext<DCRTPoly> cryptoContext =
+      CryptoContextFactory<DCRTPoly>::genCryptoContextBFVrns(
+          plaintextModulus, securityLevel, sigma, 0, depth, 0, OPTIMIZED);
 
-	//Set the main parameters
-	int plaintextModulus = 65537;
-	double sigma = 3.2;
-	SecurityLevel securityLevel = HEStd_128_classic;
-	uint32_t depth = 2;
+  // Enable features that you wish to use
+  cryptoContext->Enable(ENCRYPTION);
+  cryptoContext->Enable(SHE);
 
-	//Instantiate the crypto context
-	CryptoContext<DCRTPoly> cryptoContext = CryptoContextFactory<DCRTPoly>::genCryptoContextBFVrns(
-			plaintextModulus, securityLevel, sigma, 0, depth, 0, OPTIMIZED);
+  // Sample Program: Step 2: Key Generation
 
-	//Enable features that you wish to use
-	cryptoContext->Enable(ENCRYPTION);
-	cryptoContext->Enable(SHE);
+  // Initialize Public Key Containers
+  LPKeyPair<DCRTPoly> keyPair;
 
-	//Sample Program: Step 2 � Key Generation
+  // Generate a public/private key pair
+  keyPair = cryptoContext->KeyGen();
 
-	// Initialize Public Key Containers
-	LPKeyPair<DCRTPoly> keyPair;
+  // Generate the relinearization key
+  cryptoContext->EvalMultKeyGen(keyPair.secretKey);
 
-	// Generate a public/private key pair
-	keyPair = cryptoContext->KeyGen();
+  // Generate the rotation evaluation keys
+  cryptoContext->EvalAtIndexKeyGen(keyPair.secretKey, {1, 2, -1, -2});
 
-	// Generate the relinearization key
-	cryptoContext->EvalMultKeyGen(keyPair.secretKey);
+  // Sample Program: Step 3: Encryption
 
-	// Generate the rotation evaluation keys
-	cryptoContext->EvalAtIndexKeyGen(keyPair.secretKey,{1,2,-1,-2});
+  // First plaintext vector is encoded
+  std::vector<int64_t> vectorOfInts1 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+  Plaintext plaintext1 = cryptoContext->MakePackedPlaintext(vectorOfInts1);
+  // Second plaintext vector is encoded
+  std::vector<int64_t> vectorOfInts2 = {3, 2, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+  Plaintext plaintext2 = cryptoContext->MakePackedPlaintext(vectorOfInts2);
+  // Third plaintext vector is encoded
+  std::vector<int64_t> vectorOfInts3 = {1, 2, 5, 2, 5, 6, 7, 8, 9, 10, 11, 12};
+  Plaintext plaintext3 = cryptoContext->MakePackedPlaintext(vectorOfInts3);
 
-	//Sample Program: Step 3 � Encryption
+  // The encoded vectors are encrypted
+  auto ciphertext1 = cryptoContext->Encrypt(keyPair.publicKey, plaintext1);
+  auto ciphertext2 = cryptoContext->Encrypt(keyPair.publicKey, plaintext2);
+  auto ciphertext3 = cryptoContext->Encrypt(keyPair.publicKey, plaintext3);
 
-	// First plaintext vector is encoded
-	std::vector<int64_t> vectorOfInts1 = {1,2,3,4,5,6,7,8,9,10,11,12};
-	Plaintext plaintext1 = cryptoContext->MakePackedPlaintext(vectorOfInts1);
-	// Second plaintext vector is encoded
-	std::vector<int64_t> vectorOfInts2 = {3,2,1,4,5,6,7,8,9,10,11,12};
-	Plaintext plaintext2 = cryptoContext->MakePackedPlaintext(vectorOfInts2);
-	// Third plaintext vector is encoded
-	std::vector<int64_t> vectorOfInts3 = {1,2,5,2,5,6,7,8,9,10,11,12};
-	Plaintext plaintext3 = cryptoContext->MakePackedPlaintext(vectorOfInts3);
+  // Sample Program: Step 4: Evaluation
 
-	// The encoded vectors are encrypted
-	auto ciphertext1 = cryptoContext->Encrypt(keyPair.publicKey, plaintext1);
-	auto ciphertext2 = cryptoContext->Encrypt(keyPair.publicKey, plaintext2);
-	auto ciphertext3 = cryptoContext->Encrypt(keyPair.publicKey, plaintext3);
+  // Homomorphic additions
+  auto ciphertextAdd12 = cryptoContext->EvalAdd(ciphertext1, ciphertext2);
+  auto ciphertextAddResult =
+      cryptoContext->EvalAdd(ciphertextAdd12, ciphertext3);
 
-	//Sample Program: Step 4 � Evaluation
+  // Homomorphic multiplications
+  auto ciphertextMul12 = cryptoContext->EvalMult(ciphertext1, ciphertext2);
+  auto ciphertextMultResult =
+      cryptoContext->EvalMult(ciphertextMul12, ciphertext3);
 
-	// Homomorphic additions
-	auto ciphertextAdd12 = cryptoContext->EvalAdd(ciphertext1,ciphertext2);
-	auto ciphertextAddResult = cryptoContext->EvalAdd(ciphertextAdd12,ciphertext3);
+  // Homomorphic rotations
+  auto ciphertextRot1 = cryptoContext->EvalAtIndex(ciphertext1, 1);
+  auto ciphertextRot2 = cryptoContext->EvalAtIndex(ciphertext1, 2);
+  auto ciphertextRot3 = cryptoContext->EvalAtIndex(ciphertext1, -1);
+  auto ciphertextRot4 = cryptoContext->EvalAtIndex(ciphertext1, -2);
 
-	// Homomorphic multiplications
-	auto ciphertextMul12 = cryptoContext->EvalMult(ciphertext1,ciphertext2);
-	auto ciphertextMultResult = cryptoContext->EvalMult(ciphertextMul12,ciphertext3);
+  // Sample Program: Step 5: Decryption
 
-	// Homomorphic rotations
-	auto ciphertextRot1 = cryptoContext->EvalAtIndex(ciphertext1,1);
-	auto ciphertextRot2 = cryptoContext->EvalAtIndex(ciphertext1,2);
-	auto ciphertextRot3 = cryptoContext->EvalAtIndex(ciphertext1,-1);
-	auto ciphertextRot4 = cryptoContext->EvalAtIndex(ciphertext1,-2);
+  // Decrypt the result of additions
+  Plaintext plaintextAddResult;
+  cryptoContext->Decrypt(keyPair.secretKey, ciphertextAddResult,
+                         &plaintextAddResult);
 
-	//Sample Program: Step 5 � Decryption
+  // Decrypt the result of multiplications
+  Plaintext plaintextMultResult;
+  cryptoContext->Decrypt(keyPair.secretKey, ciphertextMultResult,
+                         &plaintextMultResult);
 
-	// Decrypt the result of additions
-	Plaintext plaintextAddResult;
-	cryptoContext->Decrypt(keyPair.secretKey, ciphertextAddResult, &plaintextAddResult);
+  // Decrypt the result of rotations
+  Plaintext plaintextRot1;
+  cryptoContext->Decrypt(keyPair.secretKey, ciphertextRot1, &plaintextRot1);
+  Plaintext plaintextRot2;
+  cryptoContext->Decrypt(keyPair.secretKey, ciphertextRot2, &plaintextRot2);
+  Plaintext plaintextRot3;
+  cryptoContext->Decrypt(keyPair.secretKey, ciphertextRot3, &plaintextRot3);
+  Plaintext plaintextRot4;
+  cryptoContext->Decrypt(keyPair.secretKey, ciphertextRot4, &plaintextRot4);
 
-	// Decrypt the result of multiplications
-	Plaintext plaintextMultResult;
-	cryptoContext->Decrypt(keyPair.secretKey, ciphertextMultResult, &plaintextMultResult);
+  plaintextRot1->SetLength(vectorOfInts1.size());
+  plaintextRot2->SetLength(vectorOfInts1.size());
+  plaintextRot3->SetLength(vectorOfInts1.size());
+  plaintextRot4->SetLength(vectorOfInts1.size());
 
-	// Decrypt the result of rotations
-	Plaintext plaintextRot1;
-	cryptoContext->Decrypt(keyPair.secretKey, ciphertextRot1, &plaintextRot1);
-	Plaintext plaintextRot2;
-	cryptoContext->Decrypt(keyPair.secretKey, ciphertextRot2, &plaintextRot2);
-	Plaintext plaintextRot3;
-	cryptoContext->Decrypt(keyPair.secretKey, ciphertextRot3, &plaintextRot3);
-	Plaintext plaintextRot4;
-	cryptoContext->Decrypt(keyPair.secretKey, ciphertextRot4, &plaintextRot4);
+  std::cout << "Plaintext #1: " << plaintext1 << std::endl;
+  std::cout << "Plaintext #2: " << plaintext2 << std::endl;
+  std::cout << "Plaintext #3: " << plaintext3 << std::endl;
 
-	plaintextRot1->SetLength(vectorOfInts1.size());
-	plaintextRot2->SetLength(vectorOfInts1.size());
-	plaintextRot3->SetLength(vectorOfInts1.size());
-	plaintextRot4->SetLength(vectorOfInts1.size());
+  // Output results
+  std::cout << "\nResults of homomorphic computations" << std::endl;
+  std::cout << "#1 + #2 + #3: " << plaintextAddResult << std::endl;
+  std::cout << "#1 * #2 * #3: " << plaintextMultResult << std::endl;
+  std::cout << "Left rotation of #1 by 1: " << plaintextRot1 << std::endl;
+  std::cout << "Left rotation of #1 by 2: " << plaintextRot2 << std::endl;
+  std::cout << "Right rotation of #1 by 1: " << plaintextRot3 << std::endl;
+  std::cout << "Right rotation of #1 by 2: " << plaintextRot4 << std::endl;
 
-	cout << "Plaintext #1: " << plaintext1 << std::endl;
-	cout << "Plaintext #2: " << plaintext2 << std::endl;
-	cout << "Plaintext #3: " << plaintext3 << std::endl;
-
-	// Output results
-	cout << "\nResults of homomorphic computations" << endl;
-	cout << "#1 + #2 + #3: " << plaintextAddResult << endl;
-	cout << "#1 * #2 * #3: " << plaintextMultResult << endl;
-	cout << "Left rotation of #1 by 1: " << plaintextRot1 << endl;
-	cout << "Left rotation of #1 by 2: " << plaintextRot2 << endl;
-	cout << "Right rotation of #1 by 1: " << plaintextRot3 << endl;
-	cout << "Right rotation of #1 by 2: " << plaintextRot4 << endl;
-
-	return 0;
+  return 0;
 }

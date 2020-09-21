@@ -50,9 +50,6 @@ src/circuit/lib/parse.cpp
 src/circuit/lib/parse.hpp
 src/circuit/lib/*.hh
 
-android/obj
-android/libs
-
 # vagrant output
 .vagrant/
 *.log

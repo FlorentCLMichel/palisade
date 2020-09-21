@@ -48,19 +48,19 @@ further defined and clarified by project maintainers.
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported 
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported
 by contacting the project team at [contact@palisade-crypto.org](mailto:contact@palisade-crypto.org). contact@palisade-crypto.org
-Alternatively, you may report individually to one of the members of the Steering Council. 
-Complaints will be reviewed and investigated and will result in a response that is deemed 
-necessary and appropriate to the circumstances. The project team is obligated to 
-maintain confidentiality with regard to the reporter of an incident. 
+Alternatively, you may report individually to one of the members of the Steering Council.
+Complaints will be reviewed and investigated and will result in a response that is deemed
+necessary and appropriate to the circumstances. The project team is obligated to
+maintain confidentiality with regard to the reporter of an incident.
 Further details of specific enforcement policies may be posted separately.
 
-Project maintainers who do not follow or enforce the Code of Conduct in good faith 
-may face temporary or permanent repercussions as determined by other members of the 
+Project maintainers who do not follow or enforce the Code of Conduct in good faith
+may face temporary or permanent repercussions as determined by other members of the
 project's leadership.
 
-If you feel that your report has not been followed up satisfactorily, then you may 
+If you feel that your report has not been followed up satisfactorily, then you may
 contact our sponsor organisation NumFOCUS at [info@numfocus.org](mailto:info@numfocus.org) for further redress.
 
 ## Attribution
