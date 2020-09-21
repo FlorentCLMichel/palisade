@@ -1,53 +1,49 @@
-﻿/*
- * @file parallel.cpp - Example of parallel operations using OMP
- * @author  TPOC: contact@palisade-crypto.org
- *
- * @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
- * All rights reserved.
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- * 1. Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice, this
- * list of conditions and the following disclaimer in the documentation and/or other
- * materials provided with the distribution.
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
- * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- */
-// This is an example demo file that demonstrates timing of Parallel operations using openmp
-// D. Cousins
+// @file parallel.cpp - This is an example demo file that demonstrates timing of
+// Parallel operations using openmp
+// @author TPOC: contact@palisade-crypto.org
+//
+// @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)
+// All rights reserved.
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+// 1. Redistributions of source code must retain the above copyright notice,
+// this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+// this list of conditions and the following disclaimer in the documentation
+// and/or other materials provided with the distribution. THIS SOFTWARE IS
+// PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+// IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+// EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#define PROFILE //by defining this we activate the PROFILELOG() outputs
+#define PROFILE  // by defining this we activate the PROFILELOG() outputs
 
-#include <iostream>
-#include <fstream>
-#include "time.h"
 #include <chrono>
+#include <fstream>
+#include <iostream>
 #include <thread>
 #include "palisadecore.h"
+#include "time.h"
 
-//function to verify our generated array
-void verify(float *foo, uint32_t array_size){
-  //verify that the data was generated correctly. 
+// function to verify our generated array
+void verify(float *foo, uint32_t array_size) {
+  // verify that the data was generated correctly.
   bool goodflag = true;
   for (size_t i = 1; i < array_size; ++i) {
-    if ((foo[i]-foo[i-1])!= 1) {
+    if ((foo[i] - foo[i - 1]) != 1) {
       goodflag = goodflag & false;
     }
   }
-  if ( goodflag) {
+  if (goodflag) {
     std::cout << "verification succeeded" << std::endl;
   } else {
-    std::cout<< "verification failed" << std::endl;
+    std::cout << "verification failed" << std::endl;
     for (size_t i = 0; i < array_size; ++i) {
       std::cout << foo[i] << " ";
     }
@@ -56,9 +52,9 @@ void verify(float *foo, uint32_t array_size){
   return;
 }
 
-
-int main(int argc, char* argv[]){
-  // note if you set dbg_flag = true then all  the following DEBUG() statments print to stdout.
+int main(int argc, char *argv[]) {
+  // note if you set dbg_flag = true then all  the following DEBUG() statments
+  // print to stdout.
   DEBUG_FLAG(true);
 
   lbcrypto::PalisadeParallelControls.Enable();
@@ -66,75 +62,82 @@ int main(int argc, char* argv[]){
   uint32_t array_size = 1000;
   DEBUGEXP(argc);
   DEBUGEXP(argv[0]);
-    
+
   if (argc < 2) {
-    std::cout<< "running "<<argv[0]<< " with default array size of 1000" << std::endl;
+    std::cout << "running " << argv[0] << " with default array size of 1000"
+              << std::endl;
   } else {
     array_size = atoi(argv[1]);
     if (array_size <= 0) {
-      std::cout<< "error in argment "<<argv[1]<< " must be greater than zero " << std::endl;
-      exit (-1);
+      std::cout << "error in argment " << argv[1]
+                << " must be greater than zero " << std::endl;
+      exit(-1);
     }
   }
 
-  //build the array and zero it out. 
-  float *foo = NULL;
-  foo = new float[array_size];
-  for (size_t i = 0; i < array_size; i++){
-    foo[i]=0;
+  // build the array and zero it out.
+  float *foo = new float[array_size];
+  for (size_t i = 0; i < array_size; i++) {
+    foo[i] = 0;
   }
-  
-  TimeVar t_total;  // define timer variable for TIC() TOC() timing functions.  
-  double timeTotal; // holds the resulting time 
 
-  std::cout << "Parallel computation demo using "<< omp_get_num_procs() << " processors." <<std::endl;
-  std::cout << "and maximum of "<< omp_get_max_threads() << " threads." <<std::endl<<std::endl;
-  std::cout << "to change # threads from the default, execute at the comamnd line "<<std::endl;
-  std::cout << " For the bash shell, enter:" << std::endl 
-	    << "export OMP_NUM_THREADS=<number of threads to use>"  << std::endl 
-	    << "For the csh or tcsh shell, enter: " << std::endl 
-	    << " setenv OMP_NUM_THREADS <number of threads to use>" << std::endl;
-  std::cout <<" or use omp_set_num_threads() in your code."<< std::endl<<std::endl;
+  TimeVar t_total;   // define timer variable for TIC() TOC() timing functions.
+  double timeTotal;  // holds the resulting time
 
-  std::cout <<"HINT: use export OMP_DISPLAY_ENV=TRUE to see all your settings"<<std::endl; 
-  
+  std::cout << "Parallel computation demo using " << omp_get_num_procs()
+            << " processors." << std::endl;
+  std::cout << "and maximum of " << omp_get_max_threads() << " threads."
+            << std::endl
+            << std::endl;
+  std::cout
+      << "to change # threads from the default, execute at the comamnd line "
+      << std::endl;
+  std::cout << " For the bash shell, enter:" << std::endl
+            << "export OMP_NUM_THREADS=<number of threads to use>" << std::endl
+            << "For the csh or tcsh shell, enter: " << std::endl
+            << " setenv OMP_NUM_THREADS <number of threads to use>"
+            << std::endl;
+  std::cout << " or use omp_set_num_threads() in your code." << std::endl
+            << std::endl;
+
+  std::cout << "HINT: use export OMP_DISPLAY_ENV=TRUE to see all your settings"
+            << std::endl;
+
   int nthreads, tid;
-  // determine how many threads we will have. 
-  #pragma omp parallel private(nthreads, tid)
+// determine how many threads we will have.
+#pragma omp parallel private(nthreads, tid)
   {
-    
     /* Obtain thread number */
     tid = omp_get_thread_num();
-    
+
     /* Only master thread does this */
-    if (tid == 0)
-      {
-	nthreads = omp_get_num_threads();
-	std::cout << "Confirmed Number of threads = " << nthreads << std::endl;
-      }
+    if (tid == 0) {
+      nthreads = omp_get_num_threads();
+      std::cout << "Confirmed Number of threads = " << nthreads << std::endl;
+    }
   }
 
-  //demonstrate debug functions (only active when dbg_flag = true)
-  std::cout << "demonstrating DEBUG()"<<std::endl;
-  DEBUG("array_size = "<< array_size);
+  // demonstrate debug functions (only active when dbg_flag = true)
+  std::cout << "demonstrating DEBUG()" << std::endl;
+  DEBUG("array_size = " << array_size);
   DEBUGEXP(array_size);
   DEBUGWHERE(array_size);
 
-#if!defined(NDEBUG)
+#if !defined(NDEBUG)
   dbg_flag = false;
 #endif
-  //these three no longer report any value
-  DEBUG("array_size = "<< array_size);
+  // these three no longer report any value
+  DEBUG("array_size = " << array_size);
   DEBUGEXP(array_size);
   DEBUGWHERE(array_size);
 
-  std::cout << std::endl;  
-  //now run the parallel job
+  std::cout << std::endl;
+  // now run the parallel job
 
-  TIC(t_total); // set the timer.
+  TIC(t_total);  // set the timer.
 
-  // define a parallel loop that takes 10 milliseconds to execute then performs a small task
-  // of filling in an array
+  // define a parallel loop that takes 10 milliseconds to execute then performs
+  // a small task of filling in an array
 #pragma omp parallel for
   for (size_t i = 0; i < array_size; ++i) {
     float tmp = i;
@@ -142,34 +145,35 @@ int main(int argc, char* argv[]){
     foo[i] = tmp;
   }
 
-  //read the timer to get the computation time in miliseconds
-  //look at debug.h to find other timers you can use
-  
-  timeTotal = TOC_MS(t_total);
-  PROFILELOG("Total time with internal delay: " << "\t" << timeTotal << " ms");
-  verify(foo, array_size);
-  std::cout << std::endl;  
+  // read the timer to get the computation time in miliseconds
+  // look at debug.h to find other timers you can use
 
-  //repeat the parallel process without the internal delay
+  timeTotal = TOC_MS(t_total);
+  PROFILELOG("Total time with internal delay: "
+             << "\t" << timeTotal << " ms");
+  verify(foo, array_size);
+  std::cout << std::endl;
+
+  // repeat the parallel process without the internal delay
   // clear out foo.
-  for (size_t i = 0; i < array_size; i++){
-    foo[i]=0;
+  for (size_t i = 0; i < array_size; i++) {
+    foo[i] = 0;
   }
 
-  TIC(t_total); // reset the timer.
-  // define a parallel loop that takes 10 milliseconds to execute then performs a small task
-  // of filling in an array
+  TIC(t_total);  // reset the timer.
+  // define a parallel loop that takes 10 milliseconds to execute then performs
+  // a small task of filling in an array
 #pragma omp parallel for
   for (size_t i = 0; i < array_size; ++i) {
     float tmp = i;
     foo[i] = tmp;
   }
 
-  //read the timer to get the computation time in micro seconds
+  // read the timer to get the computation time in micro seconds
   timeTotal = TOC_US(t_total);
-  PROFILELOG("Total time without internal delay: " << "\t" << timeTotal << " us");
+  PROFILELOG("Total time without internal delay: "
+             << "\t" << timeTotal << " us");
   verify(foo, array_size);
 
   return 0;
 }
-

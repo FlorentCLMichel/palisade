@@ -48,7 +48,7 @@ names, contact info, and date of first inclusion into the team.
   of the Steering team are the face of the project, and are
   responsible for officially interfacing with external communities,
   organizations, non-profits, and companies. The Steering team
-  may create new teams, as appropriate.  Each member of the Steering 
+  may create new teams, as appropriate.  Each member of the Steering
   team is entitled to one vote on all elected matters.
 
 * **Pre-release:** The Pre-release team administers the current
@@ -196,7 +196,7 @@ are permitted. Sample voting topics are as follows (but are not limited to this 
 
 Votes can happen on the following topics with passing contingent on a majority.
 At least 2/3 of the Steering team  members should vote, but abstentions
-are permitted. Sample voting topics are as follows (but are not limited to this list): 
+are permitted. Sample voting topics are as follows (but are not limited to this list):
 
 * Approving an expedited release testing schedule
 * Approving a Major Pre-release
@@ -214,7 +214,7 @@ Major.minor.patch
 Major release number must be incremented when the PALISADE user API
 changes, requiring user code rewrite.
 
-Minor release numbers must be incremented new capability is
+Minor release numbers must be incremented when a new capability is
 added, or old capability is deprecated, but existing user code would
 still operate without a rewrite.
 

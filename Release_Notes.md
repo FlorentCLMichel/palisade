@@ -1,3 +1,40 @@
+09/21/2020: PALISADE v1.10.4 (stable) is released
+
+* Includes all changes from development releases v1.10.0-v1.10.3
+* Fixes some bugs in BGVrns
+* Improves error handling
+
+08/25/2020: PALISADE v1.10.3 (development) is released
+
+* Fixes a bug in BFVrns for larger plaintext moduli
+* Fixes bugs in FHEW/TFHE
+* Fixes bugs affecting the 32-bit and 64-bit native integer backends
+* Improves error handling
+* Includes minor documentation cleanup
+
+07/11/2020: PALISADE v1.10.2 (development) is released
+
+* Fixes a bug affecting some threshold FHE scenarios
+* Adds more validation to CMake flags
+* Includes minor documentation cleanup
+
+06/26/2020: PALISADE v1.10.1 (development) is released
+
+* Fixes a bug affecting some clang environments
+* Fixes a bug related to the BUILD_BENCHMARKS CMake flag
+
+06/18/2020: PALISADE v1.10.0 (development) is released
+
+* Adds a usable, full RNS variant of BGV (as a more efficient alternative to BFV RNS variants for integer arithmetic)
+* Adds a fully functional threshold FHE capability to BGV, BFV, and CKKS to support multi-party computations
+* Adds an automated rescaling mode to the approximate rescaling RNS variant of CKKS
+* Improves the performance of both CKKS RNS variants
+* Improves the performance of both BFV RNS variants
+* Makes NTL completely optional for all environments (no quad-precision floats are needed anymore)
+* Improves the support for clang in Linux
+* Simplifies the CMake procedure for building PALISADE
+* Fixes many bugs reported by the PALISADE community
+
 04/24/2020: PALISADE v1.9.2 (stable) is released in the palisade-release repo
 
 * Includes all changes from development releases v1.8.0, v1.9.0, and v1.9.1
@@ -20,7 +57,7 @@
 01/30/2020: PALISADE v1.8.0 (development) is released
 
 * Adds the Gama-Izabachene-Nguyen-Xie (GINX) bootstrapping to the FHEW implementation
-* Includes other FHEW optimizations: now the bootstrapping key size is 20x times smaller and runtime about 2.5x faster 
+* Includes other FHEW optimizations: now the bootstrapping key size is 20x times smaller and runtime about 2.5x faster
 * Adds XOR and XNOR gates to FHEW
 
 01/22/2020: PALISADE v1.7.4 (stable) is released in the palisade-release repo
@@ -48,7 +85,7 @@
 * Adds an optimized implementation of the FHEW scheme for Boolean-circuit homomorphic encryption, supporting standard HE parameters. Performs bootstrapping for each binary gate, and hence supports the evaluation of arbitrary Boolean circuits.
 * Adds the ring dimension as an option when generating crypto contexts for BFV variants.
 * Improves the noise growth of the BEHZ variant of BFV (referred to as the BFVrnsB scheme in PALISADE).
-* Fixes several bugs. 
+* Fixes several bugs.
 
 9/12/2019: PALISADE v1.6.0 is released
 
@@ -60,7 +97,7 @@
 
 3/20/2019: PALISADE v1.5.0 is released
 
-* Fixes the vulnerability found in https://eprint.iacr.org/2017/785 (PKC'19) for the PRE schemes based on BGV/BFV 
+* Fixes the vulnerability found in https://eprint.iacr.org/2017/785 (PKC'19) for the PRE schemes based on BGV/BFV
 * Adds PRE modes for BGV/BFV that are secure under honest re-reencryption attacks (recommended security for practical use)
 * Adds support for splitting lattice trapdoor sampling into offline and online phases (used by digital signatures, IBE, and ABE constructions)
 * Fixes bugs related to the multi-threaded mode of operation

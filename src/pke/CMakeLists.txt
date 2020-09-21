@@ -1,6 +1,12 @@
+#
+# CMakeLists.txt for PKE library
+#
+
+# all files named *-impl.cpp are compiled to form the library
 file (GLOB PKE_SRC_FILES CONFIGURE_DEPENDS lib/*-impl.cpp lib/scheme/*/*-impl.cpp)
 
 include_directories( ../core/include )
+include_directories( ../core/lib )
 include_directories( include )
 include_directories( lib )
 
@@ -20,7 +26,7 @@ set_property(TARGET PALISADEpke PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY
 install(TARGETS PALISADEpke
 	EXPORT PalisadeTargets
 	DESTINATION lib)
-if( ${BUILD_STATIC} MATCHES "YES" )
+if( ${BUILD_STATIC} )
 	add_library (PALISADEpke_static STATIC $<TARGET_OBJECTS:pkeobj>)
 	set_property(TARGET PALISADEpke_static PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 	install(TARGETS PALISADEpke_static
@@ -34,54 +40,58 @@ install(DIRECTORY include/
 set (PKELIBS PUBLIC PALISADEpke PUBLIC PALISADEcore ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
 
 target_link_libraries (PALISADEpke PUBLIC PALISADEcore ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
-if( ${BUILD_STATIC} MATCHES "YES" )
+if( ${BUILD_STATIC} )
 	target_link_libraries (PALISADEpke_static PUBLIC PALISADEcore_static ${THIRDPARTYSTATICLIBS} ${OpenMP_CXX_FLAGS})
 endif()
 
-if( ${BUILD_UNITTESTS} )
-file (GLOB PKE_TEST_SRC_FILES CONFIGURE_DEPENDS unittest/*.cpp)
-add_executable (pke_tests ${PKE_TEST_SRC_FILES} ${UNITTESTMAIN})
-set_property(TARGET pke_tests PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/unittest)
-target_link_libraries ( pke_tests ${PKELIBS} )
+add_custom_target( allpke )
+add_dependencies( allpke PALISADEpke)
+
+if( BUILD_UNITTESTS )
+	file (GLOB PKE_TEST_SRC_FILES CONFIGURE_DEPENDS unittest/*.cpp)
+	add_executable (pke_tests ${PKE_TEST_SRC_FILES} ${UNITTESTMAIN})
+	set_property(TARGET pke_tests PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/unittest)
+	target_link_libraries ( pke_tests ${PKELIBS} )
+	if (NOT ${USE_OpenMP} )
+		target_link_libraries ( pke_tests PRIVATE Threads::Threads)
+	endif()
+	add_dependencies( allpke pke_tests )
+
+	add_custom_command( OUTPUT runpketests WORKING_DIRECTORY ${CMAKE_BINARY_DIR} COMMAND ${CMAKE_BINARY_DIR}/unittest/pke_tests )
+	add_custom_target( testpke DEPENDS pke_tests runpketests )
 endif()
 
 set(PKEAPPS "")
-file (GLOB PKE_EXAMPLES_SRC_FILES CONFIGURE_DEPENDS examples/*.cpp)
-foreach (app ${PKE_EXAMPLES_SRC_FILES})
-	get_filename_component ( exe ${app} NAME_WE )
-	add_executable ( ${exe} ${app} )
-	set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/examples/pke)
-	set( PKEAPPS ${PKEAPPS} ${exe} )
-	target_link_libraries ( ${exe} ${PKELIBS} )
-endforeach()
+if ( BUILD_EXAMPLES)
+	file (GLOB PKE_EXAMPLES_SRC_FILES CONFIGURE_DEPENDS examples/*.cpp)
+	foreach (app ${PKE_EXAMPLES_SRC_FILES})
+		get_filename_component ( exe ${app} NAME_WE )
+		add_executable ( ${exe} ${app} )
+		set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/examples/pke)
+		set( PKEAPPS ${PKEAPPS} ${exe} )
+		target_link_libraries ( ${exe} ${PKELIBS} )
+	endforeach()
+
+	add_custom_target( allpkeexamples )
+	add_dependencies( allpkeexamples ${PKEAPPS} )
+	add_dependencies( allpke allpkeexamples )
+endif()
 
 set( PKEEXTRAS "" )
-file (GLOB PKE_EXTRAS_SRC_FILES CONFIGURE_DEPENDS extras/*.cpp)
-foreach (app ${PKE_EXTRAS_SRC_FILES})
-	get_filename_component ( exe ${app} NAME_WE )
-	add_executable (${exe} ${app} )
-	set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/extras/pke)
-	set_property(TARGET ${exe} PROPERTY EXCLUDE_FROM_ALL True)
-	set( PKEEXTRAS ${PKEEXTRAS} ${exe} )
-	target_link_libraries ( ${exe} ${PKELIBS} )
-endforeach()
+if (BUILD_EXTRAS)
+	file (GLOB PKE_EXTRAS_SRC_FILES CONFIGURE_DEPENDS extras/*.cpp)
+	foreach (app ${PKE_EXTRAS_SRC_FILES})
+		get_filename_component ( exe ${app} NAME_WE )
+		add_executable (${exe} ${app} )
+		set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/extras/pke)
+		set( PKEEXTRAS ${PKEEXTRAS} ${exe} )
+		target_link_libraries ( ${exe} ${PKELIBS} )
+	endforeach()
 
-add_custom_target( allpkeexamples )
-add_dependencies( allpkeexamples ${PKEAPPS} )
-
-add_custom_target( allpkeextras )
-add_dependencies( allpkeextras ${PKEEXTRAS} )
-
-add_custom_target( allpke )
-add_dependencies( allpke PALISADEpke allpkeexamples )
-
-if( ${BUILD_UNITTESTS} )
-add_dependencies( allpke pke_tests )
+	add_custom_target( allpkeextras )
+	add_dependencies( allpkeextras ${PKEEXTRAS} )
+	add_dependencies( allpke allpkeextras )
 endif()
 
 add_custom_command( OUTPUT pkeinfocmd COMMAND echo Builds PALISADEpke and these apps: ${PKEAPPS} )
 add_custom_target( pkeinfo DEPENDS pkeinfocmd )
-
-add_custom_command( OUTPUT runpketests WORKING_DIRECTORY ${CMAKE_BINARY_DIR} COMMAND ${CMAKE_BINARY_DIR}/unittest/pke_tests )
-add_custom_target( testpke DEPENDS pke_tests runpketests )
-

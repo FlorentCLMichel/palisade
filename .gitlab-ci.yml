@@ -1,4 +1,5 @@
 stages:
+#- format
 - build
 - unit_test
 - benchmark
@@ -14,7 +15,37 @@ before_script:
 # - apt-get install --yes cmake
 - whoami
 - export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$(pwd)/build/third-party/lib:$(pwd)/build/lib
+- if [ ${COMPILER^^} == "CLANG" ]; then export CC=/usr/bin/clang-9; export CXX=/usr/bin/clang++-9; else export CC=gcc; export CXX=g++; fi
+- if [ -n ${NATIVE_BACKEND} ]; then export NATIVE_SIZE=-DNATIVE_SIZE\=${NATIVE_BACKEND}; else export NATIVE_SIZE=""; fi
+- echo ${NATIVE_SIZE}
+- export CMAKE_ARGS=${NATIVE_SIZE}
+- echo ${CMAKE_ARGS}
+
 # - export DO_CI="OFF"
+
+#cpplint:
+#  stage: format
+#  only:
+#    refs:
+#      - master
+#      - merge_requests
+#  script:
+#  - whoami
+# - sudo apt install python3-pip
+#  - pip install cpplint
+#  - cpplint --recursive ./src > cpplint.txt
+#  - if grep -xq "Total errors" cpplint.txt; then echo "cpplint passed"; else echo "cpplint failed" && exit 1; fi
+
+#clang-format:
+#  stage: format
+#  only:
+#    refs:
+#      - master
+#      - merge_requests
+#  script:
+#  - whoami
+#  - sudo apt-get install clang-format
+#  - ./maint/check-code-format.sh
 
 default_build:
   stage: build
@@ -22,15 +53,11 @@ default_build:
     refs:
       - master
       - merge_requests
-  cache:
-    key: default-build-libs
-    paths:
-      - build
   script:
   - whoami
   - mkdir -p build
   - cd build
-  - CC=gcc CXX=g++ cmake ..
+  - cmake ${CMAKE_ARGS} ..
   - make -j $(nproc) all
   artifacts:
     paths:
@@ -48,15 +75,11 @@ noflag_mb4_build:
     refs:
       - master
       - merge_requests
-  cache:
-    key: noflag-mb4-build-libs
-    paths:
-      - build
   script:
   - whoami
   - mkdir -p build
   - cd build
-  - CC=gcc CXX=g++ cmake -DMATHBACKEND=4 ..
+  - cmake ${CMAKE_ARGS} -DBUILD_EXTRAS=ON -DMATHBACKEND=4 ..
   - make -j $(nproc) all
   - make allextras
   artifacts:
@@ -75,15 +98,11 @@ debug_mb2_build:
     refs:
       - master
       - merge_requests
-  cache:
-    key: debug-mb2-build-libs
-    paths:
-      - build
   script:
   - whoami
   - mkdir -p build
   - cd build
-  - CC=gcc CXX=g++ cmake -DCMAKE_BUILD_TYPE=Debug -DMATHBACKEND=2 ..
+  - cmake ${CMAKE_ARGS} -DBUILD_EXTRAS=ON -DCMAKE_BUILD_TYPE=Debug -DMATHBACKEND=2 ..
   - make -j $(nproc) all
   - make allextras
   artifacts:
@@ -102,15 +121,11 @@ debug_mb4_build:
     refs:
       - master
       - merge_requests
-  cache:
-    key: debug-mb4-build-libs
-    paths:
-      - build
   script:
   - whoami
   - mkdir -p build
   - cd build
-  - CC=gcc CXX=g++ cmake -DCMAKE_BUILD_TYPE=Debug -DMATHBACKEND=4 ..
+  - cmake ${CMAKE_ARGS} -DBUILD_EXTRAS=ON -DCMAKE_BUILD_TYPE=Debug -DMATHBACKEND=4 ..
   - make -j $(nproc) all
   - make allextras
   artifacts:
@@ -130,15 +145,11 @@ ntl_mb6_build:
     refs:
       - master
       - merge_requests
-  cache:
-    key: ntl-mb6-build-libs
-    paths:
-      - build
   script:
   - whoami
   - mkdir -p build
   - cd build
-  - CC=gcc CXX=g++ cmake -DWITH_NTL=Y -DMATHBACKEND=6 ..
+  - cmake ${CMAKE_ARGS} -DBUILD_EXTRAS=ON -DWITH_NTL=Y -DMATHBACKEND=6 ..
   - make gmp_unpack
   - make ntl_unpack_nowizard
   - make -j $(nproc) gmp_all
@@ -161,15 +172,11 @@ tcm_mb2_build:
     refs:
       - master
       - merge_requests
-  cache:
-    key: tcm-mb2-build-libs
-    paths:
-      - build
   script:
   - whoami
   - mkdir -p build
   - cd build
-  - CC=gcc CXX=g++ cmake -DWITH_TCM=Y -DMATHBACKEND=2 ..
+  - cmake ${CMAKE_ARGS} -DBUILD_EXTRAS=ON -DWITH_TCM=Y -DMATHBACKEND=2 ..
   - make tcm
   - make -j $(nproc) all
   - make allextras
@@ -189,14 +196,10 @@ tcm_mb4_build:
     refs:
       - master
       - merge_requests
-  cache:
-    key: tcm-mb4-build-libs
-    paths:
-      - build
   script:
   - mkdir -p build
   - cd build
-  - CC=gcc CXX=g++ cmake -DWITH_TCM=Y -DMATHBACKEND=4 ..
+  - cmake ${CMAKE_ARGS} -DBUILD_EXTRAS=ON -DWITH_TCM=Y -DMATHBACKEND=4 ..
   - make tcm
   - make -j $(nproc) all
   - make allextras
@@ -216,14 +219,10 @@ tcm_ntl_mb6_build:
     refs:
       - master
       - merge_requests
-  cache:
-    key: tcm-ntl-mb6-build-libs
-    paths:
-      - build
   script:
   - mkdir -p build
   - cd build
-  - CC=gcc CXX=g++ cmake -DWITH_NTL=Y -DWITH_TCM=Y -DMATHBACKEND=6 ..
+  - cmake ${CMAKE_ARGS} -DBUILD_EXTRAS=ON -DWITH_NTL=Y -DWITH_TCM=Y -DMATHBACKEND=6 ..
   - make tcm
   - make gmp_unpack
   - make ntl_unpack_nowizard
@@ -247,14 +246,10 @@ debug_tcm_ntl_mb6_build:
     refs:
       - master
       - merge_requests
-  cache:
-    key: tcm-ntl-mb6-build-libs
-    paths:
-      - build
   script:
   - mkdir -p build
   - cd build
-  - CC=gcc CXX=g++ cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_NTL=Y -DWITH_TCM=Y -DMATHBACKEND=6 ..
+  - cmake ${CMAKE_ARGS} -DBUILD_EXTRAS=ON -DCMAKE_BUILD_TYPE=Debug -DWITH_NTL=Y -DWITH_TCM=Y -DMATHBACKEND=6 ..
   - make tcm
   - make gmp_unpack
   - make ntl_unpack_nowizard
@@ -884,159 +879,6 @@ debug_tcm_ntl_mb6_test_signature:
   dependencies:
   - debug_tcm_ntl_mb6_build
 
-# default_test_trapdoor:
-  # stage: unit_test
-  # only:
-    # refs:
-      # - master
-      # - merge_requests
-  # script:
-  # - pwd
-  # - echo $LD_LIBRARY_PATH
-  # - build/unittest/trapdoor_tests --gtest_output=xml
-  # artifacts:
-    # paths:
-    # - test_detail.xml
-    # expire_in: 2 days
-  # dependencies:
-  # - default_build
-
-# noflag_mb4_test_trapdoor:
-  # stage: unit_test
-  # only:
-    # refs:
-      # - master
-      # - merge_requests
-  # script:
-  # - pwd
-  # - echo $LD_LIBRARY_PATH
-  # - build/unittest/trapdoor_tests --gtest_output=xml
-  # artifacts:
-    # paths:
-    # - test_detail.xml
-    # expire_in: 2 days
-  # dependencies:
-  # - noflag_mb4_build
-
-# debug_mb2_test_trapdoor:
-  # stage: unit_test
-  # only:
-    # refs:
-      # - master
-      # - merge_requests
-  # script:
-  # - pwd
-  # - echo $LD_LIBRARY_PATH
-  # - build/unittest/trapdoor_tests --gtest_output=xml
-  # artifacts:
-    # paths:
-    # - test_detail.xml
-    # expire_in: 2 days
-  # dependencies:
-  # - debug_mb2_build
-
-# debug_mb4_test_trapdoor:
-  # stage: unit_test
-  # only:
-    # refs:
-      # - master
-      # - merge_requests
-  # script:
-  # - pwd
-  # - echo $LD_LIBRARY_PATH
-  # - build/unittest/trapdoor_tests --gtest_output=xml
-  # artifacts:
-    # paths:
-    # - test_detail.xml
-    # expire_in: 2 days
-  # dependencies:
-  # - debug_mb4_build
-
-# ntl_mb6_test_trapdoor:
-  # stage: unit_test
-  # only:
-    # refs:
-      # - master
-      # - merge_requests
-  # script:
-  # - pwd
-  # - echo $LD_LIBRARY_PATH
-  # - build/unittest/trapdoor_tests --gtest_output=xml
-  # artifacts:
-    # paths:
-    # - test_detail.xml
-    # expire_in: 2 days
-  # dependencies:
-  # - ntl_mb6_build
-
-# tcm_mb2_test_trapdoor:
-  # stage: unit_test
-  # only:
-    # refs:
-      # - master
-      # - merge_requests
-  # script:
-  # - pwd
-  # - echo $LD_LIBRARY_PATH
-  # - build/unittest/trapdoor_tests --gtest_output=xml
-  # artifacts:
-    # paths:
-    # - test_detail.xml
-    # expire_in: 2 days
-  # dependencies:
-  # - tcm_mb2_build
-
-# tcm_mb4_test_trapdoor:
-  # stage: unit_test
-  # only:
-    # refs:
-      # - master
-      # - merge_requests
-  # script:
-  # - pwd
-  # - echo $LD_LIBRARY_PATH
-  # - build/unittest/trapdoor_tests --gtest_output=xml
-  # artifacts:
-    # paths:
-    # - test_detail.xml
-    # expire_in: 2 days
-  # dependencies:
-  # - tcm_mb4_build
-
-# tcm_ntl_mb6_test_trapdoor:
-  # stage: unit_test
-  # only:
-    # refs:
-      # - master
-      # - merge_requests
-  # script:
-  # - pwd
-  # - echo $LD_LIBRARY_PATH
-  # - build/unittest/trapdoor_tests --gtest_output=xml
-  # artifacts:
-    # paths:
-    # - test_detail.xml
-    # expire_in: 2 days
-  # dependencies:
-  # - tcm_ntl_mb6_build
-
-# debug_tcm_ntl_mb6_test_trapdoor:
-  # stage: unit_test
-  # only:
-    # refs:
-      # - master
-      # - merge_requests
-  # script:
-  # - pwd
-  # - echo $LD_LIBRARY_PATH
-  # - build/unittest/trapdoor_tests --gtest_output=xml
-  # artifacts:
-    # paths:
-    # - test_detail.xml
-    # expire_in: 2 days
-  # dependencies:
-  # - debug_tcm_ntl_mb6_build
-
 default_test_binfhe:
   stage: unit_test
   only:
@@ -1455,9 +1297,6 @@ noflag_mb4_extras_core:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  # - ./build/bin/extras/core/temp-ntt
-  # - ./build/bin/extras/core/temp-prng
-  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - noflag_mb4_build
 
@@ -1531,9 +1370,6 @@ debug_mb2_extras_core:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  # - ./build/bin/extras/core/temp-ntt
-  # - ./build/bin/extras/core/temp-prng
-  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - debug_mb2_build
 
@@ -1608,9 +1444,6 @@ debug_mb4_extras_core:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  # - ./build/bin/extras/core/temp-ntt
-  # - ./build/bin/extras/core/temp-prng
-  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - debug_mb4_build
 
@@ -1685,9 +1518,6 @@ ntl_mb6_extras_core:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  # - ./build/bin/extras/core/temp-ntt
-  # - ./build/bin/extras/core/temp-prng
-  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - ntl_mb6_build
 
@@ -1762,9 +1592,6 @@ tcm_mb2_extras_core:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  # - ./build/bin/extras/core/temp-ntt
-  # - ./build/bin/extras/core/temp-prng
-  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - tcm_mb2_build
 
@@ -1839,9 +1666,6 @@ tcm_mb4_extras_core:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  # - ./build/bin/extras/core/temp-ntt
-  # - ./build/bin/extras/core/temp-prng
-  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - tcm_mb4_build
 
@@ -1916,9 +1740,6 @@ tcm_ntl_mb6_extras_core:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  # - ./build/bin/extras/core/temp-ntt
-  # - ./build/bin/extras/core/temp-prng
-  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - tcm_ntl_mb6_build
 
@@ -1993,9 +1814,6 @@ debug_tcm_ntl_mb6_extras_core:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  # - ./build/bin/extras/core/temp-ntt
-  # - ./build/bin/extras/core/temp-prng
-  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - debug_tcm_ntl_mb6_build
 
@@ -2034,15 +1852,11 @@ default_build_manual:
   only:
     variables:
       - $DO_CI
-  cache:
-    key: default_manual-build-libs
-    paths:
-      - build
   script:
   - whoami
   - mkdir -p build
   - cd build
-  - CC=gcc CXX=g++ cmake ..
+  - cmake ${CMAKE_ARGS} ..
   - make -j $(nproc) all
   artifacts:
     paths:
@@ -2058,15 +1872,11 @@ noflag_mb4_build_manual:
   only:
     variables:
       - $DO_CI
-  cache:
-    key: noflag-mb4-build-libs
-    paths:
-      - build
   script:
   - whoami
   - mkdir -p build
   - cd build
-  - CC=gcc CXX=g++ cmake -DMATHBACKEND=4 ..
+  - cmake ${CMAKE_ARGS} -DBUILD_EXTRAS=ON -DMATHBACKEND=4 ..
   - make -j $(nproc) all
   - make allextras
   artifacts:
@@ -2084,15 +1894,11 @@ debug_mb2_build_manual:
   only:
     variables:
       - $DO_CI
-  cache:
-    key: debug-mb2-build-libs
-    paths:
-      - build
   script:
   - whoami
   - mkdir -p build
   - cd build
-  - CC=gcc CXX=g++ cmake -DCMAKE_BUILD_TYPE=Debug -DMATHBACKEND=2 ..
+  - cmake ${CMAKE_ARGS} -DBUILD_EXTRAS=ON -DCMAKE_BUILD_TYPE=Debug -DMATHBACKEND=2 ..
   - make -j $(nproc) all
   - make allextras
   artifacts:
@@ -2110,15 +1916,11 @@ debug_mb4_build_manual:
   only:
     variables:
       - $DO_CI
-  cache:
-    key: debug-mb4-build-libs
-    paths:
-      - build
   script:
   - whoami
   - mkdir -p build
   - cd build
-  - CC=gcc CXX=g++ cmake -DCMAKE_BUILD_TYPE=Debug -DMATHBACKEND=4 ..
+  - cmake ${CMAKE_ARGS} -DBUILD_EXTRAS=ON -DCMAKE_BUILD_TYPE=Debug -DMATHBACKEND=4 ..
   - make -j $(nproc) all
   - make allextras
   artifacts:
@@ -2137,15 +1939,11 @@ ntl_mb6_build_manual:
   only:
     variables:
       - $DO_CI
-  cache:
-    key: ntl-mb6-build-libs
-    paths:
-      - build
   script:
   - whoami
   - mkdir -p build
   - cd build
-  - CC=gcc CXX=g++ cmake -DWITH_NTL=Y -DMATHBACKEND=6 ..
+  - cmake ${CMAKE_ARGS} -DBUILD_EXTRAS=ON -DWITH_NTL=Y -DMATHBACKEND=6 ..
   - make gmp_unpack
   - make ntl_unpack_nowizard
   - make -j $(nproc) gmp_all
@@ -2167,15 +1965,11 @@ tcm_mb2_build_manual:
   only:
     variables:
       - $DO_CI
-  cache:
-    key: tcm-mb2-build-libs
-    paths:
-      - build
   script:
   - whoami
   - mkdir -p build
   - cd build
-  - CC=gcc CXX=g++ cmake -DWITH_TCM=Y -DMATHBACKEND=2 ..
+  - cmake ${CMAKE_ARGS} -DBUILD_EXTRAS=ON -DWITH_TCM=Y -DMATHBACKEND=2 ..
   - make tcm
   - make -j $(nproc) all
   - make allextras
@@ -2194,14 +1988,10 @@ tcm_mb4_build_manual:
   only:
     variables:
       - $DO_CI
-  cache:
-    key: tcm-mb4-build-libs
-    paths:
-      - build
   script:
   - mkdir -p build
   - cd build
-  - CC=gcc CXX=g++ cmake -DWITH_TCM=Y -DMATHBACKEND=4 ..
+  - cmake ${CMAKE_ARGS} -DBUILD_EXTRAS=ON -DWITH_TCM=Y -DMATHBACKEND=4 ..
   - make tcm
   - make -j $(nproc) all
   - make allextras
@@ -2220,14 +2010,10 @@ tcm_ntl_mb6_build_manual:
   only:
     variables:
       - $DO_CI
-  cache:
-    key: tcm-ntl-mb6-build-libs
-    paths:
-      - build
   script:
   - mkdir -p build
   - cd build
-  - CC=gcc CXX=g++ cmake -DWITH_NTL=Y -DWITH_TCM=Y -DMATHBACKEND=6 ..
+  - cmake ${CMAKE_ARGS} -DBUILD_EXTRAS=ON -DWITH_NTL=Y -DWITH_TCM=Y -DMATHBACKEND=6 ..
   - make tcm
   - make gmp_unpack
   - make ntl_unpack_nowizard
@@ -2250,14 +2036,10 @@ debug_tcm_ntl_mb6_build_manual:
   only:
     variables:
       - $DO_CI
-  cache:
-    key: tcm-ntl-mb6-build-libs
-    paths:
-      - build
   script:
   - mkdir -p build
   - cd build
-  - CC=gcc CXX=g++ cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_NTL=Y -DWITH_TCM=Y -DMATHBACKEND=6 ..
+  - cmake ${CMAKE_ARGS} -DBUILD_EXTRAS=ON -DCMAKE_BUILD_TYPE=Debug -DWITH_NTL=Y -DWITH_TCM=Y -DMATHBACKEND=6 ..
   - make tcm
   - make gmp_unpack
   - make ntl_unpack_nowizard
@@ -2851,150 +2633,6 @@ debug_tcm_ntl_mb6_test_signature_manual:
   dependencies:
   - debug_tcm_ntl_mb6_build_manual
 
-# default_test_trapdoor_manual:
-  # stage: unit_test
-  # only:
-    # variables:
-      # - $DO_CI
-  # script:
-  # - pwd
-  # - echo $LD_LIBRARY_PATH
-  # - build/unittest/trapdoor_tests --gtest_output=xml
-  # artifacts:
-    # paths:
-    # - test_detail.xml
-    # expire_in: 2 days
-  # dependencies:
-  # - default_build_manual
-
-# noflag_mb4_test_trapdoor_manual:
-  # stage: unit_test
-  # only:
-    # variables:
-      # - $DO_CI
-  # script:
-  # - pwd
-  # - echo $LD_LIBRARY_PATH
-  # - build/unittest/trapdoor_tests --gtest_output=xml
-  # artifacts:
-    # paths:
-    # - test_detail.xml
-    # expire_in: 2 days
-  # dependencies:
-  # - noflag_mb4_build_manual
-
-# debug_mb2_test_trapdoor_manual:
-  # stage: unit_test
-  # only:
-    # variables:
-      # - $DO_CI
-  # script:
-  # - pwd
-  # - echo $LD_LIBRARY_PATH
-  # - build/unittest/trapdoor_tests --gtest_output=xml
-  # artifacts:
-    # paths:
-    # - test_detail.xml
-    # expire_in: 2 days
-  # dependencies:
-  # - debug_mb2_build_manual
-
-# debug_mb4_test_trapdoor_manual:
-  # stage: unit_test
-  # only:
-    # variables:
-      # - $DO_CI
-  # script:
-  # - pwd
-  # - echo $LD_LIBRARY_PATH
-  # - build/unittest/trapdoor_tests --gtest_output=xml
-  # artifacts:
-    # paths:
-    # - test_detail.xml
-    # expire_in: 2 days
-  # dependencies:
-  # - debug_mb4_build_manual
-
-# ntl_mb6_test_trapdoor_manual:
-  # stage: unit_test
-  # only:
-    # variables:
-      # - $DO_CI
-  # script:
-  # - pwd
-  # - echo $LD_LIBRARY_PATH
-  # - build/unittest/trapdoor_tests --gtest_output=xml
-  # artifacts:
-    # paths:
-    # - test_detail.xml
-    # expire_in: 2 days
-  # dependencies:
-  # - ntl_mb6_build_manual
-
-# tcm_mb2_test_trapdoor_manual:
-  # stage: unit_test
-  # only:
-    # variables:
-      # - $DO_CI
-  # script:
-  # - pwd
-  # - echo $LD_LIBRARY_PATH
-  # - build/unittest/trapdoor_tests --gtest_output=xml
-  # artifacts:
-    # paths:
-    # - test_detail.xml
-    # expire_in: 2 days
-  # dependencies:
-  # - tcm_mb2_build_manual
-
-# tcm_mb4_test_trapdoor_manual:
-  # stage: unit_test
-  # only:
-    # variables:
-      # - $DO_CI
-  # script:
-  # - pwd
-  # - echo $LD_LIBRARY_PATH
-  # - build/unittest/trapdoor_tests --gtest_output=xml
-  # artifacts:
-    # paths:
-    # - test_detail.xml
-    # expire_in: 2 days
-  # dependencies:
-  # - tcm_mb4_build_manual
-
-# tcm_ntl_mb6_test_trapdoor_manual:
-  # stage: unit_test
-  # only:
-    # variables:
-      # - $DO_CI
-  # script:
-  # - pwd
-  # - echo $LD_LIBRARY_PATH
-  # - build/unittest/trapdoor_tests --gtest_output=xml
-  # artifacts:
-    # paths:
-    # - test_detail.xml
-    # expire_in: 2 days
-  # dependencies:
-  # - tcm_ntl_mb6_build_manual
-
-# debug_tcm_ntl_mb6_test_trapdoor_manual:
-  # stage: unit_test
-  # only:
-    # variables:
-      # - $DO_CI
-  # script:
-  # - pwd
-  # - echo $LD_LIBRARY_PATH
-  # - build/unittest/trapdoor_tests --gtest_output=xml
-  # artifacts:
-    # paths:
-    # - test_detail.xml
-    # expire_in: 2 days
-  # dependencies:
-  # - debug_tcm_ntl_mb6_build_manual
-
 default_test_binfhe_manual:
   stage: unit_test
   only:
@@ -3389,9 +3027,6 @@ noflag_mb4_extras_core_manual:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  # - ./build/bin/extras/core/temp-ntt
-  # - ./build/bin/extras/core/temp-prng
-  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - noflag_mb4_build_manual
 
@@ -3462,9 +3097,6 @@ debug_mb2_extras_core_manual:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  # - ./build/bin/extras/core/temp-ntt
-  # - ./build/bin/extras/core/temp-prng
-  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - debug_mb2_build_manual
 
@@ -3536,9 +3168,6 @@ debug_mb4_extras_core_manual:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  # - ./build/bin/extras/core/temp-ntt
-  # - ./build/bin/extras/core/temp-prng
-  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - debug_mb4_build_manual
 
@@ -3610,9 +3239,6 @@ ntl_mb6_extras_core_manual:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  # - ./build/bin/extras/core/temp-ntt
-  # - ./build/bin/extras/core/temp-prng
-  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - ntl_mb6_build_manual
 
@@ -3684,9 +3310,6 @@ tcm_mb2_extras_core_manual:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  # - ./build/bin/extras/core/temp-ntt
-  # - ./build/bin/extras/core/temp-prng
-  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - tcm_mb2_build_manual
 
@@ -3758,9 +3381,6 @@ tcm_mb4_extras_core_manual:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  # - ./build/bin/extras/core/temp-ntt
-  # - ./build/bin/extras/core/temp-prng
-  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - tcm_mb4_build_manual
 
@@ -3832,9 +3452,6 @@ tcm_ntl_mb6_extras_core_manual:
   - ./build/bin/extras/core/math
   - ./build/bin/extras/core/ntt1
   - ./build/bin/extras/core/ntt2
-  # - ./build/bin/extras/core/temp-ntt
-  # - ./build/bin/extras/core/temp-prng
-  # - ./build/bin/extras/core/temp-xvector
   dependencies:
   - tcm_ntl_mb6_build_manual
 
@@ -3895,22 +3512,19 @@ tcm_ntl_mb6_extras_core_manual:
   # dependencies:
   # - debug_tcm_ntl_mb6_build_manual
 
-# debug_tcm_ntl_mb6_extras_core_manual:
-#  stage: extras
-#  only:
-#    variables:
-#      - $DO_CI
-#  script:
-#  - ./build/bin/extras/core/aes-util
-#  - ./build/bin/extras/core/dft
-#  - ./build/bin/extras/core/math
-#  - ./build/bin/extras/core/ntt1
-#  - ./build/bin/extras/core/ntt2
-#  - ./build/bin/extras/core/temp-ntt
-#  - ./build/bin/extras/core/temp-prng
-#  - ./build/bin/extras/core/temp-xvector
-#  dependencies:
-#  - debug_tcm_ntl_mb6_build
+debug_tcm_ntl_mb6_extras_core_manual:
+  stage: extras
+  only:
+    variables:
+      - $DO_CI
+  script:
+  - ./build/bin/extras/core/aes-util
+  - ./build/bin/extras/core/dft
+  - ./build/bin/extras/core/math
+  - ./build/bin/extras/core/ntt1
+  - ./build/bin/extras/core/ntt2
+  dependencies:
+  - debug_tcm_ntl_mb6_build_manual
 
 # debug_tcm_ntl_mb6_extras_trapdoor_manual:
   # stage: extras
@@ -3949,7 +3563,7 @@ default_build_quickci:
   - whoami
   - mkdir -p build
   - cd build
-  - CC=gcc CXX=g++ cmake ..
+  - cmake ${CMAKE_ARGS} ..
   - make -j $(nproc) all
   artifacts:
     paths:
@@ -4024,22 +3638,6 @@ default_test_signature_quickci:
   dependencies:
   - default_build_quickci
 
-# default_test_trapdoor_quickci:
-  # stage: unit_test
-  # only:
-    # variables:
-      # - $QUICK_CI
-  # script:
-  # - pwd
-  # - echo $LD_LIBRARY_PATH
-  # - build/unittest/trapdoor_tests --gtest_output=xml
-  # artifacts:
-    # paths:
-    # - test_detail.xml
-    # expire_in: 2 days
-  # dependencies:
-  # - default_build_quickci
-
 default_test_binfhe_quickci:
   stage: unit_test
   only:
@@ -4055,3 +3653,40 @@ default_test_binfhe_quickci:
     expire_in: 2 days
   dependencies:
   - default_build_quickci
+
+pages:
+  stage: docs
+  only:
+    refs:
+      - master
+  script:
+  - whoami
+  - mkdir -p build
+  - cd build
+  - cmake ${CMAKE_ARGS} ..
+  - make apidocs
+  - cd ..
+  - mv doc/apidocs/html/ public/
+  artifacts:
+    paths:
+    - public
+  dependencies: []
+  
+coverage_test:
+  stage: unit_test
+  only:
+    variables:
+      - $DO_COV
+  script:
+  - mkdir -p build
+  - cd build
+  - cmake -DWITH_COVTEST=ON ..
+  - make testall
+  - make cov
+  artifacts:
+    paths:
+    - build/coverage/assets/
+    expire_in: 1 week
+  dependencies:
+  - default_build
+  - default_build_manual

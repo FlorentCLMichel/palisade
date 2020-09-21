@@ -17,7 +17,7 @@ and support operations over polynomial rings.
 
 This lattice layer is a middle layer in the library.
 The lattice layer supports higher-level calls for operations on ring elements necessary for lattice cryptography.
-The lattice layer is intended to make calls to lower layers that support math operations, such as modulus and ring arithmetic.  
+The lattice layer is intended to make calls to lower layers that support math operations, such as modulus and ring arithmetic.
 
 File Listing
 ------------
@@ -38,7 +38,7 @@ File Listing
 Directory Description
 =====================
 
-The primary objective of the code in this directory is to represent polynomial ring elements and manipulations on these elements.  The current implementations support polynomial rings that are of dimension a power of two (e.g. x^n + 1 where n is a power of 2).  A polynomial ring is defined as Rq := R/qR = Zq[X]/(f(X)), with f(X) a mononic irreducable polynomial of degree n, and q an integer modulus. 
+The primary objective of the code in this directory is to represent polynomial ring elements and manipulations on these elements.  The current implementations support polynomial rings that are of dimension a power of two (e.g. x^n + 1 where n is a power of 2).  A polynomial ring is defined as Rq := R/qR = Zq[X]/(f(X)), with f(X) a mononic irreducable polynomial of degree n, and q an integer modulus.
 
 Support for arbitrary cyclotomic rings is also available but in experimental mode. The case of m = p and m = 2*p, where m is a cyclotomic order and p is a prime, have been tested relatively well. Other cases of m have not been tested.
 
