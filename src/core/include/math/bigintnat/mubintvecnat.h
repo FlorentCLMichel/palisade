@@ -666,7 +666,7 @@ inline void CEREAL_SAVE_FUNCTION_NAME(
     std::vector<bigintnat::NativeIntegerT<uint64_t>, A> const &vector) {
   ar(make_size_tag(
       static_cast<cereal::size_type>(vector.size())));  // number of elements
-  for (const auto v : vector) {
+  for (const auto& v : vector) {
     ar(v.ConvertToInt());
   }
 }
@@ -681,7 +681,7 @@ inline void CEREAL_SAVE_FUNCTION_NAME(
       static_cast<cereal::size_type>(vector.size())));  // number of elements
   constexpr unsigned __int128 mask =
       (static_cast<unsigned __int128>(1) << 64) - 1;
-  for (const auto v : vector) {
+  for (const auto& v : vector) {
     uint64_t vec[2];
     unsigned __int128 int128 = v.ConvertToInt();
     vec[0] = int128 & mask;  // least significant word

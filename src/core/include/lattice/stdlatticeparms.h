@@ -141,7 +141,7 @@ class StdLatticeParm {
          it !=
          byLogQ[static_cast<int>(distType)][static_cast<int>(minSecLev)].end();
          it++) {
-      if ((curLogQ < it->second->getMaxLogQ()) && (curLogQ > prev))
+      if ((curLogQ <= it->second->getMaxLogQ()) && (curLogQ > prev))
         return it->second->getRingDim();
       prev = it->second->getMaxLogQ();
     }
