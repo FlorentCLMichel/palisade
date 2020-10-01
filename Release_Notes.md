@@ -1,3 +1,8 @@
+10/01/2020: PALISADE v1.10.5 (stable) is released
+
+* Fixes a lattice parameter selection bug for an edge case (for leveled HE schemes)
+* Fixes a compilation error in Apple clang 12 (XCode 12)
+
 09/21/2020: PALISADE v1.10.4 (stable) is released
 
 * Includes all changes from development releases v1.10.0-v1.10.3
