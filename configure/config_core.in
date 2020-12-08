@@ -6,3 +6,4 @@
 #cmakedefine HAVE_INT128 @HAVE_INT128@
 #cmakedefine HAVE_INT64 @HAVE_INT64@
 #cmakedefine NATIVEINT @NATIVEINT@
+#cmakedefine CKKS_M_FACTOR @CKKS_M_FACTOR@

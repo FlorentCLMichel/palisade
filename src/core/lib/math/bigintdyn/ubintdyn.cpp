@@ -1774,7 +1774,7 @@ const std::string ubint<limb_t>::ToString() const {
  that the dividend be at least as long as the divisor.  (In his terms,
  m >= 0 (unstated).  Therefore m+n >= n.) */
 
-inline const int nlz64(
+inline int nlz64(
     uint64_t x) {  // todo: needs to be flexible and select
                    // the appropriate nlz based on limb size..
   int n;
@@ -1809,7 +1809,7 @@ inline const int nlz64(
   return n;
 }
 
-inline const int nlz32(uint32_t x) {  // todo: needs to be flexible.
+inline int nlz32(uint32_t x) {  // todo: needs to be flexible.
   int n;
 
   if (x == 0) {

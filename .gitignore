@@ -5,6 +5,7 @@
 *.gcov
 bin/
 build/
+cmake-build-debug
 
 test/build
 test/bin

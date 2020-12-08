@@ -30,7 +30,7 @@
 namespace lbcrypto {
 
 #if NATIVEINT == 128
-const size_t AUXMODSIZE = 105;
+const size_t AUXMODSIZE = 119;
 #else
 const size_t AUXMODSIZE = 60;
 #endif

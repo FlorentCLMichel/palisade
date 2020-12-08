@@ -186,7 +186,7 @@ class EncodingParamsImpl : public lbcrypto::Serializable {
    * @brief Getter for the plaintext generator.
    * @return The plaintext generator.
    */
-  const usint GetPlaintextGenerator() const { return m_plaintextGenerator; }
+  usint GetPlaintextGenerator() const { return m_plaintextGenerator; }
 
   /**
    * @brief Setter for the plaintext generator.
@@ -199,7 +199,7 @@ class EncodingParamsImpl : public lbcrypto::Serializable {
    * @brief Getter for the plaintext batch size.
    * @return The plaintext batch size.
    */
-  const uint32_t GetBatchSize() const { return m_batchSize; }
+  uint32_t GetBatchSize() const { return m_batchSize; }
 
   /**
    * @brief Setter for the batch size

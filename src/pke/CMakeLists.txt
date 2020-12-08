@@ -72,6 +72,28 @@ if ( BUILD_EXAMPLES)
 		target_link_libraries ( ${exe} ${PKELIBS} )
 	endforeach()
 
+	# real number serialization Server-client executable generation
+	# - sits in a subdirectory, and requires compilation with the utils.h
+	file(GLOB PKE_EXAMPLES_SRC_FILES CONFIGURE_DEPENDS examples/real_number_serialization_client_server/*.cpp)
+	foreach (app ${PKE_EXAMPLES_SRC_FILES})
+		get_filename_component(exe ${app} NAME_WE)
+		add_executable(${exe} ${app} examples/real_number_serialization_client_server/utils.h)
+		set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/examples/pke)
+		set(PKEAPPS ${PKEAPPS} ${exe})
+		target_link_libraries(${exe} ${PKELIBS})
+	endforeach ()
+
+	# pre Server-client executable generation
+	# - sits in a subdirectory, and requires compilation with pre-utils.h
+	file(GLOB PKE_EXAMPLES_SRC_FILES CONFIGURE_DEPENDS examples/pre_server/*.cpp)
+	foreach (app ${PKE_EXAMPLES_SRC_FILES})
+		get_filename_component(exe ${app} NAME_WE)
+		add_executable(${exe} ${app} examples/pre_server/pre-utils.h)
+		set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/examples/pke)
+		set(PKEAPPS ${PKEAPPS} ${exe})
+		target_link_libraries(${exe} ${PKELIBS})
+	endforeach ()
+
 	add_custom_target( allpkeexamples )
 	add_dependencies( allpkeexamples ${PKEAPPS} )
 	add_dependencies( allpke allpkeexamples )

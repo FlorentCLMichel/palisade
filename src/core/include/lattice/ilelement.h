@@ -132,7 +132,7 @@ class ILElement : public Serializable {
    *
    * @return order
    */
-  virtual const usint GetCyclotomicOrder() const = 0;
+  virtual usint GetCyclotomicOrder() const = 0;
 
   /**
    * @brief Gets the Value in the Element that is At Index and returns it.

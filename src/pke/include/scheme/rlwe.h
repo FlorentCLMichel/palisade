@@ -319,6 +319,7 @@ class LPCryptoParametersRLWE : public LPCryptoParameters<Element> {
   void load(Archive &ar, std::uint32_t const version) {
     ar(::cereal::base_class<LPCryptoParameters<Element>>(this));
     ar(::cereal::make_nvp("dp", m_distributionParameter));
+    m_dgg.SetStd(m_distributionParameter);
     ar(::cereal::make_nvp("am", m_assuranceMeasure));
     ar(::cereal::make_nvp("sl", m_securityLevel));
     ar(::cereal::make_nvp("rw", m_relinWindow));

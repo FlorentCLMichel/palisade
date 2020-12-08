@@ -59,16 +59,12 @@ template <typename VecType>
 void DiscreteGaussianGeneratorImpl<VecType>::Initialize() {
   m_vals.clear();
 
-  // weightDiscreteGaussian
-  double acc = 1e-15;
+  double acc = 5e-32;
   double variance = m_std * m_std;
 
   int fin = static_cast<int>(ceil(m_std * sqrt(-2 * log(acc))));
-  // this value of fin (M) corresponds to the limit for double precision
-  // usually the bound of m_std * M is used, where M = 20 .. 40 - see DG14 for
-  // details M = 20 corresponds to 1e-87
-  // double mr = 20; // see DG14 for details
-  // int fin = (int)ceil(m_std * mr);
+  // usually the bound of m_std * M is used, where M = 12 .. 40
+  // we use M = 12 here, which corresponds to the probability of roughly 2^(-100)
 
   double cusum = 1.0;
 
@@ -78,8 +74,6 @@ void DiscreteGaussianGeneratorImpl<VecType>::Initialize() {
 
   m_a = 1 / cusum;
 
-  // fin = (int)ceil(sqrt(-2 * variance * log(acc))); //not needed - same as
-  // above
   double temp;
 
   for (int i = 1; i <= fin; i++) {

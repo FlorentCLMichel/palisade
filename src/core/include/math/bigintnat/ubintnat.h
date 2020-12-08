@@ -244,10 +244,9 @@ class NativeIntegerT
       : m_value(val) {}
 
   template <typename T = NativeInt>
-  NativeIntegerT(
-      __int128 val,
-      typename std::enable_if<!std::is_same<T, __int128>::value,
-                              bool>::type = true)
+  NativeIntegerT(__int128 val,
+                 typename std::enable_if<!std::is_same<T, __int128>::value,
+                                         bool>::type = true)
       : m_value(val) {}
 #endif
 
@@ -2230,7 +2229,6 @@ class NativeIntegerT
 #endif
   }
 
-#if defined(HAVE_INT128)
   static inline void MultD(U128BITS a, U128BITS b, typeD &res) {
     // TODO: The performance of this function can be improved
     // Instead of 128-bit multiplication, we can use MultD from bigintnat
@@ -2245,14 +2243,18 @@ class NativeIntegerT
     res.lo = a2 * b2;
     U128BITS lowBefore = res.lo;
 
-    U128BITS temp = a2 * b1 + a1 * b2;
+    U128BITS p1 = a2 * b1;
+    U128BITS p2 = a1 * b2;
+    U128BITS temp = p1 + p2;
     res.hi += temp >> 64;
     res.lo += U128BITS((uint64_t)temp) << 64;
 
     // adds the carry to the high word
     if (lowBefore > res.lo) res.hi++;
+
+    // if there is an overflow in temp, add 2^64
+    if ((temp < p1) || (temp < p2)) res.hi += (U128BITS)1 << 64;
   }
-#endif
 
   static inline void MultD(U32BITS a, U32BITS b, typeD &res) {
     DNativeInt prod = DNativeInt(a) * DNativeInt(b);

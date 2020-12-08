@@ -63,7 +63,7 @@ class IntegerEncoding : public PlaintextImpl {
    * GetScalarValue
    * @return the un-encoded scalar
    */
-  const int64_t GetIntegerValue() const { return value; }
+  int64_t GetIntegerValue() const { return value; }
 
   /**
    * SetIntegerValue

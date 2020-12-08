@@ -270,7 +270,7 @@ class CiphertextImpl : public CryptoObject<Element> {
    * It will be used in multiplication/addition/subtraction to handle the
    * keyswitching.
    */
-  const size_t GetDepth() const { return m_depth; }
+  size_t GetDepth() const { return m_depth; }
 
   /**
    * Set the depth of the ciphertext.
@@ -282,7 +282,7 @@ class CiphertextImpl : public CryptoObject<Element> {
   /**
    * Get the level of the ciphertext.
    */
-  const size_t GetLevel() const { return m_level; }
+  size_t GetLevel() const { return m_level; }
 
   /**
    * Set the level of the ciphertext.
@@ -292,7 +292,7 @@ class CiphertextImpl : public CryptoObject<Element> {
   /**
    * Get the scaling factor of the ciphertext.
    */
-  const double GetScalingFactor() const { return m_scalingFactor; }
+  double GetScalingFactor() const { return m_scalingFactor; }
 
   /**
    * Set the scaling factor of the ciphertext.

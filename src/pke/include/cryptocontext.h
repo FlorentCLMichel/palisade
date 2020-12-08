@@ -115,8 +115,7 @@ class CryptoContextImpl : public Serializable {
    * @param a
    * @param b
    */
-  void TypeCheck(ConstCiphertext<Element> a,
-                 ConstCiphertext<Element> b,
+  void TypeCheck(ConstCiphertext<Element> a, ConstCiphertext<Element> b,
                  CALLER_INFO_ARGS_HDR) const {
     if (a == nullptr || b == nullptr) {
       std::string errorMsg(std::string("Null Ciphertext") + CALLER_INFO);
@@ -124,20 +123,21 @@ class CryptoContextImpl : public Serializable {
     }
     if (a->GetCryptoContext().get() != this) {
       std::string errorMsg(
-        std::string("Ciphertext was not created in this CryptoContext") +
-        CALLER_INFO);
+          std::string("Ciphertext was not created in this CryptoContext") +
+          CALLER_INFO);
       PALISADE_THROW(type_error, errorMsg);
     }
     if (a->GetCryptoContext() != b->GetCryptoContext()) {
       std::string errorMsg(
-        std::string("Ciphertexts were not created in the same CryptoContext") +
-        CALLER_INFO);
+          std::string(
+              "Ciphertexts were not created in the same CryptoContext") +
+          CALLER_INFO);
       PALISADE_THROW(type_error, errorMsg);
     }
     if (a->GetKeyTag() != b->GetKeyTag()) {
       std::string errorMsg(
-        std::string("Ciphertexts were not encrypted with same keys") +
-        CALLER_INFO);
+          std::string("Ciphertexts were not encrypted with same keys") +
+          CALLER_INFO);
       PALISADE_THROW(type_error, errorMsg);
     }
     if (a->GetEncodingType() != b->GetEncodingType()) {
@@ -158,42 +158,42 @@ class CryptoContextImpl : public Serializable {
    * @param a
    * @param b
    */
-   /*
-  void TypeCheck(Ciphertext<Element> a,
-                 Ciphertext<Element> b,
-                 CALLER_INFO_ARGS_HDR) const {
-    if (a == nullptr || b == nullptr) {
-      std::string errorMsg(std::string("Null Ciphertext") + CALLER_INFO);
-      PALISADE_THROW(type_error, errorMsg);
-    }
-    if (a->GetCryptoContext().get() != this) {
-      std::string errorMsg(
-        std::string("Ciphertext was not created in this CryptoContext") +
-        CALLER_INFO);
-      PALISADE_THROW(type_error, errorMsg);
-    }
-    if (a->GetCryptoContext() != b->GetCryptoContext()) {
-      std::string errorMsg(
-        std::string("Ciphertexts were not created in the same CryptoContext") +
-        CALLER_INFO);
-      PALISADE_THROW(type_error, errorMsg);
-    }
-    if (a->GetKeyTag() != b->GetKeyTag()) {
-      std::string errorMsg(
-        std::string("Ciphertexts were not encrypted with same keys") +
-        CALLER_INFO);
-      PALISADE_THROW(type_error, errorMsg);
-    }
-    if (a->GetEncodingType() != b->GetEncodingType()) {
-      std::stringstream ss;
-      ss << "Ciphertext encoding types " << a->GetEncodingType();
-      ss << " and " << b->GetEncodingType();
-      ss << " do not match";
-      ss << CALLER_INFO;
-      PALISADE_THROW(type_error, ss.str());
-    }
-  }
-  */
+  /*
+ void TypeCheck(Ciphertext<Element> a,
+                Ciphertext<Element> b,
+                CALLER_INFO_ARGS_HDR) const {
+   if (a == nullptr || b == nullptr) {
+     std::string errorMsg(std::string("Null Ciphertext") + CALLER_INFO);
+     PALISADE_THROW(type_error, errorMsg);
+   }
+   if (a->GetCryptoContext().get() != this) {
+     std::string errorMsg(
+       std::string("Ciphertext was not created in this CryptoContext") +
+       CALLER_INFO);
+     PALISADE_THROW(type_error, errorMsg);
+   }
+   if (a->GetCryptoContext() != b->GetCryptoContext()) {
+     std::string errorMsg(
+       std::string("Ciphertexts were not created in the same CryptoContext") +
+       CALLER_INFO);
+     PALISADE_THROW(type_error, errorMsg);
+   }
+   if (a->GetKeyTag() != b->GetKeyTag()) {
+     std::string errorMsg(
+       std::string("Ciphertexts were not encrypted with same keys") +
+       CALLER_INFO);
+     PALISADE_THROW(type_error, errorMsg);
+   }
+   if (a->GetEncodingType() != b->GetEncodingType()) {
+     std::stringstream ss;
+     ss << "Ciphertext encoding types " << a->GetEncodingType();
+     ss << " and " << b->GetEncodingType();
+     ss << " do not match";
+     ss << CALLER_INFO;
+     PALISADE_THROW(type_error, ss.str());
+   }
+ }
+ */
 
   /**
    * TypeCheck makes sure that an operation between a ciphertext and a plaintext
@@ -201,8 +201,7 @@ class CryptoContextImpl : public Serializable {
    * @param a
    * @param b
    */
-  void TypeCheck(ConstCiphertext<Element> a,
-                 ConstPlaintext b,
+  void TypeCheck(ConstCiphertext<Element> a, ConstPlaintext b,
                  CALLER_INFO_ARGS_HDR) const {
     if (a == nullptr) {
       std::string errorMsg(std::string("Null Ciphertext") + CALLER_INFO);
@@ -214,8 +213,8 @@ class CryptoContextImpl : public Serializable {
     }
     if (a->GetCryptoContext().get() != this) {
       std::string errorMsg(
-        std::string("Ciphertext was not created in this CryptoContext") +
-        CALLER_INFO);
+          std::string("Ciphertext was not created in this CryptoContext") +
+          CALLER_INFO);
       PALISADE_THROW(type_error, errorMsg);
     }
     if (a->GetEncodingType() != b->GetEncodingType()) {
@@ -238,20 +237,21 @@ class CryptoContextImpl : public Serializable {
                  CALLER_INFO_ARGS_HDR) const {
     if (a.GetCryptoContext().get() != this) {
       std::string errorMsg(
-        std::string("Ciphertext was not created in this CryptoContextImpl") +
-        CALLER_INFO);
+          std::string("Ciphertext was not created in this CryptoContextImpl") +
+          CALLER_INFO);
       PALISADE_THROW(type_error, errorMsg);
     }
     if (a.GetCryptoContext() != b.GetCryptoContext()) {
       std::string errorMsg(
-        std::string("Ciphertexts were not created in the same CryptoContextImpl") +
-        CALLER_INFO);
+          std::string(
+              "Ciphertexts were not created in the same CryptoContextImpl") +
+          CALLER_INFO);
       PALISADE_THROW(type_error, errorMsg);
     }
     if (a.GetKeyTag() != b.GetKeyTag()) {
       std::string errorMsg(
-        std::string("Ciphertexts were not encrypted with same keys") +
-        CALLER_INFO);
+          std::string("Ciphertexts were not encrypted with same keys") +
+          CALLER_INFO);
       PALISADE_THROW(type_error, errorMsg);
     }
     if (a.GetNumerator()->GetEncodingType() !=
@@ -272,8 +272,7 @@ class CryptoContextImpl : public Serializable {
    * @param a
    * @param b
    */
-  void TypeCheck(const RationalCiphertext<Element>& a,
-                 ConstPlaintext b,
+  void TypeCheck(const RationalCiphertext<Element>& a, ConstPlaintext b,
                  CALLER_INFO_ARGS_HDR) const {
     if (b == nullptr) {
       std::string errorMsg(std::string("Null Plaintext") + CALLER_INFO);
@@ -281,8 +280,8 @@ class CryptoContextImpl : public Serializable {
     }
     if (a.GetCryptoContext().get() != this) {
       std::string errorMsg(
-        std::string("Ciphertext was not created in this CryptoContextImpl") +
-        CALLER_INFO);
+          std::string("Ciphertext was not created in this CryptoContextImpl") +
+          CALLER_INFO);
       PALISADE_THROW(type_error, errorMsg);
     }
     if (a.GetNumerator()->GetEncodingType() != b->GetEncodingType()) {
@@ -872,7 +871,7 @@ class CryptoContextImpl : public Serializable {
     return params;
   }
 
-  const size_t GetKeyGenLevel() const { return m_keyGenLevel; }
+  size_t GetKeyGenLevel() const { return m_keyGenLevel; }
 
   void SetKeyGenLevel(size_t level) { m_keyGenLevel = level; }
 
@@ -897,7 +896,7 @@ class CryptoContextImpl : public Serializable {
    *
    * @return
    */
-  const usint GetCyclotomicOrder() const {
+  usint GetCyclotomicOrder() const {
     return params->GetElementParams()->GetCyclotomicOrder();
   }
 
@@ -906,7 +905,7 @@ class CryptoContextImpl : public Serializable {
    *
    * @return
    */
-  const usint GetRingDimension() const {
+  usint GetRingDimension() const {
     return params->GetElementParams()->GetRingDimension();
   }
 
@@ -959,8 +958,7 @@ class CryptoContextImpl : public Serializable {
   LPKeyPair<Element> MultipartyKeyGen(const LPPublicKey<Element> pk,
                                       bool makeSparse = false,
                                       bool fresh = false) {
-    if(!pk)
-        PALISADE_THROW(config_error, "Input public key is empty");
+    if (!pk) PALISADE_THROW(config_error, "Input public key is empty");
     TimeVar t;
     if (doTiming) TIC(t);
     auto r = GetEncryptionAlgorithm()->MultipartyKeyGen(
@@ -982,8 +980,8 @@ class CryptoContextImpl : public Serializable {
    */
   LPKeyPair<Element> MultipartyKeyGen(
       const vector<LPPrivateKey<Element>>& secretKeys) {
-    if(!secretKeys.size())
-        PALISADE_THROW(config_error, "Input private key vector is empty");
+    if (!secretKeys.size())
+      PALISADE_THROW(config_error, "Input private key vector is empty");
     TimeVar t;
     if (doTiming) TIC(t);
     auto r = GetEncryptionAlgorithm()->MultipartyKeyGen(
@@ -1097,11 +1095,10 @@ class CryptoContextImpl : public Serializable {
       const LPPrivateKey<Element> newPrivateKey,
       const LPEvalKey<Element> ek) const {
     if (!originalPrivateKey)
-        PALISADE_THROW(config_error, "Input first private key is nullptr");
+      PALISADE_THROW(config_error, "Input first private key is nullptr");
     if (!newPrivateKey)
-        PALISADE_THROW(config_error, "Input second private key is nullptr");
-    if (!ek)
-        PALISADE_THROW(config_error, "Input evaluation key is nullptr");
+      PALISADE_THROW(config_error, "Input second private key is nullptr");
+    if (!ek) PALISADE_THROW(config_error, "Input evaluation key is nullptr");
     TimeVar t;
     if (doTiming) TIC(t);
     auto r = GetEncryptionAlgorithm()->MultiKeySwitchGen(originalPrivateKey,
@@ -1128,11 +1125,11 @@ class CryptoContextImpl : public Serializable {
       const shared_ptr<std::map<usint, LPEvalKey<Element>>> eAuto,
       const std::vector<usint>& indexList, const std::string& keyId = "") {
     if (!privateKey)
-        PALISADE_THROW(config_error, "Input private key is nullptr");
+      PALISADE_THROW(config_error, "Input private key is nullptr");
     if (!eAuto)
-        PALISADE_THROW(config_error, "Input evaluation key map is nullptr");
+      PALISADE_THROW(config_error, "Input evaluation key map is nullptr");
     if (!indexList.size())
-        PALISADE_THROW(config_error, "Input index vector is empty");
+      PALISADE_THROW(config_error, "Input index vector is empty");
     TimeVar t;
     if (doTiming) TIC(t);
     auto r = GetEncryptionAlgorithm()->MultiEvalAutomorphismKeyGen(
@@ -1160,11 +1157,11 @@ class CryptoContextImpl : public Serializable {
       const shared_ptr<std::map<usint, LPEvalKey<Element>>> eAuto,
       const std::vector<int32_t>& indexList, const std::string& keyId = "") {
     if (!privateKey)
-        PALISADE_THROW(config_error, "Input private key is nullptr");
+      PALISADE_THROW(config_error, "Input private key is nullptr");
     if (!eAuto)
-        PALISADE_THROW(config_error, "Input evaluation key map is nullptr");
+      PALISADE_THROW(config_error, "Input evaluation key map is nullptr");
     if (!indexList.size())
-        PALISADE_THROW(config_error, "Input index vector is empty");
+      PALISADE_THROW(config_error, "Input index vector is empty");
     TimeVar t;
     if (doTiming) TIC(t);
     auto r = GetEncryptionAlgorithm()->MultiEvalAtIndexKeyGen(privateKey, eAuto,
@@ -1190,9 +1187,9 @@ class CryptoContextImpl : public Serializable {
       const shared_ptr<std::map<usint, LPEvalKey<Element>>> eSum,
       const std::string& keyId = "") {
     if (!privateKey)
-        PALISADE_THROW(config_error, "Input private key is nullptr");
+      PALISADE_THROW(config_error, "Input private key is nullptr");
     if (!eSum)
-        PALISADE_THROW(config_error, "Input evaluation key map is nullptr");
+      PALISADE_THROW(config_error, "Input evaluation key map is nullptr");
     TimeVar t;
     if (doTiming) TIC(t);
     auto r =
@@ -1215,9 +1212,9 @@ class CryptoContextImpl : public Serializable {
                                       LPEvalKey<Element> b,
                                       const std::string& keyId = "") {
     if (!a)
-        PALISADE_THROW(config_error, "Input first evaluation key is nullptr");
+      PALISADE_THROW(config_error, "Input first evaluation key is nullptr");
     if (!b)
-        PALISADE_THROW(config_error, "Input second evaluation key is nullptr");
+      PALISADE_THROW(config_error, "Input second evaluation key is nullptr");
     TimeVar t;
     if (doTiming) TIC(t);
     auto r = GetEncryptionAlgorithm()->MultiAddEvalKeys(a, b, keyId);
@@ -1241,9 +1238,8 @@ class CryptoContextImpl : public Serializable {
                                       LPPrivateKey<Element> sk,
                                       const std::string& keyId = "") {
     if (!evalKey)
-        PALISADE_THROW(config_error, "Input evaluation key is nullptr");
-    if (!sk)
-        PALISADE_THROW(config_error, "Input private key is nullptr");
+      PALISADE_THROW(config_error, "Input evaluation key is nullptr");
+    if (!sk) PALISADE_THROW(config_error, "Input private key is nullptr");
     TimeVar t;
     if (doTiming) TIC(t);
     auto r = GetEncryptionAlgorithm()->MultiMultEvalKey(evalKey, sk, keyId);
@@ -1266,9 +1262,10 @@ class CryptoContextImpl : public Serializable {
       const shared_ptr<std::map<usint, LPEvalKey<Element>>> es2,
       const std::string& keyId = "") {
     if (!es1)
-        PALISADE_THROW(config_error, "Input first evaluation key map is nullptr");
+      PALISADE_THROW(config_error, "Input first evaluation key map is nullptr");
     if (!es2)
-        PALISADE_THROW(config_error, "Input second evaluation key map is nullptr");
+      PALISADE_THROW(config_error,
+                     "Input second evaluation key map is nullptr");
     TimeVar t;
     if (doTiming) TIC(t);
     auto r = GetEncryptionAlgorithm()->MultiAddEvalSumKeys(es1, es2, keyId);
@@ -1291,9 +1288,10 @@ class CryptoContextImpl : public Serializable {
       const shared_ptr<std::map<usint, LPEvalKey<Element>>> es2,
       const std::string& keyId = "") {
     if (!es1)
-        PALISADE_THROW(config_error, "Input first evaluation key map is nullptr");
+      PALISADE_THROW(config_error, "Input first evaluation key map is nullptr");
     if (!es2)
-        PALISADE_THROW(config_error, "Input second evaluation key map is nullptr");
+      PALISADE_THROW(config_error,
+                     "Input second evaluation key map is nullptr");
     TimeVar t;
     if (doTiming) TIC(t);
     auto r =
@@ -1317,9 +1315,9 @@ class CryptoContextImpl : public Serializable {
                                        LPPublicKey<Element> pubKey2,
                                        const std::string& keyId = "") {
     if (!pubKey1)
-        PALISADE_THROW(config_error, "Input first public key is nullptr");
-    if(!pubKey2)
-        PALISADE_THROW(config_error, "Input second public key is nullptr");
+      PALISADE_THROW(config_error, "Input first public key is nullptr");
+    if (!pubKey2)
+      PALISADE_THROW(config_error, "Input second public key is nullptr");
 
     TimeVar t;
     if (doTiming) TIC(t);
@@ -1342,9 +1340,9 @@ class CryptoContextImpl : public Serializable {
                                           LPEvalKey<Element> evalKey2,
                                           const std::string& keyId = "") {
     if (!evalKey1)
-        PALISADE_THROW(config_error, "Input first evaluation key is nullptr");
-    if(!evalKey2)
-        PALISADE_THROW(config_error, "Input second evaluation key is nullptr");
+      PALISADE_THROW(config_error, "Input first evaluation key is nullptr");
+    if (!evalKey2)
+      PALISADE_THROW(config_error, "Input second evaluation key is nullptr");
     TimeVar t;
     if (doTiming) TIC(t);
     auto r = GetEncryptionAlgorithm()->MultiAddEvalMultKeys(evalKey1, evalKey2,
@@ -1742,8 +1740,14 @@ class CryptoContextImpl : public Serializable {
   }
 
   /**
+   * COMPLEX ARITHMETIC IS NOT AVAILABLE STARTING WITH 1.10.6,
+   * AND THIS METHOD BE DEPRECATED. USE THE REAL-NUMBER METHOD INSTEAD.
    * MakeCKKSPackedPlaintext constructs a CKKSPackedEncoding in this context
-   * @param value
+   * from a vector of complex numbers
+   * @param value - input vector
+   * @paran depth - depth used to encode the vector
+   * @param level - level at each the vector will get encrypted
+   * @param params - parameters to be usef for the ciphertext
    * @return plaintext
    */
   virtual Plaintext MakeCKKSPackedPlaintext(
@@ -1780,6 +1784,25 @@ class CryptoContextImpl : public Serializable {
 
     p->Encode();
     return p;
+  }
+
+  /**
+   * MakeCKKSPackedPlaintext constructs a CKKSPackedEncoding in this context
+   * from a vector of real numbers
+   * @param value - input vector
+   * @paran depth - depth used to encode the vector
+   * @param level - level at each the vector will get encrypted
+   * @param params - parameters to be usef for the ciphertext
+   * @return plaintext
+   */
+  virtual Plaintext MakeCKKSPackedPlaintext(
+      const std::vector<double>& value, size_t depth = 1, uint32_t level = 0,
+      const shared_ptr<ParmType> params = nullptr) const {
+    std::vector<std::complex<double>> complexValue(value.size());
+    std::transform(value.begin(), value.end(), complexValue.begin(),
+                   [](double da) { return std::complex<double>(da); });
+
+    return MakeCKKSPackedPlaintext(complexValue, depth, level, params);
   }
 
   /**
@@ -2521,7 +2544,8 @@ class CryptoContextImpl : public Serializable {
 
     auto ek = GetEvalMultKeyVector(ct1->GetKeyTag());
     if (!ek.size()) {
-        PALISADE_THROW(type_error, "Evaluation key has not been generated for EvalMult");
+      PALISADE_THROW(type_error,
+                     "Evaluation key has not been generated for EvalMult");
     }
 
     TimeVar t;
@@ -2548,7 +2572,8 @@ class CryptoContextImpl : public Serializable {
 
     auto ek = GetEvalMultKeyVector(ct1->GetKeyTag());
     if (!ek.size()) {
-        PALISADE_THROW(type_error, "Evaluation key has not been generated for EvalMult");
+      PALISADE_THROW(type_error,
+                     "Evaluation key has not been generated for EvalMult");
     }
 
     TimeVar t;
@@ -2596,12 +2621,13 @@ class CryptoContextImpl : public Serializable {
   Ciphertext<Element> EvalMultMany(
       const vector<Ciphertext<Element>>& ct) const {
     // input parameter check
-    if (!ct.size())
-        PALISADE_THROW(type_error, "Empty input ciphertext vector");
+    if (!ct.size()) PALISADE_THROW(type_error, "Empty input ciphertext vector");
 
     const auto ek = GetEvalMultKeyVector(ct[0]->GetKeyTag());
-    if (ek.size() < (ct[0]->GetElements().size()-2)) {
-        PALISADE_THROW(type_error, "Insufficient value was used for maxDepth to generate keys for EvalMult");
+    if (ek.size() < (ct[0]->GetElements().size() - 2)) {
+      PALISADE_THROW(type_error,
+                     "Insufficient value was used for maxDepth to generate "
+                     "keys for EvalMult");
     }
 
     TimeVar t;
@@ -2625,7 +2651,7 @@ class CryptoContextImpl : public Serializable {
       const vector<Ciphertext<Element>>& ctList) const {
     // input parameter check
     if (!ctList.size())
-        PALISADE_THROW(type_error, "Empty input ciphertext vector");
+      PALISADE_THROW(type_error, "Empty input ciphertext vector");
 
     TimeVar t;
     if (doTiming) TIC(t);
@@ -2651,7 +2677,7 @@ class CryptoContextImpl : public Serializable {
       vector<Ciphertext<Element>>& ctList) const {
     // input parameter check
     if (!ctList.size())
-        PALISADE_THROW(type_error, "Empty input ciphertext vector");
+      PALISADE_THROW(type_error, "Empty input ciphertext vector");
 
     TimeVar t;
     if (doTiming) TIC(t);
@@ -2676,12 +2702,14 @@ class CryptoContextImpl : public Serializable {
   Ciphertext<Element> EvalMultAndRelinearize(
       ConstCiphertext<Element> ct1, ConstCiphertext<Element> ct2) const {
     // input parameter check
-    if (!ct1 || !ct2)
-        PALISADE_THROW(type_error, "Input ciphertext is nullptr");
+    if (!ct1 || !ct2) PALISADE_THROW(type_error, "Input ciphertext is nullptr");
 
     const auto ek = GetEvalMultKeyVector(ct1->GetKeyTag());
-    if(ek.size() < (ct1->GetElements().size() + ct2->GetElements().size() - 3)) {
-        PALISADE_THROW(type_error, "Insufficient value was used for maxDepth to generate keys for EvalMult");
+    if (ek.size() <
+        (ct1->GetElements().size() + ct2->GetElements().size() - 3)) {
+      PALISADE_THROW(type_error,
+                     "Insufficient value was used for maxDepth to generate "
+                     "keys for EvalMult");
     }
 
     TimeVar t;
@@ -2702,12 +2730,13 @@ class CryptoContextImpl : public Serializable {
    */
   Ciphertext<Element> Relinearize(ConstCiphertext<Element> ct) const {
     // input parameter check
-    if (!ct)
-        PALISADE_THROW(type_error, "Input ciphertext is nullptr");
+    if (!ct) PALISADE_THROW(type_error, "Input ciphertext is nullptr");
 
     const auto ek = GetEvalMultKeyVector(ct->GetKeyTag());
-    if(ek.size() < (ct->GetElements().size() - 2)) {
-        PALISADE_THROW(type_error, "Insufficient value was used for maxDepth to generate keys for EvalMult");
+    if (ek.size() < (ct->GetElements().size() - 2)) {
+      PALISADE_THROW(type_error,
+                     "Insufficient value was used for maxDepth to generate "
+                     "keys for EvalMult");
     }
 
     TimeVar t;
@@ -2836,7 +2865,7 @@ class CryptoContextImpl : public Serializable {
                                double constant) const {
     // input parameter check
     if (!ciphertext) {
-        PALISADE_THROW(type_error, "Input ciphertext is nullptr");
+      PALISADE_THROW(type_error, "Input ciphertext is nullptr");
     }
 
     TimeVar t;
@@ -2862,7 +2891,7 @@ class CryptoContextImpl : public Serializable {
                                       double constant) const {
     // input parameter check
     if (!ciphertext) {
-        PALISADE_THROW(type_error, "Input ciphertext is nullptr");
+      PALISADE_THROW(type_error, "Input ciphertext is nullptr");
     }
 
     TimeVar t;
@@ -2957,7 +2986,7 @@ class CryptoContextImpl : public Serializable {
     if (publicKey == nullptr || origPrivateKey == nullptr)
       PALISADE_THROW(type_error, "Null Keys");
     if (!indexList.size())
-        PALISADE_THROW(config_error, "Input index vector is empty");
+      PALISADE_THROW(config_error, "Input index vector is empty");
     if (publicKey->GetCryptoContext().get() != this)
       PALISADE_THROW(type_error,
                      "Key was not created in this CryptoContextImpl");
@@ -3047,7 +3076,7 @@ class CryptoContextImpl : public Serializable {
       const std::vector<usint>& indexList) const {
     if (privateKey == nullptr) PALISADE_THROW(type_error, "Null input");
     if (!indexList.size())
-        PALISADE_THROW(config_error, "Input index vector is empty");
+      PALISADE_THROW(config_error, "Input index vector is empty");
     if (privateKey->GetCryptoContext().get() != this)
       PALISADE_THROW(type_error,
                      "Key was not created in this CryptoContextImpl");
@@ -3510,7 +3539,8 @@ class CryptoContextImpl : public Serializable {
 
     auto ek = GetEvalMultKeyVector(ciphertext1->GetKeyTag());
     if (!ek.size()) {
-        PALISADE_THROW(type_error, "Evaluation key has not been generated for EvalMult");
+      PALISADE_THROW(type_error,
+                     "Evaluation key has not been generated for EvalMult");
     }
 
     TimeVar t;

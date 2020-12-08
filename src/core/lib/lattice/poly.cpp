@@ -529,16 +529,15 @@ PolyImpl<VecType> PolyImpl<VecType>::Times(
   PolyImpl<VecType> tmp = CloneParametersOnly();
   if (element < 0) {
     Integer q = m_params->GetModulus();
-    bigintnat::NativeInteger::SignedNativeInt elementReduced =
-        (-element) % q.ConvertToInt();
-    tmp.SetValues(
-        GetValues().ModMul(
-            q - Integer((bigintnat::NativeInteger::Integer)elementReduced)),
-        this->m_format);
+    Integer elementReduced = bigintnat::NativeInteger::Integer(-element);
+    if (elementReduced > q) elementReduced.ModEq(q);
+    tmp.SetValues(GetValues().ModMul(q - Integer(elementReduced)),
+                  this->m_format);
   } else {
-    tmp.SetValues(
-        GetValues().ModMul(Integer((bigintnat::NativeInteger::Integer)element)),
-        this->m_format);
+    Integer q = m_params->GetModulus();
+    Integer elementReduced = bigintnat::NativeInteger::Integer(element);
+    if (elementReduced > q) elementReduced.ModEq(q);
+    tmp.SetValues(GetValues().ModMul(Integer(elementReduced)), this->m_format);
   }
   return tmp;
 }
