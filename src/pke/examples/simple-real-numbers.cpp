@@ -157,8 +157,8 @@ int main() {
   // Step 3: Encoding and encryption of inputs
 
   // Inputs
-  vector<std::complex<double>> x1 = {0.25, 0.5, 0.75, 1.0, 2.0, 3.0, 4.0, 5.0};
-  vector<std::complex<double>> x2 = {5.0, 4.0, 3.0, 2.0, 1.0, 0.75, 0.5, 0.25};
+  vector<double> x1 = {0.25, 0.5, 0.75, 1.0, 2.0, 3.0, 4.0, 5.0};
+  vector<double> x2 = {5.0, 4.0, 3.0, 2.0, 1.0, 0.75, 0.5, 0.25};
 
   // Encoding as plaintexts
   Plaintext ptxt1 = cc->MakeCKKSPackedPlaintext(x1);
@@ -201,7 +201,9 @@ int main() {
   // Decrypt the result of addition
   cc->Decrypt(keys.secretKey, cAdd, &result);
   result->SetLength(batchSize);
-  std::cout << "x1 + x2 = " << result << std::endl;
+  std::cout << "x1 + x2 = " << result;
+  std::cout << "Estimated precision in bits: " << result->GetLogPrecision()
+            << std::endl;
 
   // Decrypt the result of subtraction
   cc->Decrypt(keys.secretKey, cSub, &result);

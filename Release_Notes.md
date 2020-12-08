@@ -1,3 +1,10 @@
+12/08/2020: PALISADE v1.10.6 (stable) is released
+
+* Patches CKKS against the Li-Micciancio attack
+* Complex-number arithmetic is no longer supported in CKKS
+* Fixes a bug in the 128-bit mathematical backend
+* Fixes a rarely occuring exception in the Gaussian sampling procedure
+
 10/01/2020: PALISADE v1.10.5 (stable) is released
 
 * Fixes a lattice parameter selection bug for an edge case (for leveled HE schemes)

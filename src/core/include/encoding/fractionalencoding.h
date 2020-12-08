@@ -96,7 +96,7 @@ class FractionalEncoding : public PlaintextImpl {
    * GetScalarValue
    * @return the un-encoded scalar
    */
-  const int64_t GetIntegerValue() const { return m_integer; }
+  int64_t GetIntegerValue() const { return m_integer; }
 
   /**
    * SetFractionalValues

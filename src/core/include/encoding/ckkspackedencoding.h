@@ -56,16 +56,19 @@ class CKKSPackedEncoding : public PlaintextImpl {
   CKKSPackedEncoding(shared_ptr<Poly::Params> vp, EncodingParams ep)
       : PlaintextImpl(vp, ep) {
     depth = 1;
+    m_logError = 0.0;
   }
 
   CKKSPackedEncoding(shared_ptr<NativePoly::Params> vp, EncodingParams ep)
       : PlaintextImpl(vp, ep) {
     depth = 1;
+    m_logError = 0.0;
   }
 
   CKKSPackedEncoding(shared_ptr<DCRTPoly::Params> vp, EncodingParams ep)
       : PlaintextImpl(vp, ep) {
     depth = 1;
+    m_logError = 0.0;
   }
 
   CKKSPackedEncoding(shared_ptr<Poly::Params> vp, EncodingParams ep,
@@ -75,6 +78,7 @@ class CKKSPackedEncoding : public PlaintextImpl {
     this->depth = depth;
     this->level = level;
     this->scalingFactor = scFact;
+    m_logError = 0.0;
   }
 
   CKKSPackedEncoding(shared_ptr<NativePoly::Params> vp, EncodingParams ep,
@@ -84,6 +88,7 @@ class CKKSPackedEncoding : public PlaintextImpl {
     this->depth = depth;
     this->level = level;
     this->scalingFactor = scFact;
+    m_logError = 0.0;
   }
 
   /*
@@ -99,6 +104,7 @@ class CKKSPackedEncoding : public PlaintextImpl {
     this->depth = depth;
     this->level = level;
     this->scalingFactor = scFact;
+    m_logError = 0.0;
   }
 
   /**
@@ -109,6 +115,7 @@ class CKKSPackedEncoding : public PlaintextImpl {
   explicit CKKSPackedEncoding(const std::vector<std::complex<double>> &rhs)
       : PlaintextImpl(shared_ptr<Poly::Params>(0), nullptr), value(rhs) {
     depth = 1;
+    m_logError = 0.0;
   }
 
   /**
@@ -117,16 +124,30 @@ class CKKSPackedEncoding : public PlaintextImpl {
   CKKSPackedEncoding()
       : PlaintextImpl(shared_ptr<Poly::Params>(0), nullptr), value() {
     depth = 1;
+    m_logError = 0.0;
   }
 
   bool Encode();
 
-  bool Decode();
+  bool Decode() {
+    PALISADE_THROW(
+        not_available_error,
+        "CKKSPackedEncoding::Decode() is not implemented. "
+        "Use CKKSPackedEncoding::Decode(depth,scalingFactor,rstech) instead.");
+  }
 
   bool Decode(size_t depth, double scalingFactor, RescalingTechnique rsTech);
 
   const std::vector<std::complex<double>> &GetCKKSPackedValue() const {
     return value;
+  }
+
+  const std::vector<double> GetRealPackedValue() const {
+    std::vector<double> realValue(value.size());
+    std::transform(value.begin(), value.end(), realValue.begin(),
+                   [](std::complex<double> da) { return da.real(); });
+
+    return realValue;
   }
 
   /**
@@ -156,6 +177,19 @@ class CKKSPackedEncoding : public PlaintextImpl {
    * @return the length of the plaintext in terms of the number of bits.
    */
   size_t GetLength() const { return value.size(); }
+
+  /**
+   * Get method to return log2 of estimated standard deviation of approximation
+   * error
+   */
+  double GetLogError() const { return m_logError; }
+
+  /**
+   * Get method to return log2 of estimated precision
+   */
+  double GetLogPrecision() const {
+    return encodingParams->GetPlaintextModulus() - m_logError;
+  }
 
   /**
    * SetLength of the plaintext to the given size
@@ -189,15 +223,19 @@ class CKKSPackedEncoding : public PlaintextImpl {
       if (value[i] != std::complex<double>(0, 0)) break;
 
     for (size_t j = 0; j <= i; j++) {
-      // out << ' ' << value[j].real();
-      out << " (" << value[j].real() << "," << value[j].imag() << "),";
+      out << value[j].real() << ", ";
     }
 
-    out << " ... )";
+    out << " ... ); ";
+    out << "Estimated precision: "
+        << encodingParams->GetPlaintextModulus() - m_logError << " bits"
+        << std::endl;
   }
 
  private:
   std::vector<std::complex<double>> value;
+
+  double m_logError;
 
  protected:
   /**

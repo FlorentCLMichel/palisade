@@ -136,7 +136,7 @@ class ElemParams : public Serializable {
    * @return True if the cyclotomic order or ring dimension is a power of 2.
    * False otherwise.
    */
-  const bool OrderIsPowerOfTwo() const { return isPowerOfTwo; }
+  bool OrderIsPowerOfTwo() const { return isPowerOfTwo; }
 
   /**
    * @brief Simple getter method for the ciphertext modulus, not the big

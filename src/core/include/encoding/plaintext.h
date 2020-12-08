@@ -158,7 +158,7 @@ class PlaintextImpl {
   /**
    * Get the scaling factor of the plaintext.
    */
-  const double GetScalingFactor() const { return scalingFactor; }
+  double GetScalingFactor() const { return scalingFactor; }
 
   /**
    * Set the scaling factor of the plaintext.
@@ -239,7 +239,7 @@ class PlaintextImpl {
    * GetElementRingDimension
    * @return ring dimension on the underlying element
    */
-  const usint GetElementRingDimension() const {
+  usint GetElementRingDimension() const {
     return typeFlag == IsPoly ? encodedVector.GetRingDimension()
                               : (typeFlag == IsNativePoly
                                      ? encodedNativeVector.GetRingDimension()
@@ -298,13 +298,23 @@ class PlaintextImpl {
    */
   void SetLevel(size_t l) { level = l; }
 
+  virtual double GetLogError() const {
+    PALISADE_THROW(not_available_error,
+                   "no estimate of noise available for the current scheme");
+  }
+
+  virtual double GetLogPrecision() const {
+    PALISADE_THROW(not_available_error,
+                   "no estimate of precision available for the current scheme");
+  }
+
   virtual const std::string& GetStringValue() const {
     PALISADE_THROW(type_error, "not a string");
   }
-  virtual const int64_t GetIntegerValue() const {
+  virtual int64_t GetIntegerValue() const {
     PALISADE_THROW(type_error, "not an integer");
   }
-  virtual const int64_t GetScalarValue() const {
+  virtual int64_t GetScalarValue() const {
     PALISADE_THROW(type_error, "not a scalar");
   }
   virtual const vector<int64_t>& GetCoefPackedValue() const {
@@ -316,7 +326,9 @@ class PlaintextImpl {
   virtual const std::vector<std::complex<double>>& GetCKKSPackedValue() const {
     PALISADE_THROW(type_error, "not a packed vector of complex numbers");
   }
-
+  virtual const std::vector<double> GetRealPackedValue() const {
+    PALISADE_THROW(type_error, "not a packed vector of real numbers");
+  }
   virtual void SetStringValue(const std::string&) {
     PALISADE_THROW(type_error, "does not support a string");
   }

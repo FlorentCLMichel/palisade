@@ -568,12 +568,9 @@ void RunCKKS() {
   ////////////////////////////////////////////////////////////
   // Encode source data
   ////////////////////////////////////////////////////////////
-  std::vector<std::complex<double>> vectorOfInts1 = {1, 2, 3, 4, 5, 6,
-                                                     5, 4, 3, 2, 1, 0};
-  std::vector<std::complex<double>> vectorOfInts2 = {1, 0, 0, 1, 1, 0,
-                                                     0, 0, 0, 0, 0, 0};
-  std::vector<std::complex<double>> vectorOfInts3 = {2, 2, 3, 4,  5, 6,
-                                                     7, 8, 9, 10, 0, 0};
+  std::vector<double> vectorOfInts1 = {1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1, 0};
+  std::vector<double> vectorOfInts2 = {1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0};
+  std::vector<double> vectorOfInts3 = {2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 0};
 
   Plaintext plaintext1 = cc->MakeCKKSPackedPlaintext(vectorOfInts1);
   Plaintext plaintext2 = cc->MakeCKKSPackedPlaintext(vectorOfInts2);

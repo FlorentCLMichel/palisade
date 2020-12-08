@@ -374,7 +374,7 @@ class LPCryptoParametersBGVrns : public LPCryptoParametersRLWE<Element> {
    *
    * @return the key switching technique.
    */
-  const enum KeySwitchTechnique GetKeySwitchTechnique() const {
+  enum KeySwitchTechnique GetKeySwitchTechnique() const {
     return m_ksTechnique;
   }
 
@@ -383,7 +383,7 @@ class LPCryptoParametersBGVrns : public LPCryptoParametersRLWE<Element> {
    *
    * @return the mod switching method.
    */
-  const enum ModSwitchMethod GetModSwitchMethod() const { return m_msMethod; }
+  enum ModSwitchMethod GetModSwitchMethod() const { return m_msMethod; }
 
   /**
    * Get the precomputed table of [Q/Q_j]_{q_i}
@@ -427,7 +427,7 @@ class LPCryptoParametersBGVrns : public LPCryptoParametersRLWE<Element> {
    *
    * @return the number of partitions.
    */
-  const uint32_t GetNumberOfQPartitions() const { return m_paramsPartQ.size(); }
+  uint32_t GetNumberOfQPartitions() const { return m_paramsPartQ.size(); }
 
   /**
    * Get the precomputed table of [{Q/Q_j}^{-1}]_{q_i}
@@ -444,7 +444,7 @@ class LPCryptoParametersBGVrns : public LPCryptoParametersRLWE<Element> {
    *
    * @return the number of digits.
    */
-  const uint32_t GetNumPartQ() const { return m_numPartQ; }
+  uint32_t GetNumPartQ() const { return m_numPartQ; }
 
   /**
    * Method that returns the number of towers within every digit.
@@ -453,7 +453,7 @@ class LPCryptoParametersBGVrns : public LPCryptoParametersRLWE<Element> {
    *
    * @return the number of towers per digit.
    */
-  const uint32_t GetNumPerPartQ() const { return m_numPerPartQ; }
+  uint32_t GetNumPerPartQ() const { return m_numPerPartQ; }
 
   /**
    * Method that returns the precomputed values for QHat^-1 mod qj within a

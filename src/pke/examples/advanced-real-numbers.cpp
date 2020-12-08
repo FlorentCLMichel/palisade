@@ -175,7 +175,7 @@ void AutomaticRescaleDemo(RescalingTechnique rsTech) {
   cc->EvalMultKeyGen(keys.secretKey);
 
   // Input
-  vector<std::complex<double>> x = {1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7};
+  vector<double> x = {1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7};
   Plaintext ptxt = cc->MakeCKKSPackedPlaintext(x);
 
   std::cout << "Input x: " << ptxt << std::endl;
@@ -349,7 +349,7 @@ void ManualRescaleDemo(RescalingTechnique rsTech) {
   cc->EvalMultKeyGen(keys.secretKey);
 
   // Input
-  vector<std::complex<double>> x = {1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7};
+  vector<double> x = {1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7};
   Plaintext ptxt = cc->MakeCKKSPackedPlaintext(x);
 
   std::cout << "Input x: " << ptxt << std::endl;
@@ -491,7 +491,7 @@ void HybridKeySwitchingDemo1() {
   cc->EvalAtIndexKeyGen(keys.secretKey, {1, -2});
 
   // Input
-  vector<std::complex<double>> x = {1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7};
+  vector<double> x = {1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7};
   Plaintext ptxt = cc->MakeCKKSPackedPlaintext(x);
 
   std::cout << "Input x: " << ptxt << std::endl;
@@ -612,7 +612,7 @@ void HybridKeySwitchingDemo2() {
   cc->EvalAtIndexKeyGen(keys.secretKey, {1, -2});
 
   // Input
-  vector<std::complex<double>> x = {1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7};
+  vector<double> x = {1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7};
   Plaintext ptxt = cc->MakeCKKSPackedPlaintext(x);
 
   std::cout << "Input x: " << ptxt << std::endl;
@@ -732,7 +732,7 @@ void FastRotationsDemo1() {
   cc->EvalAtIndexKeyGen(keys.secretKey, {1, 2, 3, 4, 5, 6, 7});
 
   // Input
-  vector<std::complex<double>> x = {0, 0, 0, 0, 0, 0, 0, 1};
+  vector<double> x = {0, 0, 0, 0, 0, 0, 0, 1};
   Plaintext ptxt = cc->MakeCKKSPackedPlaintext(x);
 
   std::cout << "Input x: " << ptxt << std::endl;
@@ -857,7 +857,7 @@ void FastRotationsDemo2() {
   cc->EvalAtIndexKeyGen(keys.secretKey, {1, 2, 3, 4, 5, 6, 7});
 
   // Input
-  vector<std::complex<double>> x = {0, 0, 0, 0, 0, 0, 0, 1};
+  vector<double> x = {0, 0, 0, 0, 0, 0, 0, 1};
   Plaintext ptxt = cc->MakeCKKSPackedPlaintext(x);
 
   std::cout << "Input x: " << ptxt << std::endl;

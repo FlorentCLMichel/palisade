@@ -48,7 +48,7 @@ namespace lbcrypto {
  * @brief Ideal lattice for the double-CRT representation.
  * The implementation contains a vector of underlying native-integer lattices
  * The double-CRT representation of polynomials is a common optimization for
- * lattice encryption operations. Basically, it allows large-modulus polynamials
+ * lattice encryption operations. Basically, it allows large-modulus polynomials
  * to be represented as multiple smaller-modulus polynomials.  The double-CRT
  * representations are discussed theoretically here:
  *   - Gentry C., Halevi S., Smart N.P. (2012) Homomorphic Evaluation of the AES
@@ -327,7 +327,7 @@ class DCRTPolyImpl : public ILElement<DCRTPolyImpl<VecType>, VecType> {
    * @brief returns the element's cyclotomic order
    * @return returns the cyclotomic order of the element.
    */
-  const usint GetCyclotomicOrder() const {
+  usint GetCyclotomicOrder() const {
     return m_params->GetCyclotomicOrder();
   }
 
@@ -335,7 +335,7 @@ class DCRTPolyImpl : public ILElement<DCRTPolyImpl<VecType>, VecType> {
    * @brief returns the element's ring dimension
    * @return returns the ring dimension of the element.
    */
-  const usint GetRingDimension() const { return m_params->GetRingDimension(); }
+  usint GetRingDimension() const { return m_params->GetRingDimension(); }
 
   /**
    * @brief returns the element's modulus

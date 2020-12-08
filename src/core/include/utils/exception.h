@@ -101,7 +101,7 @@ class palisade_error : public std::runtime_error {
   const char* what() const throw() { return message.c_str(); }
 
   const std::string& GetFilename() const { return filename; }
-  const int GetLinenum() const { return linenum; }
+  int GetLinenum() const { return linenum; }
 };
 
 class config_error : public palisade_error {

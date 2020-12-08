@@ -350,7 +350,7 @@ class PolyImpl : public ILElement<PolyImpl<VecType>, VecType> {
    *
    * @return order
    */
-  const usint GetCyclotomicOrder() const {
+  usint GetCyclotomicOrder() const {
     return m_params->GetCyclotomicOrder();
   }
 
@@ -359,7 +359,7 @@ class PolyImpl : public ILElement<PolyImpl<VecType>, VecType> {
    *
    * @return the ring dimension
    */
-  const usint GetRingDimension() const { return m_params->GetRingDimension(); }
+  usint GetRingDimension() const { return m_params->GetRingDimension(); }
 
   /**
    * @brief Get the root of unity.

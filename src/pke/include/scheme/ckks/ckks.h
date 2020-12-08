@@ -413,7 +413,7 @@ class LPCryptoParametersCKKS : public LPCryptoParametersRLWE<Element> {
    *
    * @return the key switching technique.
    */
-  const enum KeySwitchTechnique GetKeySwitchTechnique() const {
+  enum KeySwitchTechnique GetKeySwitchTechnique() const {
     return m_ksTechnique;
   }
 
@@ -422,7 +422,7 @@ class LPCryptoParametersCKKS : public LPCryptoParametersRLWE<Element> {
    *
    * @return the rescaling technique.
    */
-  const enum RescalingTechnique GetRescalingTechnique() const {
+  enum RescalingTechnique GetRescalingTechnique() const {
     return m_rsTechnique;
   }
 
@@ -435,7 +435,7 @@ class LPCryptoParametersCKKS : public LPCryptoParametersRLWE<Element> {
    * towers) and go up to K-1, where K is the number of towers supported.
    * @return the scaling factor.
    */
-  const double GetScalingFactorOfLevel(uint32_t l = 0) const {
+  double GetScalingFactorOfLevel(uint32_t l = 0) const {
     if (m_rsTechnique == EXACTRESCALE) {
       if (l >= m_scalingFactors.size()) {
         PALISADE_THROW(
@@ -462,7 +462,7 @@ class LPCryptoParametersCKKS : public LPCryptoParametersRLWE<Element> {
    *
    * @return the precomputed table
    */
-  const double GetModReduceFactor(uint32_t l = 0) const {
+  double GetModReduceFactor(uint32_t l = 0) const {
     if (m_rsTechnique == EXACTRESCALE) {
       return m_dmoduliQ[l];
     }
@@ -514,7 +514,7 @@ class LPCryptoParametersCKKS : public LPCryptoParametersRLWE<Element> {
    *
    * @return the number of partitions.
    */
-  const uint32_t GetNumberOfQPartitions() const { return m_paramsPartQ.size(); }
+  uint32_t GetNumberOfQPartitions() const { return m_paramsPartQ.size(); }
 
   /**
    * Method that returns the precomputed values for QHat^-1 mod qj, used in
@@ -531,7 +531,7 @@ class LPCryptoParametersCKKS : public LPCryptoParametersRLWE<Element> {
    *
    * @return the number of digits.
    */
-  const uint32_t GetNumPartQ() const { return m_numPartQ; }
+  uint32_t GetNumPartQ() const { return m_numPartQ; }
 
   /**
    * Method that returns the number of towers within every digit.
@@ -540,7 +540,7 @@ class LPCryptoParametersCKKS : public LPCryptoParametersRLWE<Element> {
    *
    * @return the number of towers per digit.
    */
-  const uint32_t GetNumPerPartQ() const { return m_numPerPartQ; }
+  uint32_t GetNumPerPartQ() const { return m_numPerPartQ; }
 
   /**
    * Method that returns the precomputed values for QHat^-1 mod qj within a

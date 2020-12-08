@@ -10,6 +10,11 @@
 
 cmake_minimum_required (VERSION 3.5.1)
 
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+endif()
+
 ### To use gcc/g++ on a Macintosh, you must set the Compilers
 ### here, not inside the project
 ##if(APPLE)
@@ -22,7 +27,7 @@ project (PALISADE C CXX)
 
 set(PALISADE_VERSION_MAJOR 1)
 set(PALISADE_VERSION_MINOR 10)
-set(PALISADE_VERSION_PATCH 5)
+set(PALISADE_VERSION_PATCH 6)
 set(PALISADE_VERSION ${PALISADE_VERSION_MAJOR}.${PALISADE_VERSION_MINOR}.${PALISADE_VERSION_PATCH})
 
 set(CMAKE_CXX_STANDARD 11)
@@ -73,6 +78,10 @@ if( NOT NATIVE_SIZE )
    # set( NATIVE_SIZE 128 )
 endif()
 
+if( NOT CKKS_M_FACTOR )
+   set( CKKS_M_FACTOR 1 )
+endif()
+
 ### Print options
 message( STATUS "BUILD_UNITTESTS:  ${BUILD_UNITTESTS}")
 message( STATUS "BUILD_EXAMPLES:   ${BUILD_EXAMPLES}")
@@ -85,8 +94,9 @@ message( STATUS "WITH_NTL:         ${WITH_NTL}")
 message( STATUS "WITH_TCM:         ${WITH_TCM}")
 message( STATUS "USE_OpenMP:       ${USE_OpenMP}")
 message( STATUS "NATIVE_SIZE:      ${NATIVE_SIZE}")
+message( STATUS "CKKS_M_FACTOR:    ${CKKS_M_FACTOR}")
 message( STATUS "WITH_NATIVEOPT:   ${WITH_NATIVEOPT}")
-message( STATUS "WITH_COVTEST:    ${WITH_COVTEST}")
+message( STATUS "WITH_COVTEST:     ${WITH_COVTEST}")
 
 #--------------------------------------------------------------------
 # Compiler logic
@@ -703,4 +713,3 @@ install(FILES
 # Install the export set for use with the install-tree
 install(EXPORT PalisadeTargets DESTINATION
   "${INSTALL_CMAKE_DIR}" COMPONENT dev)
-

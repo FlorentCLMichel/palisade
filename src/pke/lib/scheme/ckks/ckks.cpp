@@ -749,6 +749,15 @@ Ciphertext<Element> LPAlgorithmSHECKKS<Element>::EvalAutomorphism(
     PALISADE_THROW(config_error, errorMsg);
   }
 
+  if (i == 2 * ciphertext->GetElements()[0].GetRingDimension() - 1)
+    PALISADE_THROW(not_available_error,
+                   "conjugation is disabled in CKKS " + CALLER_INFO);
+
+  if (i > 2 * ciphertext->GetElements()[0].GetRingDimension() - 1)
+    PALISADE_THROW(
+        not_available_error,
+        "automorphism indices higher than 2*n are not allowed " + CALLER_INFO);
+
   Ciphertext<Element> permutedCiphertext = ciphertext->CloneEmpty();
   permutedCiphertext->SetElements({std::move(c[0].AutomorphismTransform(i)),
                                    std::move(c[1].AutomorphismTransform(i))});
@@ -773,6 +782,10 @@ LPAlgorithmSHECKKS<Element>::EvalAutomorphismKeyGen(
           privateKey->GetCryptoContext()));
 
   auto evalKeys = std::make_shared<std::map<usint, LPEvalKey<Element>>>();
+
+  auto it = std::find(indexList.begin(), indexList.end(), 2 * n - 1);
+  if (it != indexList.end())
+    PALISADE_THROW(not_available_error, "conjugation is disabled in CKKS");
 
   if (indexList.size() > n - 1)
     PALISADE_THROW(math_error, "size exceeds the ring dimension");
