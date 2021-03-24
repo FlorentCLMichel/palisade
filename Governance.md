@@ -1,4 +1,4 @@
-# Palisade Project Main Governance Document v1.0
+# Palisade Project Main Governance Document v2.0
 
 Policies and procedures governing the PALISADE community
 
@@ -13,9 +13,11 @@ This is a living document and is expected to be updated in order to
 meet the changing needs as the Palisade organization evolves over
 time.
 
-*Version 0.1 Prerelease Placeholder 9/20/2019
-*Version 0.2 Draft for Steering Committee Approval 10/28/2019
-*Version 1.0 Adopted by Steering Committee 1/28/2020
+* Version 0.1 Prerelease Placeholder 9/20/2019
+* Version 0.2 Draft for Steering Team Approval 10/28/2019
+* Version 1.0 Adopted by Steering Team 1/28/2020
+* Version 2.0 Adopted by Steering Team 3/21/21
+    * addition of Crypto Team and Advisory Board
 
 # NumFOCUS Affiliation
 
@@ -24,7 +26,7 @@ PALISADE is a Sponsored Project of NumFOCUS, a 501(c)(3) nonprofit
 charity in the United States. NumFOCUS provides PALISADE with fiscal,
 and administrative support to help ensure the health and
 sustainability of the project. Visit
-([http://numfocus.org](http://numfocus.org) for more information.
+([http://numfocus.org](http://numfocus.org)) for more information.
 
 Donations to PALISADE are managed by NumFOCUS. For donors in the
 United States, your gift is tax-deductible to the extent provided by
@@ -50,6 +52,43 @@ names, contact info, and date of first inclusion into the team.
   organizations, non-profits, and companies. The Steering team
   may create new teams, as appropriate.  Each member of the Steering
   team is entitled to one vote on all elected matters.
+  
+* **Crypto:** The Crypto team is a group of members of the Homomorphic
+  Encryption Community who have been invited to participate by the
+  Steering Committee. The team should meet as needed but at least once
+  every three months. If there is a situation requiring an immediate
+  response, such as a newly published attack, the Team may call an
+  “extraordinary” meeting. The Crypto Team recommends actions and
+  responses. All recommendations must be agreed to unanimously by
+  members of the Crypto Team.  Recommendations are then passed on to
+  the Steering Team for an immediate vote for adoption.  Areas of
+  responsibility of the Crypto Team are outlined as follows:
+
+    * Decide whether a particular scheme/capability should be added
+  	or removed from an upcoming PALISADE release.
+
+	* Identify/recommend various hardening techniques, such as PRNG,
+	Gaussian sampling, constant-time samplers, etc.
+
+	* Discuss/recommend the choice and inclusion of non-standard lattice
+	parameters, e.g., for use with non-power-of-two cyclotomics.
+
+	* Develop/recommend any patches/fixes related to newly discovered
+	vulnerabilities or attacks, and draft public announcements
+	regarding those attacks and PALISADES corresponding
+	response. Note, all resulting draft announcements must then be
+	approved by the Steering Team, which is then responsible for
+	publishing the announcement accordingly.
+	
+* **Advisory Board:** The Advisory Board is a group of technologists
+  and thought leaders expert in the HE field or associated application
+  areas who have been invited to participate by the Steering
+  Committee. The Board should meet with the Steering Team in an
+  advisory session no more frequently than once every six months, with a
+  minimum frequency of once every year. The role of the advisory board is to
+  provide input and guidance to the Steering Team regarding emerging
+  technologies, applications, and other agenda topics to be determined
+  by the Steering Team for each meeting.
 
 * **Pre-release:** The Pre-release team administers the current
   pre-release branch in the palisade-development repository and is
@@ -75,35 +114,35 @@ names, contact info, and date of first inclusion into the team.
   pre-release is stable enough to be moved to the release repository
   according the the following suggested guidelines:
 
-** The candidate pre-release has been tested independently by members
-   of the community and no severe issues have been reported. Also no
-   severe issues have been reported by the PALISADE Maintainers team.
+    * The candidate pre-release has been tested independently by members
+       of the community and no severe issues have been reported. Also no
+       severe issues have been reported by the PALISADE Maintainers team.
 
-** Sufficient time has passed for such independent review to occur. The
-   duration of this review period is up to the judgement of the
-   stable-release team and should be based on the number of new
-   features and/or scope of patches applied since the last pre-release
-   update.
+    * Sufficient time has passed for such independent review to occur. The
+       duration of this review period is up to the judgement of the
+       stable-release team and should be based on the number of new
+       features and/or scope of patches applied since the last pre-release
+       update.
 
-** These guidlines are meant to be flexible to the needs of the
-   community while maintaining overall software quality of the
-   PALISADE release. As such, interested users may request an
-   expedited (i.e. shorter) testing period provided they can assist
-   with the required testing and evaluation. Such requests must be
-   reviewd and approved by both the Stable-release team and the
-   Steering team.
+    * These guidlines are meant to be flexible to the needs of the
+       community while maintaining overall software quality of the
+       PALISADE release. As such, interested users may request an
+       expedited (i.e. shorter) testing period provided they can assist
+       with the required testing and evaluation. Such requests must be
+       reviewd and approved by both the Stable-release team and the
+       Steering team.
 
 * **Maintainers:** A Maintainer is an individual responsible for the
   management of the palisade-development repository. Maintainers have
   the ability to commit/push source code and can handle merge/pull
   requests into the main branch of the repository with the following caveats:
 
-** Merge/Pull requests from internal PALISADE Maintatiners require the
-  review of one other member of the Maintainer team (i.e. a Maintainer
-  cannot Merge their own branches).
+    * Merge/Pull requests from internal PALISADE Maintatiners require the
+      review of one other member of the Maintainer team (i.e. a Maintainer
+      cannot Merge their own branches).
 
-** Merge/Pull requests from External contributors require an extra
-  level of review and approval from the entire Maintainer team.
+    * Merge/Pull requests from External contributors require an extra
+      level of review and approval from the entire Maintainer team.
 
 * **External contributors:** This group encompasses all others who are
   not on the Steering team, Pre-release, Release or Maintainers
@@ -157,8 +196,9 @@ PALISADE at all times.
 
 This section presents descriptions and criteria for voting items in
 the PALISADE community. The Steering team is the only team with voting
-rights.  The members of the Steering team may also call a vote on any
-topic. The restrictions on calling a vote are as follows:
+rights. Other teams may pass recommendations up to the Steering team
+for a vote.  The members of the Steering team may also call a vote on
+any topic. The restrictions on calling a vote are as follows:
 
 * There must only be one vote active on a particular item at any time.
 * The act of calling for a vote cannot itself violate the code of
@@ -241,7 +281,5 @@ of the development release as appropriate.
 At no time will there be multiple pre-release versions supported. Only
 the latest pre-release will be considered active.
 
-Once a pre-release is accepteqd for stable release, that pre-release
+Once a pre-release is accepted for stable release, that pre-release
 is considered inactive.
-Governance.md
-Displaying Governance.md.
