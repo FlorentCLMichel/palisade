@@ -971,6 +971,18 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
                                   ConstCiphertext<Element> ciphertext2) const;
 
   /**
+   * Internal function for in-place homomorphic addition of ciphertexts.
+   * This method does not check whether input ciphertexts are
+   * at the same level.
+   *
+   * @param ciphertext1 first input/output ciphertext.
+   * @param ciphertext2 second input ciphertext.
+   * @details \p ciphertext1 stores the result of \p ciphertext1 + \p ciphertext2
+   */
+  void EvalAddCoreInPlace(Ciphertext<Element>& ciphertext1,
+                          ConstCiphertext<Element> ciphertext2) const;
+
+  /**
    * Function for homomorphic addition of ciphertexts.
    * Mutable version - input ciphertexts may get rescaled/level-reduced.
    *
@@ -980,17 +992,17 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    */
   virtual Ciphertext<Element> EvalAddMutable(
       Ciphertext<Element>& ciphertext1,
-      Ciphertext<Element>& ciphertext2) const {ONLYDCRTPOLY}
+      Ciphertext<Element>& ciphertext2) const override {ONLYDCRTPOLY}
 
   /**
-   * Function for homomorphic addition of ciphertexts.
+   * Function for in-place homomorphic addition of ciphertexts.
    *
-   * @param ciphertext1 first input ciphertext.
-   * @param ciphertext2 second input ciphertext.
-   * @return result of homomorphic addition of input ciphertexts.
+   * @param ct1 first input/output ciphertext.
+   * @param ct2 second input ciphertext.
+   * @details \p ct1 stores the result of \p ct1 + \p ct2
    */
-  Ciphertext<Element> EvalAdd(ConstCiphertext<Element> ciphertext1,
-                              ConstCiphertext<Element> ciphertext2) const;
+  void EvalAddInPlace(Ciphertext<Element>& ciphertext1,
+                      ConstCiphertext<Element> ciphertext2) const override;
 
   /**
    * Internal function for homomorphic addition of ciphertext
@@ -1012,7 +1024,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    * @return result of homomorphic addition of input ciphertexts.
    */
   Ciphertext<Element> EvalAdd(ConstCiphertext<Element> ciphertext,
-                              ConstPlaintext plaintext) const;
+                              ConstPlaintext plaintext) const override;
 
   /**
    * Function for homomorphic addition of ciphertexts.
@@ -1023,7 +1035,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    * @return result of homomorphic addition of input ciphertexts.
    */
   virtual Ciphertext<Element> EvalAddMutable(Ciphertext<Element>& ciphertext,
-                                             Plaintext plaintext) const {
+                                             Plaintext plaintext) const override {
     ONLYDCRTPOLY
   }
 
@@ -1037,7 +1049,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    * @return A ciphertext containing the linear weighted sum.
    */
   virtual Ciphertext<Element> EvalLinearWSum(
-      vector<Ciphertext<Element>> ciphertexts, vector<double> constants) const {
+      vector<Ciphertext<Element>> ciphertexts, vector<double> constants) const override {
     NOIMPL
   }
 
@@ -1052,7 +1064,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    */
   virtual Ciphertext<Element> EvalLinearWSumMutable(
       vector<Ciphertext<Element>> ciphertexts,
-      vector<double> constants) const {NOIMPL}
+      vector<double> constants) const override {NOIMPL}
 
   /**
    * Internal function for homomorphic subtraction of ciphertexts.
@@ -1074,7 +1086,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    * @return result of homomorphic subtraction of input ciphertexts.
    */
   Ciphertext<Element> EvalSub(ConstCiphertext<Element> ciphertext1,
-                              ConstCiphertext<Element> ciphertext2) const;
+                              ConstCiphertext<Element> ciphertext2) const override;
 
   /**
    * Function for homomorphic subtraction of ciphertexts.
@@ -1086,7 +1098,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    */
   virtual Ciphertext<Element> EvalSubMutable(
       Ciphertext<Element>& ciphertext1,
-      Ciphertext<Element>& ciphertext2) const {ONLYDCRTPOLY}
+      Ciphertext<Element>& ciphertext2) const override {ONLYDCRTPOLY}
 
   /**
    * Internal function for homomorphic subtraction of ciphertext
@@ -1109,7 +1121,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    * @return result of homomorphic subtraction of input ciphertexts.
    */
   Ciphertext<Element> EvalSub(ConstCiphertext<Element> ciphertext1,
-                              ConstPlaintext plaintext) const;
+                              ConstPlaintext plaintext) const override;
 
   /**
    * Function for homomorphic subtraction of ciphertexts.
@@ -1120,7 +1132,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    * @return result of homomorphic subtraction of input ciphertexts.
    */
   virtual Ciphertext<Element> EvalSubMutable(Ciphertext<Element>& ciphertext1,
-                                             Plaintext plaintext) const {
+                                             Plaintext plaintext) const override {
       ONLYDCRTPOLY}
 
   /**
@@ -1146,7 +1158,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    * @return result of homomorphic multiplication of input ciphertexts.
    */
   Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext1,
-                               ConstCiphertext<Element> ciphertext2) const;
+                               ConstCiphertext<Element> ciphertext2) const override;
 
   /**
    * Function for homomorphic multiplication of ciphertexts without key
@@ -1159,7 +1171,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    */
   virtual Ciphertext<Element> EvalMultMutable(
       Ciphertext<Element>& ciphertext1,
-      Ciphertext<Element>& ciphertext2) const {ONLYDCRTPOLY}
+      Ciphertext<Element>& ciphertext2) const override {ONLYDCRTPOLY}
 
   /**
    * Internal function for homomorphic multiplication of ciphertext
@@ -1181,7 +1193,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    * @return result of the multiplication.
    */
   Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext,
-                               ConstPlaintext plaintext) const;
+                               ConstPlaintext plaintext) const override;
 
   /**
    * Function for multiplying ciphertext by plaintext.
@@ -1191,7 +1203,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    * @param plaintext input plaintext embedded in the cryptocontext.
    */
   virtual Ciphertext<Element> EvalMultMutable(Ciphertext<Element>& ciphertext,
-                                              Plaintext plaintext) const {
+                                              Plaintext plaintext) const override {
       ONLYDCRTPOLY}
 
   /**
@@ -1208,7 +1220,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    */
   Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext1,
                                ConstCiphertext<Element> ciphertext2,
-                               const LPEvalKey<Element> ek) const;
+                               const LPEvalKey<Element> ek) const override;
 
   /**
    * Function for homomorphic multiplication of ciphertexts followed by key
@@ -1223,7 +1235,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    */
   Ciphertext<Element> EvalMultMutable(Ciphertext<Element>& ciphertext1,
                                       Ciphertext<Element>& ciphertext2,
-                                      const LPEvalKey<Element> ek) const;
+                                      const LPEvalKey<Element> ek) const override;
 
   /**
    * Unimplemented function to support  a multiplication with depth larger than
@@ -1238,7 +1250,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
   Ciphertext<Element> EvalMultAndRelinearize(
       ConstCiphertext<Element> ciphertext1,
       ConstCiphertext<Element> ciphertext2,
-      const vector<LPEvalKey<Element>>& ek) const;
+      const vector<LPEvalKey<Element>>& ek) const override;
 
   /*
    * Relinearize a ciphertext.
@@ -1248,7 +1260,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    * @return the relinearized ciphertext
    */
   Ciphertext<Element> Relinearize(ConstCiphertext<Element> ciphertext,
-                                  const vector<LPEvalKey<Element>>& ek) const;
+                                  const vector<LPEvalKey<Element>>& ek) const override;
 
   /**
    * Function for homomorphic negation of ciphertexts.
@@ -1256,7 +1268,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    * @param ct input ciphertext.
    * @return new ciphertext.
    */
-  Ciphertext<Element> EvalNegate(ConstCiphertext<Element> ct) const;
+  Ciphertext<Element> EvalNegate(ConstCiphertext<Element> ct) const override;
 
   /**
    * Method for generating a key switch matrix for HYBRID key switching.
@@ -1273,17 +1285,13 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
       const LPEvalKey<DCRTPoly> ek = nullptr) const;
 
   /*
-   * Method for generating a key switch matrix for HYBRID key switching.
-   * HYBRID key switching is described in Section 3 of Han, et. al.,
-   * "Better bootstrapping for approximate homomorphic encryption".
+   * Method for in-place key switching using the GHS method
    *
    * @param keySwitchHint Hint required to perform the ciphertext switching.
    * @param ciphertext Original ciphertext to perform switching on.
-   * @return ciphertext decryptable by new private key.
    */
-  Ciphertext<Element> KeySwitchHybrid(
-      const LPEvalKey<Element> keySwitchHint,
-      ConstCiphertext<Element> ciphertext) const;
+  void KeySwitchHybridInPlace(const LPEvalKey<Element> keySwitchHint,
+                              Ciphertext<Element>& ciphertext) const;
 
   /**
    * Method for generating a key switch matrix for GHS key switching.
@@ -1302,7 +1310,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
       const LPEvalKey<DCRTPoly> ek = nullptr) const;
 
   /**
-   * Method for key switching using the GHS method introduced in Gentry,
+   * Method for in-place key switching using the GHS method introduced in Gentry,
    * et. al., "Homomorphic evaluation of the AES circuit (Updated
    * implementation)". Here, we follow the notation of Section 3.2 of
    * "A full RNS variant of approximate homomorphic encryption" (RNS
@@ -1310,10 +1318,9 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    *
    * @param keySwitchHint Hint required to perform the ciphertext switching.
    * @param ciphertext Original ciphertext to perform switching on.
-   * @return ciphertext decryptable by new private key.
    */
-  Ciphertext<Element> KeySwitchGHS(const LPEvalKey<Element> keySwitchHint,
-                                   ConstCiphertext<Element> ciphertext) const;
+  void KeySwitchGHSInPlace(const LPEvalKey<Element> keySwitchHint,
+                           Ciphertext<Element>& ciphertext) const;
 
   /**
    * Method for generating a key switch matrix for BV key switching.
@@ -1332,17 +1339,16 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
       const LPEvalKey<DCRTPoly> ek = nullptr) const;
 
   /**
-   * Method for key switching using the BV method introduced in Brakerski,
-   * et. al., "Efficient full homomorphic encryption from (standard) LWE".
-   * Here, we follow Section 3.2 of "(Leveled) fully homomorphic encryption
-   * without bootstrapping" (BGV paper).
+   * Method for in-place key switching using the BV method introduced in
+   * Brakerski, et. al., "Efficient full homomorphic encryption from (standard)
+   * LWE". Here, we follow Section 3.2 of "(Leveled) fully homomorphic
+   * encryption without bootstrapping" (BGV paper).
    *
    * @param keySwitchHint Hint required to perform the ciphertext switching.
-   * @param ciphertext Original ciphertext to perform switching on.
-   * @return ciphertext decryptable by new private key.
+   * @param ciphertext Original ciphertext to perform in-place key switching on.
    */
-  Ciphertext<Element> KeySwitchBV(const LPEvalKey<Element> keySwitchHint,
-                                  ConstCiphertext<Element> ciphertext) const;
+  void KeySwitchBVInPlace(const LPEvalKey<Element> keySwitchHint,
+                          Ciphertext<Element>& ciphertext) const;
 
   /**
    * Method for generating a KeySwitchHint using RLWE relinearization
@@ -1353,54 +1359,16 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    */
   virtual LPEvalKey<Element> KeySwitchGen(
       const LPPrivateKey<Element> oldKey,
-      const LPPrivateKey<Element> newKey) const;
+      const LPPrivateKey<Element> newKey) const override;
 
   /**
-   * Method for KeySwitching based on a KeySwitchHint - uses the RLWE
+   * Method for in-place KeySwitching based on a KeySwitchHint - uses the RLWE
    * relinearization
    *
    * @param keySwitchHint Hint required to perform the ciphertext switching.
-   * @param ciphertext Original ciphertext to perform switching on.
-   * @return ciphertext decryptable by new private key.
    */
-  Ciphertext<Element> KeySwitch(const LPEvalKey<Element> ek,
-                                ConstCiphertext<Element> ciphertext) const;
-
-  /**
-   * Method for KeySwitching based on NTRU key generation and RLWE
-   * relinearization. Not used for BGVrns. Function to generate 1..log(q)
-   * encryptions for each bit of the original private key
-   *
-   * @param &newPk encryption key for the new ciphertext.
-   * @param oldSk original private key used for decryption.
-   */
-  LPEvalKey<Element> KeySwitchRelinGen(
-      const LPPublicKey<Element> newPk,
-      const LPPrivateKey<Element> oldSk) const {
-    std::string errMsg =
-        "LPAlgorithmSHEBGVrns:KeySwitchRelinGen is not implemented for BGVrns "
-        "as relinearization is the default technique and no NTRU key "
-        "generation is used in BGVrns.";
-    PALISADE_THROW(not_implemented_error, errMsg);
-  }
-
-  /**
-   * Method for KeySwitching based on NTRU key generation and RLWE
-   * relinearization. Not used for BGVrns.
-   *
-   * @param evalKey the evaluation key.
-   * @param ciphertext the input ciphertext.
-   * @return the resulting Ciphertext
-   */
-  Ciphertext<Element> KeySwitchRelin(
-      const LPEvalKey<Element> evalKey,
-      ConstCiphertext<Element> ciphertext) const {
-    std::string errMsg =
-        "LPAlgorithmSHEBGVrns:KeySwitchRelin is not implemented for BGVrns as "
-        "relinearization is the default technique and no NTRU key generation "
-        "is used in BGVrns.";
-    PALISADE_THROW(not_implemented_error, errMsg);
-  }
+  void KeySwitchInPlace(const LPEvalKey<Element> keySwitchHint,
+                              Ciphertext<Element>& ciphertext) const override;
 
   /**
    * Function to generate key switch hint on a ciphertext for depth 2.
@@ -1410,7 +1378,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    * @return keySwitchHint generated to switch the ciphertext.
    */
   LPEvalKey<Element> EvalMultKeyGen(
-      const LPPrivateKey<Element> privateKey) const;
+      const LPPrivateKey<Element> privateKey) const override;
 
   /**
    * Function to generate key switch hint on a ciphertext for depth more than 2.
@@ -1421,7 +1389,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    * @return keySwitchHint generated to switch the ciphertext.
    */
   vector<LPEvalKey<Element>> EvalMultKeysGen(
-      const LPPrivateKey<Element> privateKey) const;
+      const LPPrivateKey<Element> privateKey) const override;
 
   /**
    * Function for evaluating automorphism of ciphertext at index i
@@ -1435,7 +1403,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
   Ciphertext<Element> EvalAutomorphism(
       ConstCiphertext<Element> ciphertext, usint i,
       const std::map<usint, LPEvalKey<Element>>& evalKeys,
-      CALLER_INFO_ARGS_HDR) const;
+      CALLER_INFO_ARGS_HDR) const override;
 
   /**
    * Generate automophism keys for a given private key; Uses the private key for
@@ -1447,7 +1415,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    */
   shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAutomorphismKeyGen(
       const LPPrivateKey<Element> privateKey,
-      const std::vector<usint>& indexList) const;
+      const std::vector<usint>& indexList) const override;
 
   /**
    * Generate automophism keys for a given private key; Uses the public key for
@@ -1461,7 +1429,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
   shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAutomorphismKeyGen(
       const LPPublicKey<Element> publicKey,
       const LPPrivateKey<Element> privateKey,
-      const std::vector<usint>& indexList) const {
+      const std::vector<usint>& indexList) const override {
     std::string errMsg =
         "LPAlgorithmSHEBGVrns::EvalAutomorphismKeyGen is not implemented for "
         "BGVrns SHE Scheme.";
@@ -1476,7 +1444,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    * (digit decomposition)
    */
   shared_ptr<vector<Element>> EvalFastRotationPrecompute(
-      ConstCiphertext<Element> ciphertext) const;
+      ConstCiphertext<Element> ciphertext) const override;
 
   /**
    * EvalFastRotation is a wrapper for hoisted automorphism.
@@ -1493,7 +1461,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    */
   Ciphertext<Element> EvalFastRotation(
       ConstCiphertext<Element> ciphertext, const usint index, const usint m,
-      const shared_ptr<vector<Element>> precomp) const;
+      const shared_ptr<vector<Element>> precomp) const override;
 
  private:
   /**
@@ -1664,7 +1632,7 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
    */
   Ciphertext<Element> EvalMultMany(
       const vector<Ciphertext<Element>>& ciphertextList,
-      const vector<LPEvalKey<Element>>& evalKeys) const {
+      const vector<LPEvalKey<Element>>& evalKeys) const override {
     std::string errMsg =                                             \
         "BGVrns supports only DCRTPoly."; \
     PALISADE_THROW(not_implemented_error, errMsg);
@@ -2069,13 +2037,20 @@ class LPLeveledSHEAlgorithmBGVrns : public LPLeveledSHEAlgorithm<Element> {
                                         size_t levels = 1) const override;
 
   /**
-   * Method for rescaling.
+   * Method for rescaling in-place
    *
-   * @param ciphertext is the ciphertext to perform modreduce on.
-   * @return ciphertext after the modulus reduction performed.
+   * @param ciphertext is the ciphertext to perform modreduce on in-place
    */
-  Ciphertext<Element> ModReduce(ConstCiphertext<Element> ciphertext,
+  void ModReduceInternalInPlace(Ciphertext<Element>& ciphertext,
                                 size_t levels = 1) const override;
+
+  /**
+   * Method for rescaling in-place.
+   *
+   * @param ciphertext is the ciphertext to perform modreduce on in-place
+   */
+  void ModReduceInPlace(Ciphertext<Element>& ciphertext,
+                        size_t levels = 1) const override;
 
   /**
    * Method for compressing the ciphertext before decryption.

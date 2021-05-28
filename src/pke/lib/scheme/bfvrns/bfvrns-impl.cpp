@@ -219,16 +219,16 @@ LPEvalKey<NativePoly> LPAlgorithmSHEBFVrns<NativePoly>::KeySwitchGen(
 }
 
 template <>
-Ciphertext<Poly> LPAlgorithmSHEBFVrns<Poly>::KeySwitch(
+void LPAlgorithmSHEBFVrns<Poly>::KeySwitchInPlace(
     const LPEvalKey<Poly> keySwitchHint,
-    ConstCiphertext<Poly> cipherText) const {
+    Ciphertext<Poly>& cipherText) const {
   NOPOLY
 }
 
 template <>
-Ciphertext<NativePoly> LPAlgorithmSHEBFVrns<NativePoly>::KeySwitch(
+void LPAlgorithmSHEBFVrns<NativePoly>::KeySwitchInPlace(
     const LPEvalKey<NativePoly> keySwitchHint,
-    ConstCiphertext<NativePoly> cipherText) const {
+    Ciphertext<NativePoly>& cipherText) const {
   NONATIVEPOLY
 }
 
@@ -898,7 +898,7 @@ Ciphertext<DCRTPoly> LPAlgorithmBFVrns<DCRTPoly>::Encrypt(
 
   c1 = p1 * u + e2;
 
-  ciphertext->SetElements({c0, c1});
+  ciphertext->SetElements({std::move(c0), std::move(c1)});
 
   return ciphertext;
 }
@@ -934,7 +934,7 @@ DecryptResult LPAlgorithmBFVrns<DCRTPoly>::Decrypt(
   }
 
   // Converts back to coefficient representation
-  b.SwitchFormat();
+  b.SetFormat(Format::COEFFICIENT);
 
   auto &t = cryptoParamsBFVrns->GetPlaintextModulus();
 
@@ -990,7 +990,7 @@ Ciphertext<DCRTPoly> LPAlgorithmBFVrns<DCRTPoly>::Encrypt(
   DCRTPoly c1(elementParams, Format::EVALUATION, true);
   c1 -= a;
 
-  ciphertext->SetElements({c0, c1});
+  ciphertext->SetElements({std::move(c0), std::move(c1)});
 
   return ciphertext;
 }
@@ -1143,7 +1143,7 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBFVrns<DCRTPoly>::EvalMult(
 
   for (size_t i = 0; i < cipherTextRElementsSize; i++) {
     // converts to coefficient representation before rounding
-    c[i].SwitchFormat();
+    c[i].SetFormat(Format::COEFFICIENT);
     // Performs the scaling by t/Q followed by rounding; the result is in the
     // CRT basis P
     c[i] = c[i].ScaleAndRound(paramsP,
@@ -1303,9 +1303,8 @@ LPEvalKey<DCRTPoly> LPAlgorithmMultipartyBFVrns<DCRTPoly>::MultiKeySwitchGen(
 }
 
 template <>
-Ciphertext<DCRTPoly> LPAlgorithmSHEBFVrns<DCRTPoly>::KeySwitch(
-    const LPEvalKey<DCRTPoly> ek, ConstCiphertext<DCRTPoly> cipherText) const {
-  Ciphertext<DCRTPoly> newCiphertext = cipherText->CloneEmpty();
+void LPAlgorithmSHEBFVrns<DCRTPoly>::KeySwitchInPlace(
+    const LPEvalKey<DCRTPoly> ek, Ciphertext<DCRTPoly>& cipherText) const {
 
   const auto cryptoParamsLWE =
       std::static_pointer_cast<LPCryptoParametersBFVrns<DCRTPoly>>(
@@ -1314,7 +1313,7 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBFVrns<DCRTPoly>::KeySwitch(
   LPEvalKeyRelin<DCRTPoly> evalKey =
       std::static_pointer_cast<LPEvalKeyRelinImpl<DCRTPoly>>(ek);
 
-  const std::vector<DCRTPoly> &c = cipherText->GetElements();
+  std::vector<DCRTPoly> &c = cipherText->GetElements();
 
   const std::vector<DCRTPoly> &b = evalKey->GetAVector();
   const std::vector<DCRTPoly> &a = evalKey->GetBVector();
@@ -1323,35 +1322,30 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBFVrns<DCRTPoly>::KeySwitch(
 
   std::vector<DCRTPoly> digitsC2;
 
-  DCRTPoly ct0(c[0]);
-
   // in the case of EvalMult, c[0] is initially in coefficient format and needs
   // to be switched to Format::EVALUATION format
-  if (c.size() > 2) ct0.SwitchFormat();
-
-  DCRTPoly ct1;
+  if (c.size() > 2) c[0].SetFormat(Format::EVALUATION);
 
   if (c.size() == 2) {  // case of automorphism or PRE
     digitsC2 = c[1].CRTDecompose(relinWindow);
-    ct1 = digitsC2[0] * a[0];
+    c[1] = digitsC2[0] * a[0];
   } else {  // case of EvalMult
     digitsC2 = c[2].CRTDecompose(relinWindow);
-    ct1 = c[1];
     // Convert ct1 to Format::EVALUATION representation
-    ct1.SwitchFormat();
-    ct1 += digitsC2[0] * a[0];
+    c[1].SetFormat(Format::EVALUATION);
+    c[1] += digitsC2[0] * a[0];
   }
 
-  ct0 += digitsC2[0] * b[0];
+  c[0] += digitsC2[0] * b[0];
 
   for (usint i = 1; i < digitsC2.size(); ++i) {
-    ct0 += digitsC2[i] * b[i];
-    ct1 += digitsC2[i] * a[i];
+    c[0] += digitsC2[i] * b[i];
+    c[1] += digitsC2[i] * a[i];
   }
 
-  newCiphertext->SetElements({ct0, ct1});
-
-  return newCiphertext;
+  Ciphertext<DCRTPoly> newCiphertext = cipherText->CloneEmpty();
+  newCiphertext->SetElements({std::move(c[0]), std::move(c[1])});
+  cipherText = std::move(newCiphertext);
 }
 
 template <>
@@ -1396,7 +1390,7 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBFVrns<DCRTPoly>::EvalMultAndRelinearize(
     }
   }
 
-  newCiphertext->SetElements({ct0, ct1});
+  newCiphertext->SetElements({std::move(ct0), std::move(ct1)});
 
   return newCiphertext;
 }
@@ -1545,13 +1539,14 @@ Ciphertext<DCRTPoly> LPAlgorithmPREBFVrns<DCRTPoly>::ReEncrypt(
     DCRTPoly c0 = p0 * u + e1;
     DCRTPoly c1 = p1 * u + e2;
 
-    zeroCiphertext->SetElements({c0, c1});
+    zeroCiphertext->SetElements({std::move(c0), std::move(c1)});
 
     // Add the encryption of zero for re-randomization purposes
     auto c = ciphertext->GetCryptoContext()->GetEncryptionAlgorithm()->EvalAdd(
         ciphertext, zeroCiphertext);
 
-    return ciphertext->GetCryptoContext()->KeySwitch(ek, c);
+    ciphertext->GetCryptoContext()->KeySwitchInPlace(ek, c);
+    return c;
   }
 }
 

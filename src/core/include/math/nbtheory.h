@@ -338,10 +338,10 @@ template <typename IntType>
 IntType NextPowerOfTwo(const IntType &n);
 
 /**
- * Returns the totient value φ(n) of a number n.
+ * Returns the totient value phi of a number n.
  *
  * @param &n the input number.
- * @return φ(n) which is the number of integers m coprime to n such that 1 ≤ m ≤
+ * @return phi of n which is the number of integers m coprime to n such that 1 <= m <=
  * n.
  */
 uint64_t GetTotient(const uint64_t n);
@@ -350,7 +350,7 @@ uint64_t GetTotient(const uint64_t n);
  * Returns the list of coprimes to number n in ascending order.
  *
  * @param &n the input number.
- * @return vector of mi's such that 1 ≤ mi ≤ n and gcd(mi,n)==1.
+ * @return vector of mi's such that 1 <= mi <= n and gcd(mi,n)==1.
  */
 template <typename IntType>
 std::vector<IntType> GetTotientList(const IntType &n);
@@ -479,7 +479,9 @@ IntType FindGeneratorCyclic(const IntType &q);
  */
 uint32_t FindAutomorphismIndex2n(int32_t i, uint32_t m);
 
-// For the CKKS scheme
+/**
+ * @see FindAutomorphismIndex2n() version for CKKS
+ */
 uint32_t FindAutomorphismIndex2nComplex(int32_t i, uint32_t m);
 
 /**
@@ -490,6 +492,14 @@ uint32_t FindAutomorphismIndex2nComplex(int32_t i, uint32_t m);
  * @return the automorphism index
  */
 uint32_t FindAutomorphismIndexCyclic(int32_t i, uint32_t m, uint32_t g);
+
+/**
+ * Precompute a bit reversal map for a specific automorphism
+ * @param n ring dimension
+ * @param k automorphism index
+ * @param *precomp the vector where the precomputed table is stored
+ */
+void PrecomputeAutoMap(uint32_t n, uint32_t k, std::vector<uint32_t> *precomp);
 
 }  // namespace lbcrypto
 

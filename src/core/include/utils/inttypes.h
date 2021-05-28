@@ -153,7 +153,7 @@ inline std::ostream &operator<<(std::ostream &s, PKESchemeFeature f) {
 }
 
 /**
- * @brief Lists all modes for RLWE schemes, such as BGV and FV
+ * @brief Lists all modes for RLWE schemes, such as BGV and BFV
  */
 enum MODE { RLWE = 0, OPTIMIZED = 1, SPARSE = 2 };
 

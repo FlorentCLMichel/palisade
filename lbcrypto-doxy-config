@@ -38,7 +38,7 @@ PROJECT_NAME           = "PALISADE Lattice Crypto Library"
 # could be handy for archiving the generated documentation or if some version
 # control system is used.
 
-PROJECT_NUMBER         = "v1.10.6"
+PROJECT_NUMBER         = "v1.11.3"
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer a
@@ -875,10 +875,12 @@ EXCLUDE_SYMLINKS       = NO
 # Note that the wildcards are matched against the file with absolute path, so to
 # exclude all test directories for example use the pattern */test/*
 
-EXCLUDE_PATTERNS       = */google/* \
-                         */src/core/lib/utils/rapidjson/* \
-                         */src/core/lib/utils/rapidjson/*/* \
-                         */src/*/unittest/*
+EXCLUDE_PATTERNS       = */google/*
+EXCLUDE_PATTERNS      += */src/core/lib/utils/rapidjson/*
+EXCLUDE_PATTERNS      += */src/core/lib/utils/rapidjson/*/*
+EXCLUDE_PATTERNS      += */src/*/unittest/*
+EXCLUDE_PATTERNS      += */CMakeLists.txt
+EXCLUDE_PATTERNS      += third-party/*
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
@@ -1647,7 +1649,7 @@ EXTRA_SEARCH_MAPPINGS  =
 # If the GENERATE_LATEX tag is set to YES, doxygen will generate LaTeX output.
 # The default value is: YES.
 
-GENERATE_LATEX         = YES
+GENERATE_LATEX         = NO
 
 # The LATEX_OUTPUT tag is used to specify where the LaTeX docs will be put. If a
 # relative path is entered the value of OUTPUT_DIRECTORY will be put in front of
@@ -1716,7 +1718,8 @@ PAPER_TYPE             = a4
 # If left blank no extra packages will be included.
 # This tag requires that the tag GENERATE_LATEX is set to YES.
 
-EXTRA_PACKAGES         =
+EXTRA_PACKAGES         = {amssymb}
+EXTRA_PACKAGES        += [utf8]{inputenc}
 
 # The LATEX_HEADER tag can be used to specify a personal LaTeX header for the
 # generated LaTeX document. The header should contain everything until the first
@@ -1788,7 +1791,7 @@ USE_PDFLATEX           = YES
 # The default value is: NO.
 # This tag requires that the tag GENERATE_LATEX is set to YES.
 
-LATEX_BATCHMODE        = NO
+LATEX_BATCHMODE        = YES
 
 # If the LATEX_HIDE_INDICES tag is set to YES then doxygen will not include the
 # index chapters (such as File Index, Compound Index, etc.) in the output.

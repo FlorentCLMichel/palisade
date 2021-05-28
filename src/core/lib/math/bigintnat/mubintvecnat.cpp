@@ -28,6 +28,10 @@
 #include "utils/debug.h"
 #include "utils/serializable.h"
 
+#ifdef WITH_INTEL_HEXL
+#include "hexl/hexl.hpp"
+#endif
+
 namespace bigintnat {
 
 // CONSTRUCTORS
@@ -180,7 +184,7 @@ void NativeVector<IntegerType>::SetModulus(const IntegerType &value) {
  * Algorithm: Integer i, Old Modulus om, New Modulus nm,
  * delta = abs(om-nm):
  *  Case 1: om < nm
- *    if i > i > om/2
+ *    if i > om/2
  *      i' = i + delta
  *  Case 2: om > nm
  *    i > om/2 i' = i-delta
@@ -191,21 +195,35 @@ void NativeVector<IntegerType>::SwitchModulus(const IntegerType &newModulus) {
   IntegerType oldModulusByTwo(oldModulus >> 1);
   IntegerType diff((oldModulus > newModulus) ? (oldModulus - newModulus)
                                              : (newModulus - oldModulus));
-  for (usint i = 0; i < this->m_data.size(); i++) {
-    IntegerType n = this->m_data[i];
-    if (oldModulus < newModulus) {
+
+  if (newModulus > oldModulus) {
+#ifdef WITH_INTEL_HEXL
+    uint64_t *op1 = reinterpret_cast<uint64_t *>(&m_data[0]);
+    intel::hexl::EltwiseCmpAdd(
+        op1, op1, m_data.size(), intel::hexl::CMPINT::NLE,
+        oldModulusByTwo.ConvertToInt(), diff.ConvertToInt());
+#else
+    for (usint i = 0; i < this->m_data.size(); i++) {
+      IntegerType n = this->m_data[i];
       if (n > oldModulusByTwo) {
-        this->m_data[i] = n.ModAdd(diff, newModulus);
-      } else {
-        this->m_data[i] = n.Mod(newModulus);
-      }
-    } else {
-      if (n > oldModulusByTwo) {
-        this->m_data[i] = n.ModSub(diff, newModulus);
-      } else {
-        this->m_data[i] = n.Mod(newModulus);
+        this->m_data[i] += diff;
       }
     }
+#endif
+  } else {  // newModulus <= oldModulus
+#ifdef WITH_INTEL_HEXL
+    uint64_t *op1 = reinterpret_cast<uint64_t *>(&m_data[0]);
+    intel::hexl::EltwiseCmpSubMod(
+        op1, op1, m_data.size(), newModulus.ConvertToInt(),
+        intel::hexl::CMPINT::NLE, oldModulusByTwo.ConvertToInt(),
+        diff.ConvertToInt() % newModulus.ConvertToInt());
+#else
+    for (usint i = 0; i < this->m_data.size(); i++) {
+      IntegerType n = this->m_data[i];
+      IntegerType sub_diff = (n > oldModulusByTwo) ? diff : 0;
+      this->m_data[i] = n.ModSub(sub_diff, newModulus);
+    }
+#endif
   }
   this->SetModulus(newModulus);
 }
@@ -434,6 +452,15 @@ NativeVector<IntegerType> NativeVector<IntegerType>::ModMul(
         "ModMul called on NativeVector's with different parameters.");
   }
   NativeVector ans(*this);
+
+#ifdef WITH_INTEL_HEXL
+  uint64_t *ans_data_ptr = reinterpret_cast<uint64_t *>(&ans.m_data[0]);
+  const uint64_t *b_data_ptr = reinterpret_cast<const uint64_t *>(&b[0]);
+  intel::hexl::EltwiseMultMod(ans_data_ptr, ans_data_ptr, b_data_ptr,
+                              m_data.size(), m_modulus.ConvertToInt(), 1);
+  return ans;
+#endif
+
   IntegerType modulus = this->m_modulus;
   IntegerType mu = modulus.ComputeMu();
   for (usint i = 0; i < this->m_data.size(); i++) {
@@ -451,6 +478,15 @@ const NativeVector<IntegerType> &NativeVector<IntegerType>::ModMulEq(
         lbcrypto::math_error,
         "ModMulEq called on NativeVector's with different parameters.");
   }
+
+#ifdef WITH_INTEL_HEXL
+  uint64_t *m_data_ptr = reinterpret_cast<uint64_t *>(&m_data[0]);
+  const uint64_t *b_data_ptr = reinterpret_cast<const uint64_t *>(&b[0]);
+  intel::hexl::EltwiseMultMod(m_data_ptr, m_data_ptr, b_data_ptr, m_data.size(),
+                              m_modulus.ConvertToInt(), 1);
+  return *this;
+#endif
+
   IntegerType modulus = this->m_modulus;
   IntegerType mu = modulus.ComputeMu();
   for (usint i = 0; i < this->m_data.size(); i++) {

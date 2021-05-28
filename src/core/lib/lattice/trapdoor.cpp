@@ -52,8 +52,7 @@ Matrix<Element> RLWETrapdoorUtility<Element>::GaussSampOnline(
 
   Matrix<int64_t> zHatBBI([]() { return 0; }, k, n);
 
-  // converting perturbed syndrome to coefficient representation
-  perturbedSyndrome.SwitchFormat();
+  perturbedSyndrome.SetFormat(Format::COEFFICIENT);
 
   LatticeGaussSampUtility<Element>::GaussSampGqArbBase(
       perturbedSyndrome, c, k, modulus, base, dgg, &zHatBBI);
@@ -63,7 +62,7 @@ Matrix<Element> RLWETrapdoorUtility<Element>::GaussSampOnline(
   Matrix<Element> zHat = SplitInt64AltIntoElements<Element>(zHatBBI, n, params);
   // Now converting it to the Format::EVALUATION representation before
   // multiplication
-  zHat.SwitchFormat();
+  zHat.SetFormat(Format::EVALUATION);
 
   Matrix<Element> zHatPrime(zero_alloc, k + 2, 1);
 
@@ -133,9 +132,9 @@ inline void RLWETrapdoorUtility<DCRTPoly>::ZSampleSigmaP(
   TIC(t1);
 
   // Switch the ring elements (Polynomials) to coefficient representation
-  va.SwitchFormat();
-  vb.SwitchFormat();
-  vd.SwitchFormat();
+  va.SetFormat(Format::COEFFICIENT);
+  vb.SetFormat(Format::COEFFICIENT);
+  vd.SetFormat(Format::COEFFICIENT);
 
   DEBUG("z1c: " << TOC(t1));  // 5
   TIC(t1);
@@ -155,9 +154,9 @@ inline void RLWETrapdoorUtility<DCRTPoly>::ZSampleSigmaP(
   TIC(t1);
 
   // converts the field elements to DFT representation
-  a.SwitchFormat();
-  b.SwitchFormat();
-  d.SwitchFormat();
+  a.SetFormat(Format::EVALUATION);
+  b.SetFormat(Format::EVALUATION);
+  d.SetFormat(Format::EVALUATION);
   DEBUG("z1e: " << TOC(t1));  // 0
   TIC(t1);
 
@@ -190,7 +189,7 @@ inline void RLWETrapdoorUtility<DCRTPoly>::ZSampleSigmaP(
   TIC(t1);
 
   // now converting to Format::EVALUATION representation before multiplication
-  p2.SwitchFormat();
+  p2.SetFormat(Format::EVALUATION);
 
   DEBUG("z1g: " << TOC(t1));  // 17
 
@@ -208,7 +207,7 @@ inline void RLWETrapdoorUtility<DCRTPoly>::ZSampleSigmaP(
   DEBUG("z1h2: " << TOC(t1));
   TIC(t1);
   // change to coefficient representation before converting to field elements
-  Tp2.SwitchFormat();
+  Tp2.SetFormat(Format::COEFFICIENT);
   DEBUG("z1h3: " << TOC(t1));
   TIC(t1);
 
@@ -234,8 +233,7 @@ inline void RLWETrapdoorUtility<DCRTPoly>::ZSampleSigmaP(
   DEBUG("z1j2: " << TOC(t1));
   TIC(t1);
 
-  // Converts p1 to Format::EVALUATION representation
-  p1.SwitchFormat();
+  p1.SetFormat(Format::EVALUATION);
   DEBUG("z1j3: " << TOC(t1));
   TIC(t1);
 

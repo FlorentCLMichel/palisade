@@ -48,6 +48,23 @@ class UTMultiparty : public ::testing::Test {
   }
 };
 
+#if NATIVEINT == 128
+// This file unit tests the SHE capabilities for the CKKS scheme
+#define GENERATE_CKKS_TEST_CASES_FUNC(x, y, ORD, SCALE, NUMPRIME, RELIN,     \
+                                      BATCH)                                 \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
+                          BATCH, BV, APPROXRESCALE)                          \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
+                          BATCH, BV, APPROXAUTO)                             \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
+                          BATCH, HYBRID, APPROXRESCALE)                      \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
+                          BATCH, HYBRID, APPROXAUTO)                         \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
+                          BATCH, GHS, APPROXRESCALE)                         \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
+                          BATCH, GHS, APPROXAUTO)
+#else
 // This file unit tests the SHE capabilities for the CKKS scheme
 #define GENERATE_CKKS_TEST_CASES_FUNC(x, y, ORD, SCALE, NUMPRIME, RELIN,     \
                                       BATCH)                                 \
@@ -56,13 +73,20 @@ class UTMultiparty : public ::testing::Test {
   GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
                           BATCH, BV, EXACTRESCALE)                           \
   GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
+                          BATCH, BV, APPROXAUTO)                             \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
                           BATCH, HYBRID, APPROXRESCALE)                      \
   GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
                           BATCH, HYBRID, EXACTRESCALE)                       \
   GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
+                          BATCH, HYBRID, APPROXAUTO)                         \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
                           BATCH, GHS, APPROXRESCALE)                         \
   GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
-                          BATCH, GHS, EXACTRESCALE)
+                          BATCH, GHS, EXACTRESCALE)                          \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
+                          BATCH, GHS, APPROXAUTO)
+#endif
 
 #define GENERATE_TEST_CASES_FUNC_RNS(x, y, ORD, PTM, BATCH)                    \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrns_rlwe, ORD, PTM)                \
@@ -87,14 +111,8 @@ class UTMultiparty : public ::testing::Test {
                       x, y, DCRTPoly, BGVrns_opt, ORD, PTM, SIZEMODULI,        \
                       NUMPRIME, RELIN, HYBRID, BATCH, APPROXRESCALE, MANUAL)
 
-#define GENERATE_TEST_CASES_FUNC_MP(x, y, ORD, PTM)            \
-  GENERATE_PKE_TEST_CASE(x, y, Poly, BGV_rlwe, ORD, PTM)       \
-  GENERATE_PKE_TEST_CASE(x, y, NativePoly, BGV_rlwe, ORD, PTM) \
-  GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGV_rlwe, ORD, PTM)   \
-  GENERATE_PKE_TEST_CASE(x, y, Poly, BGV_opt, ORD, PTM)        \
-  GENERATE_PKE_TEST_CASE(x, y, NativePoly, BGV_opt, ORD, PTM)  \
-  GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGV_opt, ORD, PTM)    \
-  GENERATE_PKE_TEST_CASE(x, y, Poly, BFV_rlwe, ORD, PTM)       \
+#define GENERATE_TEST_CASES_FUNC_MP(x, y, ORD, PTM)      \
+  GENERATE_PKE_TEST_CASE(x, y, Poly, BFV_rlwe, ORD, PTM) \
   GENERATE_PKE_TEST_CASE(x, y, Poly, BFV_opt, ORD, PTM)
 
 /* *
@@ -109,7 +127,7 @@ class UTMultiparty : public ::testing::Test {
  * BATCH: The length of the packed vectors to be used with CKKS.
  */
 static const usint ORDER = 4096;
-static const usint SCALE = 40;
+static const usint SCALE = 50;
 static const usint NUMPRIME = 3;
 static const usint RELIN = 3;
 static const usint BATCH = 16;
@@ -1487,8 +1505,6 @@ void UnitTestMultiparty(CryptoContext<Element> cc) {
       << "Multiparty: Does not match the results of direction encryption.";
 }
 
-// StSt NOT SUPPORTED
-
 TEST_F(UTMultiparty, BFVrns_RLWE_DCRTPoly_Multiparty_pri) {
   CryptoContext<DCRTPoly> cc = GenCryptoContextBFVrns<DCRTPoly>(4, RLWE);
   cc->Enable(ENCRYPTION);
@@ -1537,16 +1553,6 @@ static inline void RunTestUsingContext(const string& input) {
 TEST_F(UTMultiparty, BFV1_Poly_Multiparty_pri) { RunTestUsingContext("BFV1"); }
 
 TEST_F(UTMultiparty, BFV2_Poly_Multiparty_pri) { RunTestUsingContext("BFV2"); }
-
-TEST_F(UTMultiparty, BGV1_Poly_Multiparty_pri) { RunTestUsingContext("BGV1"); }
-
-TEST_F(UTMultiparty, BGV2_Poly_Multiparty_pri) { RunTestUsingContext("BGV2"); }
-
-TEST_F(UTMultiparty, BGV3_Poly_Multiparty_pri) { RunTestUsingContext("BGV3"); }
-
-TEST_F(UTMultiparty, BGV4_Poly_Multiparty_pri) { RunTestUsingContext("BGV4"); }
-
-TEST_F(UTMultiparty, BGV5_Poly_Multiparty_pri) { RunTestUsingContext("BGV5"); }
 
 TEST_F(UTMultiparty, Null_Poly_Multiparty_pri) { RunTestUsingContext("Null"); }
 

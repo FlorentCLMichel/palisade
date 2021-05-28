@@ -45,7 +45,7 @@ class HashUtil {
         return;
 
       case SHA_512:
-        // FIXME SHA512 disabled, returning SHA256 instead
+        // TODO SHA512 disabled, returning SHA256 instead
         SHA256(message, digest);
         return;
 

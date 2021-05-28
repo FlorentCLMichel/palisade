@@ -59,11 +59,10 @@ We use the following naming conventions:
 
 Naming conventions for standard modular operations:
 
-```
-|Op\Variant   |     Naive      |       Barrett      |     Fast Naive     |      Fast Barrett      |            Fast Const             |
-|-------------|----------------|--------------------|--------------------|------------------------|-----------------------------------|
-|    Mod      | Mod(mod)       | Mod(mod, mu)       |         -          |           -            |                -                  |
-|    ModAdd   | ModAdd(b, mod) | ModAdd(b, mod, mu) | ModAddFast(b, mod) |           -            |                -                  |
-|    ModSub   | ModSub(b, mod) | ModSub(b, mod, mu) | ModSubFast(b, mod) |           -            |                -                  |
-|    ModMul   | ModMul(b, mod) | ModMul(b, mod, mu) | ModMulFast(b, mod) | ModMulFast(b, mod, mu) | ModMulFastConst(b, mod, bPrecomp) |
-```
+
+| Variant | Naive          | Barrett            | Fast Naive         | Fast Barrett           | Fast Const                        |
+| ------- | -------------- | ------------------ | ------------------ | ---------------------- | --------------------------------- |
+| Mod     | Mod(mod)       | Mod(mod, mu)       | -                  | -                      | -                                 |
+| ModAdd  | ModAdd(b, mod) | ModAdd(b, mod, mu) | ModAddFast(b, mod) | -                      | -                                 |
+| ModSub  | ModSub(b, mod) | ModSub(b, mod, mu) | ModSubFast(b, mod) | -                      | -                                 |
+| ModMul  | ModMul(b, mod) | ModMul(b, mod, mu) | ModMulFast(b, mod) | ModMulFast(b, mod, mu) | ModMulFastConst(b, mod, bPrecomp) |

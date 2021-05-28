@@ -110,37 +110,145 @@ std::vector<DCRTPoly::Integer> CKKSPackedEncoding::CRTMult(
   return result;
 }
 
+#if NATIVEINT == 128
 bool CKKSPackedEncoding::Encode() {
   if (this->isEncoded) return true;
 
-  uint32_t Nh = (this->GetElementRingDimension() >> 1);
+  uint32_t ringDim = GetElementRingDimension();
+  uint32_t Nh = (ringDim >> 1);
 
-  std::vector<std::complex<double>> inverse = value;
+  std::vector<std::complex<double>> inverse = this->GetCKKSPackedValue();
 
   // clears all imaginary values as CKKS for complex numbers
-  // is not supported
   for (size_t i = 0; i < inverse.size(); i++) inverse[i].imag(0.0);
 
   inverse.resize(Nh);
-  DiscreteFourierTransform::FFTSpecialInv(inverse);
 
   if (this->typeFlag == IsDCRTPoly) {
+    DiscreteFourierTransform::FFTSpecialInv(inverse);
+    uint64_t pBits = encodingParams->GetPlaintextModulus();
+    uint32_t precision = 52;
+
+    double powP = std::pow(2, precision);
+    int32_t pCurrent = pBits - precision;
+
+    // the idea is to break down real and imaginary parts
+    // expressed as input_mantissa * 2^input_exponent
+    // into (input_mantissa * 2^52) * 2^(p - 52 + input_exponent)
+    // to preserve 52-bit precision of doubles
+    // when converting to 128-bit numbers
+    std::vector<__int128> temp(2 * Nh);
+    for (size_t i = 0; i < Nh; ++i) {
+      // Check for possible overflow in llround function
+      int32_t n1 = 0;
+      // extract the mantissa of real part and multiply it by 2^52
+      double dre =
+          static_cast<double>(std::frexp(inverse[i].real(), &n1) * powP);
+      int32_t n2 = 0;
+      // extract the mantissa of imaginary part and multiply it by 2^52
+      double dim =
+          static_cast<double>(std::frexp(inverse[i].imag(), &n2) * powP);
+      if (is128BitOverflow(dre) || is128BitOverflow(dim)) {
+        PALISADE_THROW(math_error, "Overflow, try to decrease scaling factor");
+      }
+
+      int64_t re64 = std::llround(dre);
+      int32_t pRemaining = pCurrent + n1;
+      __int128 re = 0;
+      if (pRemaining < 0) {
+        re = re64 >> (-pRemaining);
+      } else {
+        __int128 pPowRemaining = ((__int128)1) << pRemaining;
+        re = pPowRemaining * re64;
+      }
+
+      int64_t im64 = std::llround(dim);
+      pRemaining = pCurrent + n2;
+      __int128 im = 0;
+      if (pRemaining < 0) {
+        im = im64 >> (-pRemaining);
+      } else {
+        __int128 pPowRemaining = ((int64_t)1) << pRemaining;
+        im = pPowRemaining * im64;
+      }
+
+      temp[i] = (re < 0) ? Max128BitValue() + re : re;
+      temp[i + Nh] = (im < 0) ? Max128BitValue() + im : im;
+
+      if (is128BitOverflow(temp[i]) || is128BitOverflow(temp[i + Nh])) {
+        PALISADE_THROW(math_error, "Overflow, try to decrease scaling factor");
+      }
+    }
+
+    const shared_ptr<ILDCRTParams<BigInteger>> params =
+        this->encodedVectorDCRT.GetParams();
+    const std::vector<std::shared_ptr<ILNativeParams>> &nativeParams =
+        params->GetParams();
+
+    for (size_t i = 0; i < nativeParams.size(); i++) {
+      NativeVector nativeVec(ringDim, nativeParams[i]->GetModulus());
+      FitToNativeVector(temp, Max128BitValue(), &nativeVec);
+      NativePoly element = this->GetElement<DCRTPoly>().GetElementAtIndex(i);
+      element.SetValues(
+          nativeVec, Format::COEFFICIENT);  // output was in coefficient format
+      this->encodedVectorDCRT.SetElementAtIndex(i, element);
+    }
+
+    usint numTowers = nativeParams.size();
+    std::vector<DCRTPoly::Integer> moduli(numTowers);
+    for (usint i = 0; i < numTowers; i++) {
+      moduli[i] = nativeParams[i]->GetModulus();
+    }
+
+    DCRTPoly::Integer intPowP = NativeInteger(1) << pBits;
+    std::vector<DCRTPoly::Integer> crtPowP(numTowers, intPowP);
+
+    auto currPowP = crtPowP;
+
+    // We want to scale temp by 2^(pd), and the loop starts from j=2
+    // because temp is already scaled by 2^p in the re/im loop above,
+    // and currPowP already is 2^p.
+    for (size_t i = 2; i < depth; i++) {
+      currPowP = CKKSPackedEncoding::CRTMult(currPowP, crtPowP, moduli);
+    }
+
+    if (depth > 1) {
+      this->encodedVectorDCRT = this->encodedVectorDCRT.Times(currPowP);
+    }
+
+    this->GetElement<DCRTPoly>().SetFormat(Format::EVALUATION);
+
+    scalingFactor = pow(scalingFactor, depth);
+  } else {
+    PALISADE_THROW(config_error, "Only DCRTPoly is supported for CKKS.");
+  }
+
+  this->isEncoded = true;
+  return true;
+}
+#else  // NATIVEINT == 64
+bool CKKSPackedEncoding::Encode() {
+  if (this->isEncoded) return true;
+
+  uint32_t ringDim = GetElementRingDimension();
+  uint32_t Nh = (ringDim >> 1);
+
+  std::vector<std::complex<double>> inverse = this->GetCKKSPackedValue();
+
+  // clears all imaginary values as CKKS for complex numbers
+  for (size_t i = 0; i < inverse.size(); i++) inverse[i].imag(0.0);
+
+  inverse.resize(Nh);
+  if (this->typeFlag == IsDCRTPoly) {
+    DiscreteFourierTransform::FFTSpecialInv(inverse);
     double powP = scalingFactor;
 
-    // 2^63-2^9-1 - max value that could be round to int64_t
-    int64_t q = 9223372036854775295;
-
-    double dq = q;
-
-    std::vector<int64_t> temp(this->GetElementRingDimension());
-    size_t i, jdx, idx;
-    int64_t re, im;
-    double dre, dim;
-    for (i = 0, jdx = Nh, idx = 0; i < Nh; ++i, jdx++, idx++) {
+    std::vector<int64_t> temp(2 * Nh);
+    for (size_t i = 0; i < Nh; ++i) {
       // Check for possible overflow in llround function
-      dre = inverse[i].real() * powP;
-      dim = inverse[i].imag() * powP;
-      if (std::abs(dre) >= dq || std::abs(dim) >= dq) {
+      double dre = inverse[i].real() * powP;
+      double dim = inverse[i].imag() * powP;
+      if (is64BitOverflow(dre) || is64BitOverflow(dim)) {
         // IFFT formula:
         // x[n] = (1/N) * \Sum^(N-1)_(k=0) X[k] * exp( j*2*pi*n*k/N )
         // n is i
@@ -203,25 +311,23 @@ bool CKKSPackedEncoding::Encode() {
         PALISADE_THROW(math_error, buffer.str());
       }
 
-      re = std::llround(dre);
-      im = std::llround(dim);
+      int64_t re = std::llround(dre);
+      int64_t im = std::llround(dim);
 
-      temp[idx] = (re < 0) ? q + re : re;
-      temp[jdx] = (im < 0) ? q + im : im;
+      temp[i] = (re < 0) ? Max64BitValue() + re : re;
+      temp[i + Nh] = (im < 0) ? Max64BitValue() + im : im;
     }
-
     const shared_ptr<ILDCRTParams<BigInteger>> params =
         this->encodedVectorDCRT.GetParams();
     const std::vector<std::shared_ptr<ILNativeParams>> &nativeParams =
         params->GetParams();
 
-    for (i = 0; i < nativeParams.size(); i++) {
-      NativeVector nativeVec(this->GetElementRingDimension(),
-                             nativeParams[i]->GetModulus());
-      FitToNativeVector(temp, q, &nativeVec);
+    for (size_t i = 0; i < nativeParams.size(); i++) {
+      NativeVector nativeVec(ringDim, nativeParams[i]->GetModulus());
+      FitToNativeVector(temp, Max64BitValue(), &nativeVec);
       NativePoly element = this->GetElement<DCRTPoly>().GetElementAtIndex(i);
-      // output was in coefficient format
-      element.SetValues(std::move(nativeVec), Format::COEFFICIENT);
+      element.SetValues(
+          nativeVec, Format::COEFFICIENT);  // output was in coefficient format
       this->encodedVectorDCRT.SetElementAtIndex(i, element);
     }
 
@@ -239,7 +345,7 @@ bool CKKSPackedEncoding::Encode() {
     // We want to scale temp by 2^(pd), and the loop starts from j=2
     // because temp is already scaled by 2^p in the re/im loop above,
     // and currPowP already is 2^p.
-    for (i = 2; i < depth; i++) {
+    for (size_t i = 2; i < depth; i++) {
       currPowP = CKKSPackedEncoding::CRTMult(currPowP, crtPowP, moduli);
     }
 
@@ -250,78 +356,14 @@ bool CKKSPackedEncoding::Encode() {
     this->GetElement<DCRTPoly>().SetFormat(Format::EVALUATION);
 
     scalingFactor = pow(scalingFactor, depth);
-
-  } else if (this->typeFlag == IsNativePoly) {
-    double p = this->encodingParams->GetPlaintextModulus();
-    double powP = pow(2, p * depth);
-
-    int64_t q;
-    q = this->GetElementModulus().ConvertToInt();
-    NativeVector temp(this->GetElementRingDimension(), q);
-
-    double dq = q;
-    size_t i, jdx, idx;
-    int64_t re, im;
-    double dre, dim;
-    for (i = 0, jdx = Nh, idx = 0; i < Nh; ++i, jdx++, idx++) {
-      dre = inverse[i].real() * powP;
-      dim = inverse[i].imag() * powP;
-      // Check for possible overflow in llround function
-      if (std::abs(dre) >= dq || std::abs(dim) >= dq) {
-        PALISADE_THROW(math_error,
-                       "Overflow, try to decrease depth or plaintext modulus");
-      }
-
-      re = std::llround(dre);
-      im = std::llround(dim);
-
-      temp[idx] = (re < 0) ? NativeInteger(q + re) : NativeInteger(re);
-      temp[jdx] = (im < 0) ? NativeInteger(q + im) : NativeInteger(im);
-    }
-
-    // output was in coefficient format
-    this->GetElement<NativePoly>().SetValues(std::move(temp),
-                                             Format::COEFFICIENT);
-    this->GetElement<NativePoly>().SetFormat(Format::EVALUATION);
-
   } else {
-    // Scale inverse by scaling factor
-    double p = this->encodingParams->GetPlaintextModulus();
-    double powP = pow(2, p * depth);
-
-    const BigInteger &q = this->GetElementModulus();
-    // min of q and 2^63-2^9-1 - max value
-    // that could be round to int64_t
-    double dq = std::min(9223372036854775295., q.ConvertToDouble());
-
-    BigVector temp(this->GetElementRingDimension(), this->GetElementModulus());
-
-    int64_t re, im;
-    size_t i, jdx, idx;
-    double dre, dim;
-    for (i = 0, jdx = Nh, idx = 0; i < Nh; ++i, jdx++, idx++) {
-      dre = inverse[i].real() * powP;
-      dim = inverse[i].imag() * powP;
-      // Check for possible overflow in llround function
-      if (std::abs(dre) >= dq || std::abs(dim) >= dq) {
-        PALISADE_THROW(math_error,
-                       "Overflow, try to decrease depth or plaintext modulus");
-      }
-
-      re = std::llround(dre);
-      im = std::llround(dim);
-
-      temp[idx] = (re < 0) ? q - BigInteger(llabs(re)) : BigInteger(re);
-      temp[jdx] = (im < 0) ? q - BigInteger(llabs(im)) : BigInteger(im);
-    }
-
-    // output was in coefficient format
-    this->GetElement<Poly>().SetValues(std::move(temp), Format::COEFFICIENT);
-    this->GetElement<Poly>().SetFormat(Format::EVALUATION);
+    PALISADE_THROW(config_error, "Only DCRTPoly is supported for CKKS.");
   }
+
   this->isEncoded = true;
   return true;
 }
+#endif
 
 bool CKKSPackedEncoding::Decode(size_t depth, double scalingFactor,
                                 enum RescalingTechnique rsTech) {
@@ -428,11 +470,11 @@ bool CKKSPackedEncoding::Decode(size_t depth, double scalingFactor,
   //  }
   // }
 
-  // If less than 3 decimal digits (10 bits) of precision is observed
-  if (logstd > p - 10.0)
+  // If less than 5 bits of precision is observed
+  if (logstd > p - 5.0)
     PALISADE_THROW(math_error,
                    "The decryption failed because the approximation error is "
-                   "too high. Check the protocol used. ");
+                   "too high. Check the parameters. ");
 
   // real values
   std::vector<std::complex<double>> realValues(Nh);
@@ -496,5 +538,23 @@ void CKKSPackedEncoding::FitToNativeVector(const std::vector<int64_t> &vec,
     }
   }
 }
+
+#if NATIVEINT == 128
+void CKKSPackedEncoding::FitToNativeVector(const std::vector<__int128> &vec,
+                                           __int128 bigBound,
+                                           NativeVector *nativeVec) const {
+  NativeInteger bigValueHf((unsigned __int128)bigBound >> 1);
+  NativeInteger modulus(nativeVec->GetModulus());
+  NativeInteger diff = NativeInteger((unsigned __int128)bigBound) - modulus;
+  for (usint i = 0; i < vec.size(); i++) {
+    NativeInteger n((unsigned __int128)vec[i]);
+    if (n > bigValueHf) {
+      (*nativeVec)[i] = n.ModSub(diff, modulus);
+    } else {
+      (*nativeVec)[i] = n.Mod(modulus);
+    }
+  }
+}
+#endif
 
 }  // namespace lbcrypto

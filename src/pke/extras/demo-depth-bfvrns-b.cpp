@@ -100,7 +100,8 @@ int main(int argc, char *argv[]) {
   cout << "\nMeasuring Multiplicative Depth:\n";
   TIC(t);
 
-  Plaintext plaintext = cryptoContext->MakeIntegerPlaintext(1);
+  std::vector<int64_t> vectorOfInts1 = { 1 };
+  Plaintext plaintext = cryptoContext->MakeCoefPackedPlaintext(vectorOfInts1);
   Plaintext dec(plaintext);
   Ciphertext<DCRTPoly> ciphertext;
   std::vector<int> depth(numruns, 0);

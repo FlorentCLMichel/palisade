@@ -5,9 +5,10 @@
 # all files named *.cpp are compiled to form the library
 file (GLOB BINFHE_SRC_FILES CONFIGURE_DEPENDS lib/*.cpp)
 
-include_directories( ../core/include )
-include_directories( include )
-include_directories( lib )
+include_directories(${CORE_INCLUDE_DIRS})
+list(APPEND BINFHE_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include")
+list(APPEND BINFHE_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/lib")
+include_directories(${BINFHE_INCLUDE_DIRS})
 
 set(BINFHE_VERSION_MAJOR ${PALISADE_VERSION_MAJOR})
 set(BINFHE_VERSION_MINOR ${PALISADE_VERSION_MINOR})
@@ -15,17 +16,21 @@ set(BINFHE_VERSION_PATCH ${PALISADE_VERSION_PATCH})
 set(BINFHE_VERSION ${BINFHE_VERSION_MAJOR}.${BINFHE_VERSION_MINOR}.${BINFHE_VERSION_PATCH})
 
 add_library(binfheobj OBJECT ${BINFHE_SRC_FILES})
-add_dependencies(binfheobj PALISADEcore)
 set_property(TARGET binfheobj PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-add_library (PALISADEbinfhe SHARED $<TARGET_OBJECTS:binfheobj>)
-set_property(TARGET PALISADEbinfhe PROPERTY VERSION ${BINFHE_VERSION})
-set_property(TARGET PALISADEbinfhe PROPERTY SOVERSION ${BINFHE_VERSION_MAJOR})
-set_property(TARGET PALISADEbinfhe PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-install(TARGETS PALISADEbinfhe
-	EXPORT PalisadeTargets
-	DESTINATION lib)
-if( ${BUILD_STATIC} )
+if ( BUILD_SHARED )
+	add_dependencies(binfheobj PALISADEcore)
+	add_library (PALISADEbinfhe SHARED $<TARGET_OBJECTS:binfheobj>)
+	set_property(TARGET PALISADEbinfhe PROPERTY VERSION ${BINFHE_VERSION})
+	set_property(TARGET PALISADEbinfhe PROPERTY SOVERSION ${BINFHE_VERSION_MAJOR})
+	set_property(TARGET PALISADEbinfhe PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+	install(TARGETS PALISADEbinfhe
+		EXPORT PalisadeTargets
+		DESTINATION lib)
+endif()
+
+if( BUILD_STATIC )
+add_dependencies(binfheobj PALISADEcore_static)
 	add_library (PALISADEbinfhe_static STATIC $<TARGET_OBJECTS:binfheobj>)
 	set_property(TARGET PALISADEbinfhe_static PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 	install(TARGETS PALISADEbinfhe_static
@@ -36,22 +41,26 @@ endif()
 install(DIRECTORY include/
 	DESTINATION include/palisade/binfhe)
 
-set (BINFHELIBS PUBLIC PALISADEbinfhe PUBLIC PALISADEcore ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
+add_custom_target( allbinfhe )
 
-target_link_libraries (PALISADEbinfhe PUBLIC PALISADEcore ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
-if( ${BUILD_STATIC} )
-	target_link_libraries (PALISADEbinfhe_static PUBLIC PALISADEcore_static ${THIRDPARTYSTATICLIBS} ${OpenMP_CXX_FLAGS})
+if( BUILD_SHARED )
+set (BINFHELIBS PUBLIC PALISADEbinfhe PUBLIC PALISADEcore ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
+	target_link_libraries (PALISADEbinfhe PUBLIC PALISADEcore ${THIRDPARTYLIBS} ${OpenMP_CXX_FLAGS})
+	add_dependencies( allbinfhe PALISADEbinfhe  )
 endif()
 
-add_custom_target( allbinfhe )
-add_dependencies( allbinfhe PALISADEbinfhe  )
+if( BUILD_STATIC )
+set (BINFHELIBS ${BINFHELIBS} PUBLIC PALISADEbinfhe_static PUBLIC PALISADEcore_static ${THIRDPARTYSTATICLIBS} ${OpenMP_CXX_FLAGS})
+	target_link_libraries (PALISADEbinfhe_static PUBLIC PALISADEcore_static ${THIRDPARTYSTATICLIBS} ${OpenMP_CXX_FLAGS})
+	add_dependencies( allbinfhe PALISADEbinfhe_static )
+endif()
 
 if( BUILD_UNITTESTS )
 	file (GLOB BINFHE_TEST_SRC_FILES CONFIGURE_DEPENDS unittest/*.cpp)
 	add_executable (binfhe_tests ${BINFHE_TEST_SRC_FILES} ${UNITTESTMAIN})
 	set_property(TARGET binfhe_tests PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/unittest)
 	target_link_libraries ( binfhe_tests ${BINFHELIBS})
-	if (NOT ${USE_OpenMP})
+	if (NOT ${WITH_OPENMP})
 		target_link_libraries ( binfhe_tests PRIVATE Threads::Threads)
 	endif()
 

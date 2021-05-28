@@ -201,6 +201,18 @@ class Field2n : public std::vector<std::complex<double>>, public Serializable {
   void SwitchFormat();
 
   /**
+   * @brief Sets the evaluation or coefficient representation of the field
+   * elements
+   * @param &format the enum value corresponding to coefficient or evaluation
+   * representation
+   */
+  inline void SetFormat(Format format) {
+    if (this->format != format) {
+      SwitchFormat();
+    }
+  }
+
+  /**
    * @brief Method for getting the size of the element
    *
    * @return the size of the element

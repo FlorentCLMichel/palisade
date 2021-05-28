@@ -21,6 +21,34 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+/*
+Description:
+
+This code implements a RNS variant of the Brakerski-Fan-Vercauteren (BFV)
+homomorphic encryption scheme.  This scheme is also referred to as the FV
+scheme.
+
+The BFV scheme is introduced in the following papers:
+   - Zvika Brakerski (2012). Fully Homomorphic Encryption without Modulus
+Switching from Classical GapSVP. Cryptology ePrint Archive, Report 2012/078.
+(https://eprint.iacr.org/2012/078)
+   - Junfeng Fan and Frederik Vercauteren (2012). Somewhat Practical Fully
+Homomorphic Encryption.  Cryptology ePrint Archive, Report 2012/144.
+(https://eprint.iacr.org/2012/144.pdf)
+
+ Our implementation builds from the designs here:
+   - Lepoint T., Naehrig M. (2014) A Comparison of the Homomorphic Encryption
+Schemes FV and YASHE. In: Pointcheval D., Vergnaud D. (eds) Progress in
+Cryptology – AFRICACRYPT 2014. AFRICACRYPT 2014. Lecture Notes in Computer
+Science, vol 8469. Springer, Cham. (https://eprint.iacr.org/2014/062.pdf)
+   - Jean-Claude Bajard and Julien Eynard and Anwar Hasan and Vincent Zucca
+(2016). A Full RNS Variant of FV like Somewhat Homomorphic Encryption Schemes.
+Cryptology ePrint Archive, Report 2016/510. (https://eprint.iacr.org/2016/510)
+   - Ahmad Al Badawi and Yuriy Polyakov and Khin Mi Mi Aung and Bharadwaj
+Veeravalli and Kurt Rohloff (2018). Implementation and Performance Evaluation of
+RNS Variants of the BFV Homomorphic Encryption Scheme. Cryptology ePrint
+Archive, Report 2018/589. {https://eprint.iacr.org/2018/589}
+ */
 
 #include "bfvrnsB.cpp"
 #include "cryptocontext.h"
@@ -229,16 +257,16 @@ LPEvalKey<NativePoly> LPAlgorithmSHEBFVrnsB<NativePoly>::KeySwitchGen(
 }
 
 template <>
-Ciphertext<Poly> LPAlgorithmSHEBFVrnsB<Poly>::KeySwitch(
+void LPAlgorithmSHEBFVrnsB<Poly>::KeySwitchInPlace(
     const LPEvalKey<Poly> keySwitchHint,
-    ConstCiphertext<Poly> cipherText) const {
+    Ciphertext<Poly>& cipherText) const {
   NOPOLY
 }
 
 template <>
-Ciphertext<NativePoly> LPAlgorithmSHEBFVrnsB<NativePoly>::KeySwitch(
+void LPAlgorithmSHEBFVrnsB<NativePoly>::KeySwitchInPlace(
     const LPEvalKey<NativePoly> keySwitchHint,
-    ConstCiphertext<NativePoly> cipherText) const {
+    Ciphertext<NativePoly>& cipherText) const {
   NONATIVEPOLY
 }
 
@@ -925,7 +953,7 @@ Ciphertext<DCRTPoly> LPAlgorithmBFVrnsB<DCRTPoly>::Encrypt(
 
   c1 = p1 * u + e2;
 
-  ciphertext->SetElements({c0, c1});
+  ciphertext->SetElements({std::move(c0), std::move(c1)});
 
   return ciphertext;
 }
@@ -1014,7 +1042,7 @@ Ciphertext<DCRTPoly> LPAlgorithmBFVrnsB<DCRTPoly>::Encrypt(
   DCRTPoly c1(elementParams, Format::EVALUATION, true);
   c1 -= a;
 
-  ciphertext->SetElements({c0, c1});
+  ciphertext->SetElements({std::move(c0), std::move(c1)});
 
   return ciphertext;
 }
@@ -1396,9 +1424,8 @@ LPEvalKey<DCRTPoly> LPAlgorithmMultipartyBFVrnsB<DCRTPoly>::MultiKeySwitchGen(
 }
 
 template <>
-Ciphertext<DCRTPoly> LPAlgorithmSHEBFVrnsB<DCRTPoly>::KeySwitch(
-    const LPEvalKey<DCRTPoly> ek, ConstCiphertext<DCRTPoly> cipherText) const {
-  Ciphertext<DCRTPoly> newCiphertext = cipherText->CloneEmpty();
+void LPAlgorithmSHEBFVrnsB<DCRTPoly>::KeySwitchInPlace(
+    const LPEvalKey<DCRTPoly> ek, Ciphertext<DCRTPoly>& cipherText) const {
 
   const auto cryptoParamsLWE =
       std::static_pointer_cast<LPCryptoParametersBFVrnsB<DCRTPoly>>(
@@ -1407,7 +1434,7 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBFVrnsB<DCRTPoly>::KeySwitch(
   LPEvalKeyRelin<DCRTPoly> evalKey =
       std::static_pointer_cast<LPEvalKeyRelinImpl<DCRTPoly>>(ek);
 
-  const std::vector<DCRTPoly> &c = cipherText->GetElements();
+  std::vector<DCRTPoly> &c = cipherText->GetElements();
 
   const std::vector<DCRTPoly> &b = evalKey->GetAVector();
   const std::vector<DCRTPoly> &a = evalKey->GetBVector();
@@ -1416,35 +1443,30 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBFVrnsB<DCRTPoly>::KeySwitch(
 
   std::vector<DCRTPoly> digitsC2;
 
-  DCRTPoly ct0(c[0]);
 
   // in the case of EvalMult, c[0] is initially in Format::COEFFICIENT format
   // and needs to be switched to Format::EVALUATION format
-  if (c.size() > 2) ct0.SwitchFormat();
-
-  DCRTPoly ct1;
+  if (c.size() > 2) c[0].SetFormat(Format::EVALUATION);
 
   if (c.size() == 2) {  // case of automorphism
     digitsC2 = c[1].CRTDecompose(relinWindow);
-    ct1 = digitsC2[0] * a[0];
+    c[1] = digitsC2[0] * a[0];
   } else {  // case of EvalMult
     digitsC2 = c[2].CRTDecompose(relinWindow);
-    ct1 = c[1];
-    // Convert ct1 to Format::EVALUATION representation
-    ct1.SwitchFormat();
-    ct1 += digitsC2[0] * a[0];
+    c[1].SetFormat(Format::EVALUATION);
+    c[1] += digitsC2[0] * a[0];
   }
 
-  ct0 += digitsC2[0] * b[0];
+  c[0] += digitsC2[0] * b[0];
 
   for (usint i = 1; i < digitsC2.size(); ++i) {
-    ct0 += digitsC2[i] * b[i];
-    ct1 += digitsC2[i] * a[i];
+    c[0] += digitsC2[i] * b[i];
+    c[1] += digitsC2[i] * a[i];
   }
 
-  newCiphertext->SetElements({ct0, ct1});
-
-  return newCiphertext;
+  Ciphertext<DCRTPoly> newCiphertext = cipherText->CloneEmpty();
+  newCiphertext->SetElements({std::move(c[0]), std::move(c[1])});
+  cipherText = std::move(newCiphertext);
 }
 
 template <>
@@ -1485,7 +1507,7 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBFVrnsB<DCRTPoly>::EvalMultAndRelinearize(
     }
   }
 
-  newCiphertext->SetElements({ct0, ct1});
+  newCiphertext->SetElements({std::move(ct0), std::move(ct1)});
 
   return newCiphertext;
 }
@@ -1636,13 +1658,14 @@ Ciphertext<DCRTPoly> LPAlgorithmPREBFVrnsB<DCRTPoly>::ReEncrypt(
   DCRTPoly c0 = p0 * u + e1;
   DCRTPoly c1 = p1 * u + e2;
 
-  zeroCiphertext->SetElements({c0, c1});
+  zeroCiphertext->SetElements({std::move(c0), std::move(c1)});
 
   // Add the encryption of zero for re-randomization purposes
   auto c = ciphertext->GetCryptoContext()->GetEncryptionAlgorithm()->EvalAdd(
       ciphertext, zeroCiphertext);
 
-  return ciphertext->GetCryptoContext()->KeySwitch(ek, c);
+  ciphertext->GetCryptoContext()->KeySwitchInPlace(ek, c);
+  return c;
 }
 
 template <>

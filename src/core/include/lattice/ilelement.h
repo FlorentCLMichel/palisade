@@ -197,7 +197,7 @@ class ILElement : public Serializable {
    * @return is the return value of the times operation.
    */
   virtual Element Times(
-      bigintnat::NativeInteger::SignedNativeInt element) const;
+      bigintnat::NativeInteger::SignedNativeInt element) const = 0;
 
   /**
    * @brief Performs an addition operation and returns the result.
@@ -300,6 +300,17 @@ class ILElement : public Serializable {
   virtual Element AutomorphismTransform(const usint &i) const = 0;
 
   /**
+   * @brief Performs an automorphism transform operation using precomputed bit
+   * reversal indices.
+   *
+   * @param &i is the element to perform the automorphism transform with.
+   * @param &map a vector with precomputed indices
+   * @return is the result of the automorphism transform.
+   */
+  virtual Element AutomorphismTransform(
+      usint i, const std::vector<uint32_t> &map) const = 0;
+
+  /**
    * @brief Transpose the ring element using the automorphism operation
    *
    * @return is the result of the transposition.
@@ -386,17 +397,6 @@ class ILElement : public Serializable {
    */
   virtual Element MultiplyAndRound(const IntType &p,
                                    const IntType &q) const = 0;
-
-  /**
-   * @brief ModReduce reduces the composite modulus by dropping the last modulus
-   *from the chain of moduli as well as dropping the last tower. This is only
-   *implemented in the derived class for DCRTPoly
-   *
-   *@param plaintextModulus is the plaintextModulus used for the DCRTPoly
-   */
-  virtual void ModReduce(const IntType &plaintextModulus) {
-    PALISADE_THROW(not_implemented_error, "ModReduce is not implemented");
-  }
 
   /**
    * @brief Calculate a vector of elements by raising the base element to

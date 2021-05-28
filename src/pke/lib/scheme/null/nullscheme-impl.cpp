@@ -129,12 +129,12 @@ Ciphertext<DCRTPoly> LPAlgorithmSHENull<DCRTPoly>::EvalMult(
 
   for (size_t i = 0; i < c1.GetNumOfElements(); i++) {
     PolyType v = ElementNullSchemeMultiply(c1e.at(i), c2e.at(i), ptm);
-    mResults.push_back(v);
+    mResults.push_back(std::move(v));
   }
 
   DCRTPoly cResult(mResults);
 
-  newCiphertext->SetElement(cResult);
+  newCiphertext->SetElement(std::move(cResult));
 
   return newCiphertext;
 }
@@ -156,12 +156,12 @@ Ciphertext<DCRTPoly> LPAlgorithmSHENull<DCRTPoly>::EvalMult(
 
   for (size_t i = 0; i < c1.GetNumOfElements(); i++) {
     PolyType v = ElementNullSchemeMultiply(c1e.at(i), c2e.at(i), ptm);
-    mResults.push_back(v);
+    mResults.push_back(std::move(v));
   }
 
   DCRTPoly cResult(mResults);
 
-  newCiphertext->SetElement(cResult);
+  newCiphertext->SetElement(std::move(cResult));
 
   return newCiphertext;
 }

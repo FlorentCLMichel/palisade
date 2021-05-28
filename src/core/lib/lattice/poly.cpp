@@ -87,9 +87,9 @@ PolyImpl<VecType>::PolyImpl(const DggType &dgg,
   m_values = make_unique<VecType>(
       dgg.GenerateVector(vectorSize, params->GetModulus()));
   (*m_values).SetModulus(params->GetModulus());
-  m_format = Format::COEFFICIENT;
 
-  if (format == Format::EVALUATION) this->SwitchFormat();
+  m_format = Format::COEFFICIENT;
+  this->SetFormat(format);
 }
 
 template <typename VecType>
@@ -104,25 +104,21 @@ PolyImpl<VecType>::PolyImpl(DiscreteUniformGeneratorImpl<VecType> &dug,
   (*m_values).SetModulus(params->GetModulus());
 
   m_format = Format::COEFFICIENT;
-
-  if (format == Format::EVALUATION) this->SwitchFormat();
+  this->SetFormat(format);
 }
 
 template <typename VecType>
 PolyImpl<VecType>::PolyImpl(const BinaryUniformGeneratorImpl<VecType> &bug,
                             const shared_ptr<PolyImpl::Params> params,
                             Format format) {
-  DEBUG_FLAG(false);
   m_params = params;
 
   usint vectorSize = params->GetRingDimension();
   m_values = make_unique<VecType>(
       bug.GenerateVector(vectorSize, params->GetModulus()));
   // (*m_values).SetModulus(ilParams.GetModulus());
-  DEBUG("why does this have no modulus");
   m_format = Format::COEFFICIENT;
-
-  if (format == Format::EVALUATION) this->SwitchFormat();
+  this->SetFormat(format);
 }
 
 template <typename VecType>
@@ -135,9 +131,9 @@ PolyImpl<VecType>::PolyImpl(const TernaryUniformGeneratorImpl<VecType> &tug,
   m_values = make_unique<VecType>(
       tug.GenerateVector(vectorSize, params->GetModulus(), h));
   (*m_values).SetModulus(params->GetModulus());
-  m_format = Format::COEFFICIENT;
 
-  if (format == Format::EVALUATION) this->SwitchFormat();
+  m_format = Format::COEFFICIENT;
+  this->SetFormat(format);
 }
 
 template <typename VecType>
@@ -176,7 +172,7 @@ PolyImpl<VecType>::PolyImpl(const PolyNative &rhs, Format format) {
 
   this->SetValues(std::move(temp), rhs.GetFormat());
 
-  if (format != rhs.GetFormat()) SwitchFormat();
+  this->SetFormat(format);
 }
 
 // this is the move
@@ -564,7 +560,7 @@ PolyImpl<VecType> PolyImpl<VecType>::Negate() const {
   // PolyImpl is supported only in Format::EVALUATION format.\n");
 
   PolyImpl<VecType> tmp(*this);
-  *tmp.m_values = m_values->ModMul(this->m_params->GetModulus() - Integer(1));
+  tmp.m_values->ModMulEq(this->m_params->GetModulus() - Integer(1));
   return tmp;
 }
 
@@ -572,15 +568,15 @@ PolyImpl<VecType> PolyImpl<VecType>::Negate() const {
 
 template <typename VecType>
 PolyImpl<VecType> PolyImpl<VecType>::Plus(const PolyImpl &element) const {
-  PolyImpl tmp = CloneParametersOnly();
-  tmp.SetValues(GetValues().ModAdd(*element.m_values), this->m_format);
+  PolyImpl tmp = *this;
+  tmp.m_values->ModAddEq(*element.m_values);
   return tmp;
 }
 
 template <typename VecType>
 PolyImpl<VecType> PolyImpl<VecType>::Minus(const PolyImpl &element) const {
-  PolyImpl<VecType> tmp = CloneParametersOnly();
-  tmp.SetValues(GetValues().ModSub(*element.m_values), this->m_format);
+  PolyImpl tmp = *this;
+  tmp.m_values->ModSubEq(*element.m_values);
   return tmp;
 }
 
@@ -595,9 +591,10 @@ PolyImpl<VecType> PolyImpl<VecType>::Times(const PolyImpl &element) const {
     PALISADE_THROW(type_error,
                    "operator* called on PolyImpl's with different params.");
 
-  PolyImpl<VecType> tmp = CloneParametersOnly();
-  tmp.SetValues(this->m_values->ModMul(*element.m_values), this->m_format);
+  PolyImpl tmp = *this;
+  tmp.m_values->ModMulEq(*element.m_values);
   return tmp;
+
 }
 
 // TODO: check if the parms tests here should be done in regular op as well as
@@ -683,7 +680,7 @@ PolyImpl<VecType> PolyImpl<VecType>::AutomorphismTransform(
   usint n = this->m_params->GetRingDimension();
 
   if (this->m_format == Format::EVALUATION) {
-    if (m_params->OrderIsPowerOfTwo() == false) {
+    if (!m_params->OrderIsPowerOfTwo()) {
       // Add a test based on the inverse totient hash table
       // if (i % 2 == 0)
       //  PALISADE_THROW(math_error, "automorphism index should be
@@ -725,7 +722,7 @@ PolyImpl<VecType> PolyImpl<VecType>::AutomorphismTransform(
     }
   } else {
     // automorphism in Format::COEFFICIENT representation
-    if (m_params->OrderIsPowerOfTwo() == false) {
+    if (!m_params->OrderIsPowerOfTwo()) {
       PALISADE_THROW(
           not_implemented_error,
           "Automorphism in Format::COEFFICIENT representation is not currently "
@@ -748,6 +745,28 @@ PolyImpl<VecType> PolyImpl<VecType>::AutomorphismTransform(
       }
     }
   }
+  return result;
+}
+
+template <typename VecType>
+PolyImpl<VecType> PolyImpl<VecType>::AutomorphismTransform(
+    usint k, const std::vector<usint> &precomp) const {
+  PolyImpl result(*this);
+  if ((this->m_format == Format::EVALUATION)  && (m_params->OrderIsPowerOfTwo())) {
+      if (k % 2 == 0) {
+        PALISADE_THROW(math_error, "automorphism index should be odd\n");
+      }
+      usint n = this->m_params->GetRingDimension();
+
+      for (usint j = 0; j < n; j++) {
+        (*result.m_values)[j] = (*m_values)[precomp[j]];
+      }
+
+  } else {
+      PALISADE_THROW(
+          not_implemented_error,
+          "Precomputed automorphism is implemented only for power-of-two polynomials in the EVALUATION representation");
+    }
   return result;
 }
 
@@ -812,28 +831,26 @@ void PolyImpl<VecType>::SwitchFormat() {
     return;
   }
 
-  VecType newValues(m_params->GetCyclotomicOrder() / 2);
-
   if (m_format == Format::COEFFICIENT) {
     m_format = Format::EVALUATION;
 
     DEBUG("transform to Format::EVALUATION m_values was" << *m_values);
 
-    ChineseRemainderTransformFTT<VecType>::ForwardTransformToBitReverse(
-        *m_values, m_params->GetRootOfUnity(), m_params->GetCyclotomicOrder(),
-        &newValues);
-    DEBUG("m_values now " << newValues);
+    ChineseRemainderTransformFTT<VecType>::ForwardTransformToBitReverseInPlace(
+        m_params->GetRootOfUnity(), m_params->GetCyclotomicOrder(),
+        &(*m_values));
+    DEBUG("m_values now in Format::COEFFICIENT " << *m_values);
+
   } else {
     m_format = Format::COEFFICIENT;
     DEBUG("transform to Format::COEFFICIENT m_values was" << *m_values);
 
-    ChineseRemainderTransformFTT<VecType>::InverseTransformFromBitReverse(
-        *m_values, m_params->GetRootOfUnity(), m_params->GetCyclotomicOrder(),
-        &newValues);
-    DEBUG("m_values now " << newValues);
+    ChineseRemainderTransformFTT<VecType>::
+        InverseTransformFromBitReverseInPlace(m_params->GetRootOfUnity(),
+                                              m_params->GetCyclotomicOrder(),
+                                              &(*m_values));
+    DEBUG("m_values now in Format::EVALUATION " << *m_values);
   }
-
-  *m_values = newValues;
 }
 
 template <typename VecType>

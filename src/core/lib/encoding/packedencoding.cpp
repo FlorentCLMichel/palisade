@@ -116,7 +116,7 @@ bool PackedEncoding::Encode() {
                            nativeParams[i]->GetBigModulus(),
                            nativeParams[i]->GetBigRootOfUnity());
 
-        this->encodedVectorDCRT.SetElementAtIndex(i, temp);
+        this->encodedVectorDCRT.SetElementAtIndex(i, std::move(temp));
       }
     }
 
@@ -221,7 +221,7 @@ void PackedEncoding::SetParams(usint m, EncodingParams params) {
 
   // initialize the CRT coefficients if not initialized
   try {
-    if (!(m & (m - 1))) {  // Check if m is a power of 2
+    if (IsPowerOfTwo(m)) {
 #pragma omp critical
       { SetParams_2n(m, params); }
     } else {
@@ -325,7 +325,7 @@ void PackedEncoding::Pack(P *ring, const PlaintextModulus &modulus) const {
   DEBUG(slotValues);
 
   // Transform Eval to Coeff
-  if (!(m & (m - 1))) {  // Check if m is a power of 2
+  if (IsPowerOfTwo(m)) {
     if (m_toCRTPerm[m].size() > 0) {
       // Permute to CRT Order
       NativeVector permutedSlots(phim, modulusNI);
@@ -400,7 +400,7 @@ void PackedEncoding::Unpack(P *ring, const PlaintextModulus &modulus) const {
 
   // Transform Coeff to Eval
   NativeVector permutedSlots(phim, modulusNI);
-  if (!(m & (m - 1))) {  // Check if m is a power of 2
+  if (IsPowerOfTwo(m)) {
     ChineseRemainderTransformFTT<NativeVector>::ForwardTransformToBitReverse(
         packedVector, m_initRoot[modulusM], m, &permutedSlots);
   } else {  // Arbitrary cyclotomic

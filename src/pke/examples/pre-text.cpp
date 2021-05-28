@@ -72,15 +72,13 @@ CryptoContext<Poly> GeneratePREContext(string scheme, PlaintextModulus ptm) {
   CryptoContext<Poly> cc;
   unsigned int m = 2048;
 
-  if (scheme == "StSt") {
-    cc = GenTestCryptoContext<Poly>("StSt", m, ptm, 80);
-  } else if (scheme == "Null") {
+  if (scheme == "Null") {
     cc = GenTestCryptoContext<Poly>(scheme, m, ptm);
   } else if (scheme == "BFV") {
     cc = GenTestCryptoContext<Poly>("BFV_rlwe", m, ptm);
   } else {
     cout << "Unrecognized scheme '" << scheme << "'" << endl;
-    cout << "Available schemes are: StSt, Null, and BFV" << endl;
+    cout << "Available schemes are: Null, and BFV" << endl;
   }
 
   return cc;

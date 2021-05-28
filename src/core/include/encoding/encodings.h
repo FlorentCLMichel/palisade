@@ -27,11 +27,8 @@
 #include "encoding/ckkspackedencoding.h"
 #include "encoding/coefpackedencoding.h"
 #include "encoding/encodingparams.h"
-#include "encoding/fractionalencoding.h"
-#include "encoding/integerencoding.h"
 #include "encoding/packedencoding.h"
 #include "encoding/plaintext.h"
-#include "encoding/scalarencoding.h"
 #include "encoding/stringencoding.h"
 
 #endif /* SRC_CORE_LIB_ENCODING_ENCODINGS_H_ */

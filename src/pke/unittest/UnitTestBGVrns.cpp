@@ -153,6 +153,16 @@ static void UnitTest_Add_Packed(const CryptoContext<Element> cc,
   auto tmp_b = results->GetPackedValue();
   checkEquality(tmp_a, tmp_b, failmsg + " EvalAdd fails");
 
+  /* Testing EvalAddInPlace
+   */
+  Ciphertext<Element> ciphertext1_clone = ciphertext1->Clone();
+  cc->EvalAddInPlace(ciphertext1_clone, ciphertext2);
+  cc->Decrypt(kp.secretKey, ciphertext1_clone, &results);
+  results->SetLength(plaintextAdd->GetLength());
+  tmp_a = plaintextAdd->GetPackedValue();
+  tmp_b = results->GetPackedValue();
+  checkEquality(tmp_a, tmp_b, failmsg + " EvalAddInPlace fails");
+
   /* Testing operator+
    */
   cResult = ciphertext1 + ciphertext2;
@@ -216,7 +226,7 @@ static void UnitTest_Add_Packed(const CryptoContext<Element> cc,
   results->SetLength(plaintextSub->GetLength());
   tmp_a = plaintextSub->GetPackedValue();
   tmp_b = results->GetPackedValue();
-  checkEquality(tmp_a, tmp_b, 
+  checkEquality(tmp_a, tmp_b,
                 failmsg + " EvalSub Ct and Pt fails fails");
 
   /* Testing EvalNegate
@@ -332,7 +342,7 @@ static void UnitTest_Mult_Packed(const CryptoContext<Element> cc,
   results->SetLength(plaintextMult->GetLength());
   tmp_a = plaintextMult->GetPackedValue();
   tmp_b = results->GetPackedValue();
-  checkEquality(tmp_a, tmp_b, 
+  checkEquality(tmp_a, tmp_b,
                 failmsg + " EvalMultNoRelin Ct and Ct fails");
 }
 
@@ -556,7 +566,7 @@ static void UnitTest_ReEncryption(const CryptoContext<Element> cc,
   auto tmp_b = plaintextInt->GetPackedValue();
   stringstream buffer;
   buffer << tmp_b << " - we get: " << tmp_a << endl;
-  checkEquality(tmp_a, tmp_b, 
+  checkEquality(tmp_a, tmp_b,
                 failmsg + " ReEncrypt integer plaintext " + buffer.str());
 
   stringstream buffer2;
@@ -570,7 +580,7 @@ static void UnitTest_ReEncryption(const CryptoContext<Element> cc,
   tmp_b = plaintextInt->GetPackedValue();
   buffer2 << tmp_b << " - we get: " << tmp_a << endl;
   checkEquality(
-      tmp_a, tmp_b, 
+      tmp_a, tmp_b,
       failmsg + " HRA-secure ReEncrypt integer plaintext " + buffer2.str());
 }
 
@@ -669,14 +679,21 @@ static void UnitTest_AutoLevelReduce(const CryptoContext<Element> cc,
 
   auto ctMul = cc->EvalMult(ct, ct2);
   auto ctRed = cc->ModReduce(ctMul);
+  Ciphertext<Element> ctRedClone =  ctRed->Clone();
 
   auto ct3 = cc->EvalAdd(ctRed, ct);  // Addition with tower diff = 1
   cc->Decrypt(kp.secretKey, ct3, &results);
   results->SetLength(plaintextCt3->GetLength());
   auto tmp_a = plaintextCt3->GetPackedValue();
   auto tmp_b = results->GetPackedValue();
-  checkEquality(tmp_a, tmp_b,
-                           failmsg + " addition with tower diff = 1 fails");
+  checkEquality(tmp_a, tmp_b, failmsg + " addition with tower diff = 1 fails");
+
+  cc->EvalAddInPlace(ctRedClone, ct);  // In-place addition with tower diff = 1
+  cc->Decrypt(kp.secretKey, ctRedClone, &results);
+  results->SetLength(plaintextCt3->GetLength());
+  tmp_a = plaintextCt3->GetPackedValue();
+  tmp_b = results->GetPackedValue();
+  checkEquality(tmp_a, tmp_b, failmsg + " in-place addition with tower diff = 1 fails");
 
   auto ct4 = cc->EvalSub(ctRed, ct);  // Subtraction with tower diff = 1
   cc->Decrypt(kp.secretKey, ct4, &results);
@@ -703,6 +720,17 @@ static void UnitTest_AutoLevelReduce(const CryptoContext<Element> cc,
       tmp_a, tmp_b,
       failmsg + " addition (reverse) with tower diff = 1 fails");
 
+  // In-place addition with tower diff = 1 (inputs reversed)
+  auto ct_clone = ct->Clone();
+  cc->EvalAddInPlace(ct_clone, ctRed);
+  cc->Decrypt(kp.secretKey, ct_clone, &results);
+  results->SetLength(plaintextCt6->GetLength());
+  tmp_a = plaintextCt6->GetPackedValue();
+  tmp_b = results->GetPackedValue();
+  checkEquality(
+      tmp_a, tmp_b,
+      failmsg + " in-place addition (reverse) with tower diff = 1 fails");
+
   auto ct7 = cc->EvalSub(
       ct, ctRed);  // Subtraction with tower diff = 1 (inputs reversed)
   cc->Decrypt(kp.secretKey, ct7, &results);
@@ -725,6 +753,7 @@ static void UnitTest_AutoLevelReduce(const CryptoContext<Element> cc,
   auto ctRed2 = cc->ModReduce(ctMul2);
   auto ctMul3 = cc->EvalMult(ctRed2, ct);
   auto ctRed3 = cc->ModReduce(ctMul3);
+  auto ctRed3_clone = ctRed3->Clone();
 
   auto ct9 =
       cc->EvalAdd(ctRed3, ct);  // Addition with more than 1 level difference
@@ -733,6 +762,15 @@ static void UnitTest_AutoLevelReduce(const CryptoContext<Element> cc,
   tmp_a = plaintextCt9->GetPackedValue();
   tmp_b = results->GetPackedValue();
   checkEquality(tmp_a, tmp_b, failmsg + " addition with tower diff > 1 fails");
+
+  // In-place Addition with more than 1 level difference
+  cc->EvalAddInPlace(ctRed3_clone, ct);
+  cc->Decrypt(kp.secretKey, ctRed3_clone, &results);
+  results->SetLength(plaintextCt9->GetLength());
+  tmp_a = plaintextCt9->GetPackedValue();
+  tmp_b = results->GetPackedValue();
+  checkEquality(tmp_a, tmp_b, failmsg + " in-place addition with tower diff > 1 fails");
+
 
   auto ct10 =
       cc->EvalSub(ctRed3, ct);  // Subtraction with more than 1 level difference
@@ -751,15 +789,24 @@ static void UnitTest_AutoLevelReduce(const CryptoContext<Element> cc,
   checkEquality(
       tmp_a, tmp_b, failmsg + " multiplication with tower diff > 1 fails");
 
-  auto ct12 = cc->EvalAdd(
-      ct,
-      ctRed3);  // Addition with more than 1 level difference (inputs reversed)
+  // Addition with more than 1 level difference (inputs reversed)
+  auto ct12 = cc->EvalAdd(ct, ctRed3);
   cc->Decrypt(kp.secretKey, ct12, &results);
   results->SetLength(plaintextCt12->GetLength());
   tmp_a = plaintextCt12->GetPackedValue();
   tmp_b = results->GetPackedValue();
   checkEquality(
       tmp_a, tmp_b, failmsg + " addition (reverse) with tower diff > 1 fails");
+
+  // In-place addition with more than 1 level difference (inputs reversed)
+  auto ctClone = ct->Clone();
+  cc->EvalAddInPlace(ctClone, ctRed3);
+  cc->Decrypt(kp.secretKey, ctClone, &results);
+  results->SetLength(plaintextCt12->GetLength());
+  tmp_a = plaintextCt12->GetPackedValue();
+  tmp_b = results->GetPackedValue();
+  checkEquality(
+      tmp_a, tmp_b, failmsg + " in-place addition (reverse) with tower diff > 1 fails");
 
   auto ct13 = cc->EvalSub(ct, ctRed3);  // Subtraction with more than 1 level
                                         // difference (inputs reversed)
@@ -1006,6 +1053,13 @@ static void UnitTest_Metadata(const CryptoContext<Element> cc,
   EXPECT_EQ(val1->GetMetadata(), addCCValTest->GetMetadata())
       << "Ciphertext metadata mismatch in EvalAdd(ctx,ctx)";
 
+  // Checking if metadata is carried over in EvalAddInPlace(ctx,ctx)
+  Ciphertext<Element> ciphertext1_clone = ciphertext1->Clone();
+  cc->EvalAddInPlace(ciphertext1_clone, ciphertext2);
+  auto addCCInPlaceValTest = MetadataTest::GetMetadata<Element>(ciphertext1_clone);
+  EXPECT_EQ(val1->GetMetadata(), addCCInPlaceValTest->GetMetadata())
+      << "Ciphertext metadata mismatch in EvalAddInPlace(ctx,ctx)";
+
   // Checking if metadata is carried over in EvalAdd(ctx,ptx)
   Ciphertext<Element> cAddCP = cc->EvalAdd(ciphertext1, plaintext1);
   auto addCPValTest = MetadataTest::GetMetadata<Element>(cAddCP);
@@ -1028,13 +1082,13 @@ static void UnitTest_Metadata(const CryptoContext<Element> cc,
   Ciphertext<Element> cMultCC = cc->EvalMult(ciphertext1, ciphertext2);
   auto multCCValTest = MetadataTest::GetMetadata<Element>(cMultCC);
   EXPECT_EQ(val1->GetMetadata(), multCCValTest->GetMetadata())
-      << "Ciphertext metadata mismatch in EvalAdd(ctx,ctx)";
+      << "Ciphertext metadata mismatch in EvalMult(ctx,ctx)";
 
   // Checking if metadata is carried over in EvalMult(ctx,ptx)
   Ciphertext<Element> cMultCP = cc->EvalMult(ciphertext1, plaintext1);
   auto multCPValTest = MetadataTest::GetMetadata<Element>(cMultCP);
   EXPECT_EQ(val1->GetMetadata(), multCPValTest->GetMetadata())
-      << "Ciphertext metadata mismatch in EvalAdd(ctx,ptx)";
+      << "Ciphertext metadata mismatch in EvalMult(ctx,ptx)";
 
   // Checking if metadata is carried over in EvalAtIndex +2 (left rotate)
   auto cAtIndex2 = cc->EvalAtIndex(ciphertext1, 2);

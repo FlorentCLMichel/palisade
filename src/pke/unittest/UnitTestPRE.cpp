@@ -51,15 +51,9 @@ class ReEncrypt : public ::testing::Test {
   }
 };
 
-// FIXME StSt will not work with NativePoly because the bits for q are too big
-// for a NativeInteger
-// GENERATE_PKE_TEST_CASE_BITS(x, y, NativePoly, StSt, ORD, PTM, 80)
 
 #define GENERATE_TEST_CASES_FUNC(x, y, ORD, PTM)                   \
   GENERATE_PKE_TEST_CASE(x, y, Poly, Null, ORD, PTM)               \
-  GENERATE_PKE_TEST_CASE_BITS(x, y, Poly, StSt, ORD, PTM, 80)      \
-  GENERATE_PKE_TEST_CASE(x, y, Poly, BGV_rlwe, ORD, PTM)           \
-  GENERATE_PKE_TEST_CASE(x, y, Poly, BGV_opt, ORD, PTM)            \
   GENERATE_PKE_TEST_CASE(x, y, Poly, BFV_rlwe, ORD, PTM)           \
   GENERATE_PKE_TEST_CASE(x, y, Poly, BFV_opt, ORD, PTM)            \
   GENERATE_PKE_TEST_CASE(x, y, Poly, BFVrns_rlwe, ORD, PTM)        \
@@ -67,16 +61,11 @@ class ReEncrypt : public ::testing::Test {
   GENERATE_PKE_TEST_CASE(x, y, Poly, BFVrnsB_rlwe, ORD, PTM)       \
   GENERATE_PKE_TEST_CASE(x, y, Poly, BFVrnsB_opt, ORD, PTM)        \
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, Null, ORD, PTM)         \
-  GENERATE_PKE_TEST_CASE(x, y, NativePoly, BGV_rlwe, ORD, PTM)     \
-  GENERATE_PKE_TEST_CASE(x, y, NativePoly, BGV_opt, ORD, PTM)      \
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, BFVrns_rlwe, ORD, PTM)  \
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, BFVrns_opt, ORD, PTM)   \
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, BFVrnsB_rlwe, ORD, PTM) \
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, BFVrnsB_opt, ORD, PTM)  \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, Null, ORD, PTM)           \
-  GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, StSt, ORD, PTM)           \
-  GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGV_rlwe, ORD, PTM)       \
-  GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGV_opt, ORD, PTM)        \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrns_rlwe, ORD, PTM)    \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrns_opt, ORD, PTM)     \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrnsB_rlwe, ORD, PTM)   \

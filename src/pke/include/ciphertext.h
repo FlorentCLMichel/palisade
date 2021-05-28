@@ -224,11 +224,31 @@ class CiphertextImpl : public CryptoObject<Element> {
                    "Ciphertext with a single element");
   }
 
+    /**
+   * GetElement - get the ring element for the cases that use only one element
+   * in the vector this method will throw an exception if it's ever called in
+   * cases with other than 1 element
+   * @return the first (and only!) ring element
+   */
+  Element& GetElement() {
+    if (m_elements.size() == 1) return m_elements[0];
+
+    PALISADE_THROW(config_error,
+                   "GetElement should only be used in cases with a "
+                   "Ciphertext with a single element");
+  }
+
   /**
    * GetElements: get all of the ring elements in the CiphertextImpl
    * @return vector of ring elements
    */
   const std::vector<Element>& GetElements() const { return m_elements; }
+
+  /**
+   * GetElements: get all of the ring elements in the CiphertextImpl
+   * @return vector of ring elements
+   */
+  std::vector<Element>& GetElements() { return m_elements; }
 
   /**
    * SetElement - sets the ring element for the cases that use only one element
@@ -479,7 +499,7 @@ class CiphertextImpl : public CryptoObject<Element> {
   MetadataMap m_metadataMap;
 };
 
-// FIXME the op= are not doing the work in-place, and should be updated
+// TODO the op= are not doing the work in-place, and should be updated
 
 /**
  * operator+ overload for Ciphertexts.  Performs EvalAdd.

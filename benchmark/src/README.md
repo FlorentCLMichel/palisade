@@ -46,40 +46,50 @@ An example output after running `lib-benchmark` is as follows:
 -------------------------------------------------------------------
 Benchmark                         Time             CPU   Iterations
 -------------------------------------------------------------------
-NTTTransform1024               10.3 us         10.3 us        64120
-INTTTransform1024              10.4 us         10.4 us        67201
-NTTTransform4096               48.6 us         48.6 us        14371
-INTTTransform4096              50.4 us         50.4 us        13848
-BFVrns_KeyGen                  1188 us         1188 us          590
-BFVrns_MultKeyGen              3824 us         3824 us          183
-BFVrns_EvalAtIndexKeyGen       3867 us         3867 us          181
-BFVrns_Encryption              1117 us         1117 us          626
-BFVrns_Decryption               224 us          224 us         3113
-BFVrns_Add                     20.4 us         20.4 us        34894
-BFVrns_MultNoRelin             3567 us         3567 us          196
-BFVrns_MultRelin               5191 us         5191 us          134
-BFVrns_EvalAtIndex             1639 us         1639 us          427
-CKKS_KeyGen                    1180 us         1180 us          593
-CKKS_MultKeyGen                2179 us         2179 us          321
-CKKS_EvalAtIndexKeyGen         2212 us         2212 us          317
-CKKS_Encryption                1047 us         1047 us          669
-CKKS_Decryption                 295 us          295 us         2368
-CKKS_Add                       30.3 us         30.3 us        22968
-CKKS_MultNoRelin                113 us          113 us         6138
-CKKS_MultRelin                 1604 us         1604 us          436
-CKKS_Relin                     1555 us         1555 us          450
-CKKS_Rescale                    378 us          378 us         1852
-CKKS_EvalAtIndex               1619 us         1619 us          431
-BGVrns_KeyGen                   998 us          998 us          701
-BGVrns_MultKeyGen              1516 us         1516 us          462
-BGVrns_EvalAtIndexKeyGen       1549 us         1549 us          451
-BGVrns_Encryption              1118 us         1118 us          626
-BGVrns_Decryption               119 us          119 us         5902
-BGVrns_Add                     30.3 us         30.3 us        23289
-BGVrns_MultNoRelin              114 us          114 us         6145
-BGVrns_MultRelin               1372 us         1372 us          509
-BGVrns_Relin                   1326 us         1326 us          529
-BGVrns_EvalAtIndex             1386 us         1386 us          504
+NTTTransform1024               9.85 us         9.85 us        71095
+INTTTransform1024              10.3 us         10.3 us        67916
+NTTTransform4096               46.4 us         46.4 us        15085
+INTTTransform4096              48.1 us         48.1 us        14550
+NTTTransformInPlace1024        9.26 us         9.26 us        75234
+INTTTransformInPlace1024       10.2 us         10.2 us        68940
+NTTTransformInPlace4096        43.6 us         43.6 us        16069
+INTTTransformInPlace4096       47.1 us         47.1 us        14853
+BFVrns_KeyGen                  2283 us         2283 us          306
+BFVrns_MultKeyGen              3703 us         3703 us          188
+BFVrns_EvalAtIndexKeyGen       3804 us         3804 us          184
+BFVrns_Encryption              2171 us         2171 us          322
+BFVrns_Decryption               527 us          527 us         1326
+BFVrns_Add                     33.5 us         33.5 us        20962
+BFVrns_AddInPlace              23.4 us         23.4 us        29870
+BFVrns_MultNoRelin             7198 us         7198 us           97
+BFVrns_MultRelin               8272 us         8272 us           84
+BFVrns_EvalAtIndex             1026 us         1026 us          682
+CKKS_KeyGen                    2257 us         2257 us          310
+CKKS_MultKeyGen                5699 us         5699 us          122
+CKKS_EvalAtIndexKeyGen         5669 us         5669 us          122
+CKKS_Encryption                1957 us         1957 us          358
+CKKS_Decryption                 898 us          898 us          782
+CKKS_Add                       33.4 us         33.4 us        21046
+CKKS_AddInPlace                23.4 us         23.4 us        28462
+CKKS_MultNoRelin                210 us          210 us         3340
+CKKS_MultRelin                 3067 us         3067 us          229
+CKKS_Relin                     3200 us         3200 us          218
+CKKS_Rescale                    535 us          535 us         1309
+CKKS_RescaleInPlace             523 us          523 us         1337
+CKKS_EvalAtIndex               2698 us         2698 us          259
+BGVrns_KeyGen                  2267 us         2267 us          308
+BGVrns_MultKeyGen              5709 us         5709 us          122
+BGVrns_EvalAtIndexKeyGen       5777 us         5777 us          121
+BGVrns_Encryption              2201 us         2201 us          318
+BGVrns_Decryption               390 us          390 us         1798
+BGVrns_Add                     44.3 us         44.3 us        15817
+BGVrns_AddInPlace              33.6 us         33.6 us        20945
+BGVrns_MultNoRelin              204 us          204 us         3424
+BGVrns_MultRelin               3102 us         3102 us          224
+BGVrns_Relin                   3247 us         3247 us          216
+BGVrns_ModSwitch                539 us          539 us         1301
+BGVrns_ModSwitchInPlace         528 us          528 us         1325
+BGVrns_EvalAtIndex             2720 us         2720 us          257
 ```
 
 ## poly-benchmark
@@ -97,26 +107,26 @@ An example output after running `poly-benchmark-xk` is as follows:
 -------------------------------------------------------------
 Benchmark                   Time             CPU   Iterations
 -------------------------------------------------------------
-Native_add               1.23 us         1.23 us       570344
-DCRT_add/towers:1        1.36 us         1.36 us       515252
-DCRT_add/towers:2        2.69 us         2.69 us       260023
-DCRT_add/towers:4        5.16 us         5.16 us       135897
-DCRT_add/towers:8        10.1 us         10.1 us        69543
-Native_mul               3.72 us         3.72 us       188534
-DCRT_mul/towers:1        3.51 us         3.51 us       199335
-DCRT_mul/towers:2        6.85 us         6.85 us       101571
-DCRT_mul/towers:4        13.5 us         13.5 us        51500
-DCRT_mul/towers:8        27.1 us         27.1 us        25879
-Native_ntt               11.5 us         11.5 us        61099
-DCRT_ntt/towers:1        11.8 us         11.8 us        59778
-DCRT_ntt/towers:2        23.3 us         23.3 us        29982
-DCRT_ntt/towers:4        46.5 us         46.5 us        15062
-DCRT_ntt/towers:8        93.1 us         93.1 us         7519
-Native_intt              12.3 us         12.3 us        56893
-DCRT_intt/towers:1       12.6 us         12.6 us        55820
-DCRT_intt/towers:2       25.0 us         25.0 us        27986
-DCRT_intt/towers:4       50.0 us         50.0 us        13987
-DCRT_intt/towers:8       99.7 us         99.7 us         7018
+Native_add              0.936 us        0.936 us       748048
+DCRT_add/towers:1        1.16 us         1.16 us       602138
+DCRT_add/towers:2        2.25 us         2.25 us       311691
+DCRT_add/towers:4        4.30 us         4.30 us       162618
+DCRT_add/towers:8        8.77 us         8.77 us        79828
+Native_mul               2.94 us         2.94 us       237968
+DCRT_mul/towers:1        3.16 us         3.16 us       221648
+DCRT_mul/towers:2        6.22 us         6.22 us       112086
+DCRT_mul/towers:4        12.3 us         12.3 us        57139
+DCRT_mul/towers:8        24.7 us         24.7 us        28305
+Native_ntt               9.61 us         9.61 us        72903
+DCRT_ntt/towers:1        9.80 us         9.80 us        71486
+DCRT_ntt/towers:2        19.5 us         19.5 us        35900
+DCRT_ntt/towers:4        38.8 us         38.8 us        18029
+DCRT_ntt/towers:8        77.8 us         77.8 us         9001
+Native_intt              10.5 us         10.5 us        66770
+DCRT_intt/towers:1       10.7 us         10.7 us        65778
+DCRT_intt/towers:2       21.3 us         21.3 us        32912
+DCRT_intt/towers:4       42.3 us         42.3 us        16532
+DCRT_intt/towers:8       84.9 us         84.9 us         8242
 ```
 
 ## other
@@ -132,4 +142,5 @@ There are several other benchmarking tests:
 * [IntegerMath](IntegerMath.cpp) - performance tests for the big integer operations
 * [Lattice](Lattice.cpp) - performance tests for the Lattice operations.
 * [NbTheory](NbTheory.cpp) - performance tests of number theory functions
+* [Serialization](serialize-ckks.cpp) - performance tests of CKKS serialization
 * [VectorMath](VectorMath.cpp) - performance tests for the big vector operations

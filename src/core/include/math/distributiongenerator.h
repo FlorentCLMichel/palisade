@@ -110,7 +110,7 @@ class PseudoRandomNumberGenerator {
         initKey[1] = std::hash<std::thread::id>{}(std::this_thread::get_id());
         // On a 64-bit machine, the thread id is 64 bits long
         // skip on 32-bit arm architectures
-#ifndef __arm__
+#if !defined(__arm__) && !defined(__EMSCRIPTEN__)
         if (sizeof(size_t) == 8)
           initKey[2] =
               (std::hash<std::thread::id>{}(std::this_thread::get_id()) >> 32);

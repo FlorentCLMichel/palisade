@@ -1,3 +1,25 @@
+05/28/2020: PALISADE v1.11.3 (stable) is released in the palisade-release repo
+* Includes all changes from development releases v1.11.0, v1.11.1, and v1.11.2
+
+05/26/2021: PALISADE v1.11.2 (development) is released
+* Adds initial Intel HEXL library integration
+* Adds support for web assembly
+* Fixes some bugs for the scenarios with multiple cryptocontexts
+
+05/04/2021: PALISADE v1.11.1 (development) is released
+* Fixes some bugs related to serialization
+
+03/31/2021: PALISADE v1.11.0 (development) is released
+
+* The abe module is moved to https://gitlab.com/palisade/palisade-abe
+* The signature module is moved to https://gitlab.com/palisade/palisade-signature
+* Adds high-precision CKKS (supports the scaling factor of up to 119 bits in size)
+* Removes old code (Stehle-Steinfeld scheme and prior Matrix functionality)
+* Applies optimizations for NTT, and hybrid key switching in BGVrns and CKKS
+* Simplifies the PALISADE installation (gitmodules are now updated automatically)
+* Adds a Dockerfile for PALISADE
+* Fixes many bugs reported by the PALISADE community
+
 12/08/2020: PALISADE v1.10.6 (stable) is released
 
 * Patches CKKS against the Li-Micciancio attack

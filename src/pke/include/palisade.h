@@ -30,6 +30,7 @@
 #include <utility>
 
 #include "palisadecore.h"
+#include "config.h"
 
 using std::move;
 using std::shared_ptr;
@@ -67,6 +68,5 @@ using MetadataMap = shared_ptr<std::map<string, shared_ptr<Metadata>>>;
 #include "ciphertext.h"
 #include "cryptocontext.h"
 #include "cryptocontexthelper.h"
-#include "rationalciphertext.h"
 
 #endif /* SRC_LIB_PALISADE_H_ */

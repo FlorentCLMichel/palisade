@@ -39,6 +39,7 @@
 using namespace std;
 using namespace lbcrypto;
 
+using TYPE = DCRTPoly;
 // A new one of these is created for each test
 class UTSHEAdvanced : public testing::Test {
  public:
@@ -60,17 +61,17 @@ TEST_F(UTSHEAdvanced, test_eval_mult_single_crt) {
   float stdDev = 4;
   PlaintextModulus ptm = 20;
 
-  shared_ptr<Poly::Params> parms =
-      ElemParamFactory::GenElemParams<Poly::Params>(m, 50);
+  shared_ptr<TYPE::Params> parms =
+      ElemParamFactory::GenElemParams<TYPE::Params>(m, 50);
 
-  CryptoContext<Poly> cc = CryptoContextFactory<Poly>::genCryptoContextBGV(
+  CryptoContext<TYPE> cc = CryptoContextFactory<TYPE>::genCryptoContextBGVrns(
       parms, ptm, relin, stdDev);
   cc->Enable(ENCRYPTION);
   cc->Enable(SHE);
   cc->Enable(LEVELEDSHE);
 
   // Initialize the public key containers.
-  LPKeyPair<Poly> kp;
+  LPKeyPair<TYPE> kp;
 
   std::vector<int64_t> vectorOfInts1 = {2};
   Plaintext intArray1 = cc->MakeCoefPackedPlaintext(vectorOfInts1);
@@ -81,20 +82,20 @@ TEST_F(UTSHEAdvanced, test_eval_mult_single_crt) {
   kp = cc->KeyGen();
   cc->EvalMultKeyGen(kp.secretKey);
 
-  Ciphertext<Poly> ciphertext1;
-  Ciphertext<Poly> ciphertext2;
+  Ciphertext<TYPE> ciphertext1;
+  Ciphertext<TYPE> ciphertext2;
 
   ciphertext1 = cc->Encrypt(kp.publicKey, intArray1);
   ciphertext2 = cc->Encrypt(kp.publicKey, intArray2);
 
-  Ciphertext<Poly> cResult = cc->EvalMult(ciphertext1, ciphertext2);
+  Ciphertext<TYPE> cResult = cc->EvalMult(ciphertext1, ciphertext2);
 
-  LPKeyPair<Poly> newKp = cc->KeyGen();
+  LPKeyPair<TYPE> newKp = cc->KeyGen();
 
-  LPEvalKey<Poly> keySwitchHint2 =
+  LPEvalKey<TYPE> keySwitchHint2 =
       cc->KeySwitchGen(kp.secretKey, newKp.secretKey);
 
-  cResult = cc->KeySwitch(keySwitchHint2, cResult);
+  cc->KeySwitchInPlace(keySwitchHint2, cResult);
 
   Plaintext results;
 
@@ -110,18 +111,18 @@ TEST_F(UTSHEAdvanced, test_eval_add_single_crt) {
 
   float stdDev = 4;
 
-  shared_ptr<Poly::Params> parms =
-      ElemParamFactory::GenElemParams<Poly::Params>(m);
+  shared_ptr<TYPE::Params> parms =
+      ElemParamFactory::GenElemParams<TYPE::Params>(m);
 
-  CryptoContext<Poly> cc =
-      CryptoContextFactory<Poly>::genCryptoContextBGV(parms, ptm, 1, stdDev);
+  CryptoContext<TYPE> cc =
+      CryptoContextFactory<TYPE>::genCryptoContextBGVrns(parms, ptm, 1, stdDev);
 
   cc->Enable(ENCRYPTION);
   cc->Enable(SHE);
   cc->Enable(LEVELEDSHE);
 
   // Initialize the public key containers.
-  LPKeyPair<Poly> kp;
+  LPKeyPair<TYPE> kp;
 
   DEBUG("Filling 1");
   std::vector<int64_t> vectorOfInts1 = {2, 3, 1, 4};
@@ -135,20 +136,20 @@ TEST_F(UTSHEAdvanced, test_eval_add_single_crt) {
   kp = cc->KeyGen();
 
   DEBUG("got pairs");
-  Ciphertext<Poly> ciphertext1;
-  Ciphertext<Poly> ciphertext2;
+  Ciphertext<TYPE> ciphertext1;
+  Ciphertext<TYPE> ciphertext2;
 
   ciphertext1 = cc->Encrypt(kp.publicKey, intArray1);
   DEBUG("after crypt 1");
   ciphertext2 = cc->Encrypt(kp.publicKey, intArray2);
   DEBUG("after crypt 2");
 
-  Ciphertext<Poly> cResult;
+  Ciphertext<TYPE> cResult;
   DEBUG("before EA");
   cResult = cc->EvalAdd(ciphertext1, ciphertext2);
   DEBUG("after");
 
-  Ciphertext<Poly> ciphertextResults({cResult});
+  Ciphertext<TYPE> ciphertextResults({cResult});
   Plaintext results;
 
   cc->Decrypt(kp.secretKey, ciphertextResults, &results);

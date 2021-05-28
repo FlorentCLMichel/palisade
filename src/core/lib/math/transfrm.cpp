@@ -24,6 +24,10 @@
 
 #include "math/transfrm.h"
 
+#ifdef WITH_INTEL_HEXL
+#include "hexl/hexl.hpp"
+#endif
+
 namespace lbcrypto {
 
 template <typename VecType>
@@ -49,6 +53,15 @@ std::map<typename VecType::Integer, NativeVector> ChineseRemainderTransformFTT<
 template <typename VecType>
 std::map<typename VecType::Integer, NativeVector> ChineseRemainderTransformFTT<
     VecType>::m_rootOfUnityInversePreconReverseTableByModulus;
+
+#ifdef WITH_INTEL_HEXL
+template <typename VecType>
+// N, modulus
+std::unordered_map<std::pair<uint64_t, uint64_t>, intel::hexl::NTT, HashPair>
+    ChineseRemainderTransformFTT<VecType>::m_IntelNtt;
+template <typename VecType>
+std::mutex ChineseRemainderTransformFTT<VecType>::m_mtxIntelNTT;
+#endif
 
 template <typename VecType>
 std::map<typename VecType::Integer, VecType>
@@ -178,6 +191,50 @@ void NumberTheoreticTransform<VecType>::InverseTransformIterative(
 }
 
 template <typename VecType>
+void NumberTheoreticTransform<VecType>::ForwardTransformToBitReverseInPlace(
+    const VecType &rootOfUnityTable, VecType *element) {
+  usint n = element->GetLength();
+  IntType modulus = element->GetModulus();
+  IntType mu = modulus.ComputeMu();
+
+  usint i, m, j1, j2, indexOmega, indexLo, indexHi;
+  IntType omega, omegaFactor, loVal, hiVal, zero(0);
+
+  usint t = (n >> 1);
+  usint logt1 = GetMSB64(t);
+  for (m = 1; m < n; m <<= 1) {
+    for (i = 0; i < m; ++i) {
+      j1 = i << logt1;
+      j2 = j1 + t;
+      indexOmega = m + i;
+      omega = rootOfUnityTable[indexOmega];
+      for (indexLo = j1; indexLo < j2; ++indexLo) {
+        indexHi = indexLo + t;
+        loVal = (*element)[indexLo];
+        omegaFactor = (*element)[indexHi];
+        omegaFactor.ModMulFastEq(omega, modulus, mu);
+
+        hiVal = loVal + omegaFactor;
+        if (hiVal >= modulus) {
+          hiVal -= modulus;
+        }
+
+        if (loVal < omegaFactor) {
+          loVal += modulus;
+        }
+        loVal -= omegaFactor;
+
+        (*element)[indexLo] = hiVal;
+        (*element)[indexHi] = loVal;
+      }
+    }
+    t >>= 1;
+    logt1--;
+  }
+  return;
+}
+
+template <typename VecType>
 void NumberTheoreticTransform<VecType>::ForwardTransformToBitReverse(
     const VecType &element, const VecType &rootOfUnityTable, VecType *result) {
   usint n = element.GetLength();
@@ -232,6 +289,51 @@ void NumberTheoreticTransform<VecType>::ForwardTransformToBitReverse(
     }
     t >>= 1;
     logt1--;
+  }
+  return;
+}
+
+template <typename VecType>
+void NumberTheoreticTransform<VecType>::ForwardTransformToBitReverseInPlace(
+    const VecType &rootOfUnityTable, const NativeVector &preconRootOfUnityTable,
+    VecType *element) {
+  usint n = element->GetLength();
+  IntType modulus = element->GetModulus();
+
+  uint32_t indexOmega, indexHi;
+  NativeInteger preconOmega;
+  IntType omega, omegaFactor, loVal, hiVal, zero(0);
+
+  usint t = (n >> 1);
+  usint logt1 = GetMSB64(t);
+  for (uint32_t m = 1; m < n; m <<= 1, t >>= 1, --logt1) {
+    uint32_t j1, j2;
+    for (uint32_t i = 0; i < m; ++i) {
+      j1 = i << logt1;
+      j2 = j1 + t;
+      indexOmega = m + i;
+      omega = rootOfUnityTable[indexOmega];
+      preconOmega = preconRootOfUnityTable[indexOmega];
+      for (uint32_t indexLo = j1; indexLo < j2; ++indexLo) {
+        indexHi = indexLo + t;
+        loVal = (*element)[indexLo];
+        omegaFactor = (*element)[indexHi];
+        omegaFactor.ModMulFastConstEq(omega, modulus, preconOmega);
+
+        hiVal = loVal + omegaFactor;
+        if (hiVal >= modulus) {
+          hiVal -= modulus;
+        }
+
+        if (loVal < omegaFactor) {
+          loVal += modulus;
+        }
+        loVal -= omegaFactor;
+
+        (*element)[indexLo] = hiVal;
+        (*element)[indexHi] = loVal;
+      }
+    }
   }
   return;
 }
@@ -299,27 +401,15 @@ void NumberTheoreticTransform<VecType>::ForwardTransformToBitReverse(
 }
 
 template <typename VecType>
-void NumberTheoreticTransform<VecType>::InverseTransformFromBitReverse(
-    const VecType &element, const VecType &rootOfUnityInverseTable,
-    const IntType &cycloOrderInv, VecType *result) {
-  usint n = element.GetLength();
-
-  if (result->GetLength() != n) {
-    PALISADE_THROW(
-        math_error,
-        "size of input element and size of output element not of same size");
-  }
-
-  IntType modulus = element.GetModulus();
+void NumberTheoreticTransform<VecType>::InverseTransformFromBitReverseInPlace(
+    const VecType &rootOfUnityInverseTable, const IntType &cycloOrderInv,
+    VecType *element) {
+  usint n = element->GetLength();
+  IntType modulus = element->GetModulus();
   IntType mu = modulus.ComputeMu();
-  result->SetModulus(modulus);
 
   IntType loVal, hiVal, omega, omegaFactor;
   usint i, m, j1, j2, indexOmega, indexLo, indexHi;
-
-  for (i = 0; i < n; i++) {
-    (*result)[i] = element[i];
-  }
 
   usint t = 1;
   usint logt1 = 1;
@@ -333,8 +423,8 @@ void NumberTheoreticTransform<VecType>::InverseTransformFromBitReverse(
       for (indexLo = j1; indexLo < j2; ++indexLo) {
         indexHi = indexLo + t;
 
-        hiVal = (*result)[indexHi];
-        loVal = (*result)[indexLo];
+        hiVal = (*element)[indexHi];
+        loVal = (*element)[indexLo];
 
         omegaFactor = loVal;
         if (omegaFactor < hiVal) {
@@ -350,8 +440,8 @@ void NumberTheoreticTransform<VecType>::InverseTransformFromBitReverse(
 
         omegaFactor.ModMulFastEq(omega, modulus, mu);
 
-        (*result)[indexLo] = loVal;
-        (*result)[indexHi] = omegaFactor;
+        (*element)[indexLo] = loVal;
+        (*element)[indexHi] = omegaFactor;
       }
     }
     t <<= 1;
@@ -359,7 +449,7 @@ void NumberTheoreticTransform<VecType>::InverseTransformFromBitReverse(
   }
 
   for (i = 0; i < n; i++) {
-    (*result)[i].ModMulFastEq(cycloOrderInv, modulus, mu);
+    (*element)[i].ModMulFastEq(cycloOrderInv, modulus, mu);
   }
   return;
 }
@@ -367,26 +457,37 @@ void NumberTheoreticTransform<VecType>::InverseTransformFromBitReverse(
 template <typename VecType>
 void NumberTheoreticTransform<VecType>::InverseTransformFromBitReverse(
     const VecType &element, const VecType &rootOfUnityInverseTable,
-    const NativeVector &preconRootOfUnityInverseTable,
-    const IntType &cycloOrderInv, const NativeInteger &preconCycloOrderInv,
-    VecType *result) {
+    const IntType &cycloOrderInv, VecType *result) {
   usint n = element.GetLength();
+
   if (result->GetLength() != n) {
     PALISADE_THROW(
         math_error,
         "size of input element and size of output element not of same size");
   }
 
-  IntType modulus = element.GetModulus();
-  result->SetModulus(modulus);
+  result->SetModulus(element.GetModulus());
+
+  for (usint i = 0; i < n; i++) {
+    (*result)[i] = element[i];
+  }
+  InverseTransformFromBitReverseInPlace(rootOfUnityInverseTable, cycloOrderInv,
+                                        result);
+}
+
+template <typename VecType>
+void NumberTheoreticTransform<VecType>::InverseTransformFromBitReverseInPlace(
+    const VecType &rootOfUnityInverseTable,
+    const NativeVector &preconRootOfUnityInverseTable,
+    const IntType &cycloOrderInv, const NativeInteger &preconCycloOrderInv,
+    VecType *element) {
+  usint n = element->GetLength();
+
+  IntType modulus = element->GetModulus();
 
   IntType loVal, hiVal, omega, omegaFactor;
   NativeInteger preconOmega;
   usint i, m, j1, j2, indexOmega, indexLo, indexHi;
-
-  for (i = 0; i < n; i++) {
-    (*result)[i] = element[i];
-  }
 
   usint t = 1;
   usint logt1 = 1;
@@ -401,8 +502,8 @@ void NumberTheoreticTransform<VecType>::InverseTransformFromBitReverse(
       for (indexLo = j1; indexLo < j2; ++indexLo) {
         indexHi = indexLo + t;
 
-        hiVal = (*result)[indexHi];
-        loVal = (*result)[indexLo];
+        hiVal = (*element)[indexHi];
+        loVal = (*element)[indexLo];
 
         omegaFactor = loVal;
         if (omegaFactor < hiVal) {
@@ -418,8 +519,8 @@ void NumberTheoreticTransform<VecType>::InverseTransformFromBitReverse(
 
         omegaFactor.ModMulFastConstEq(omega, modulus, preconOmega);
 
-        (*result)[indexLo] = loVal;
-        (*result)[indexHi] = omegaFactor;
+        (*element)[indexLo] = loVal;
+        (*element)[indexHi] = omegaFactor;
       }
     }
     t <<= 1;
@@ -427,9 +528,98 @@ void NumberTheoreticTransform<VecType>::InverseTransformFromBitReverse(
   }
 
   for (i = 0; i < n; i++) {
-    (*result)[i].ModMulFastConstEq(cycloOrderInv, modulus, preconCycloOrderInv);
+    (*element)[i].ModMulFastConstEq(cycloOrderInv, modulus,
+                                    preconCycloOrderInv);
   }
+}
+
+template <typename VecType>
+void NumberTheoreticTransform<VecType>::InverseTransformFromBitReverse(
+    const VecType &element, const VecType &rootOfUnityInverseTable,
+    const NativeVector &preconRootOfUnityInverseTable,
+    const IntType &cycloOrderInv, const NativeInteger &preconCycloOrderInv,
+    VecType *result) {
+  usint n = element.GetLength();
+  if (result->GetLength() != n) {
+    PALISADE_THROW(
+        math_error,
+        "size of input element and size of output element not of same size");
+  }
+
+  result->SetModulus(element.GetModulus());
+
+  for (usint i = 0; i < n; i++) {
+    (*result)[i] = element[i];
+  }
+  InverseTransformFromBitReverseInPlace(
+      rootOfUnityInverseTable, preconRootOfUnityInverseTable, cycloOrderInv,
+      preconCycloOrderInv, result);
+
   return;
+}
+
+template <typename VecType>
+void ChineseRemainderTransformFTT<VecType>::ForwardTransformToBitReverseInPlace(
+    const IntType &rootOfUnity, const usint CycloOrder, VecType *element) {
+  if (rootOfUnity == IntType(1) || rootOfUnity == IntType(0)) {
+    return;
+  }
+
+  if (!IsPowerOfTwo(CycloOrder)) {
+    PALISADE_THROW(math_error, "CyclotomicOrder is not a power of two");
+  }
+
+  usint CycloOrderHf = (CycloOrder >> 1);
+  if (element->GetLength() != CycloOrderHf) {
+    PALISADE_THROW(math_error,
+                   "element size must be equal to CyclotomicOrder / 2");
+  }
+
+  IntType modulus = element->GetModulus();
+
+  bool reCompute = false;
+  (void)reCompute;  // Avoid unused variable
+  auto mapSearch = m_rootOfUnityReverseTableByModulus.find(modulus);
+  if (mapSearch == m_rootOfUnityReverseTableByModulus.end() ||
+      mapSearch->second.GetLength() != CycloOrderHf) {
+    PreCompute(rootOfUnity, CycloOrder, modulus);
+    reCompute = true;
+  }
+
+  if (typeid(IntType) == typeid(NativeInteger)) {
+#ifdef WITH_INTEL_HEXL
+    if (std::is_same<VecType, NativeVector64>::value) {
+      std::pair<uint64_t, uint64_t> key{element->GetLength(),
+                                        modulus.ConvertToInt()};
+      intel::hexl::NTT *p_ntt;
+      std::unique_lock<std::mutex> lock(m_mtxIntelNTT);
+      auto ntt_it = m_IntelNtt.find(key);
+      if (reCompute || ntt_it == m_IntelNtt.end()) {
+        intel::hexl::NTT ntt(element->GetLength(), modulus.ConvertToInt(),
+                             rootOfUnity.ConvertToInt());
+        m_IntelNtt[key] = std::move(ntt);
+        ntt_it = m_IntelNtt.find(key);
+      }
+      p_ntt = &ntt_it->second;
+      lock.unlock();
+
+      auto *data = reinterpret_cast<uint64_t *>(&element->at(0));
+      p_ntt->ComputeForward(data, data, 1, 1);
+      element->SetModulus(modulus);
+    } else {
+      NumberTheoreticTransform<VecType>::ForwardTransformToBitReverseInPlace(
+          m_rootOfUnityReverseTableByModulus[modulus],
+          m_rootOfUnityPreconReverseTableByModulus[modulus], element);
+    }
+#else
+    NumberTheoreticTransform<VecType>::ForwardTransformToBitReverseInPlace(
+        m_rootOfUnityReverseTableByModulus[modulus],
+        m_rootOfUnityPreconReverseTableByModulus[modulus], element);
+#endif
+  } else {
+    NumberTheoreticTransform<VecType>::ForwardTransformToBitReverseInPlace(
+        m_rootOfUnityReverseTableByModulus[modulus], element);
+  }
 }
 
 template <typename VecType>
@@ -453,22 +643,125 @@ void ChineseRemainderTransformFTT<VecType>::ForwardTransformToBitReverse(
 
   IntType modulus = element.GetModulus();
 
+  bool reCompute = false;
+  (void)reCompute;  // Avoid unused variable
   auto mapSearch = m_rootOfUnityReverseTableByModulus.find(modulus);
   if (mapSearch == m_rootOfUnityReverseTableByModulus.end() ||
-      mapSearch->second.GetLength() < CycloOrderHf) {
+      mapSearch->second.GetLength() != CycloOrderHf) {
     PreCompute(rootOfUnity, CycloOrder, modulus);
+    reCompute = true;
   }
 
   if (typeid(IntType) == typeid(NativeInteger)) {
+#ifdef WITH_INTEL_HEXL
+    if (std::is_same<VecType, NativeVector64>::value) {
+      std::pair<uint64_t, uint64_t> key{element.GetLength(),
+                                        modulus.ConvertToInt()};
+      intel::hexl::NTT *p_ntt;
+      std::unique_lock<std::mutex> lock(m_mtxIntelNTT);
+      auto ntt_it = m_IntelNtt.find(key);
+      if (reCompute || ntt_it == m_IntelNtt.end()) {
+        intel::hexl::NTT ntt(element.GetLength(), modulus.ConvertToInt(),
+                             rootOfUnity.ConvertToInt());
+        m_IntelNtt[key] = std::move(ntt);
+        ntt_it = m_IntelNtt.find(key);
+      }
+      p_ntt = &ntt_it->second;
+      lock.unlock();
+
+      const uint64_t *input =
+          reinterpret_cast<const uint64_t *>(&element.at(0));
+      uint64_t *output = reinterpret_cast<uint64_t *>(&result->at(0));
+      p_ntt->ComputeForward(output, input, 1, 1);
+      result->SetModulus(modulus);
+
+    } else {
+      NumberTheoreticTransform<VecType>::ForwardTransformToBitReverse(
+          element, m_rootOfUnityReverseTableByModulus[modulus],
+          m_rootOfUnityPreconReverseTableByModulus[modulus], result);
+    }
+#else
     NumberTheoreticTransform<VecType>::ForwardTransformToBitReverse(
         element, m_rootOfUnityReverseTableByModulus[modulus],
         m_rootOfUnityPreconReverseTableByModulus[modulus], result);
+#endif
   } else {
     NumberTheoreticTransform<VecType>::ForwardTransformToBitReverse(
         element, m_rootOfUnityReverseTableByModulus[modulus], result);
   }
 
   return;
+}
+
+template <typename VecType>
+void ChineseRemainderTransformFTT<
+    VecType>::InverseTransformFromBitReverseInPlace(const IntType &rootOfUnity,
+                                                    const usint CycloOrder,
+                                                    VecType *element) {
+  if (rootOfUnity == IntType(1) || rootOfUnity == IntType(0)) {
+    return;
+  }
+
+  if (!IsPowerOfTwo(CycloOrder)) {
+    PALISADE_THROW(math_error, "CyclotomicOrder is not a power of two");
+  }
+
+  usint CycloOrderHf = (CycloOrder >> 1);
+  if (element->GetLength() != CycloOrderHf) {
+    PALISADE_THROW(math_error,
+                   "element size must be equal to CyclotomicOrder / 2");
+  }
+
+  IntType modulus = element->GetModulus();
+
+  bool reCompute = false;
+  (void)reCompute;  // Avoid unused variable
+  auto mapSearch = m_rootOfUnityReverseTableByModulus.find(modulus);
+  if (mapSearch == m_rootOfUnityReverseTableByModulus.end() ||
+      mapSearch->second.GetLength() != CycloOrderHf) {
+    PreCompute(rootOfUnity, CycloOrder, modulus);
+    reCompute = true;
+  }
+
+  usint msb = GetMSB64(CycloOrderHf - 1);
+  if (typeid(IntType) == typeid(NativeInteger)) {
+#ifdef WITH_INTEL_HEXL
+    if (std::is_same<VecType, NativeVector64>::value) {
+      std::pair<uint64_t, uint64_t> key{element->GetLength(),
+                                        modulus.ConvertToInt()};
+      intel::hexl::NTT *p_ntt;
+      std::unique_lock<std::mutex> lock(m_mtxIntelNTT);
+      auto ntt_it = m_IntelNtt.find(key);
+      if (reCompute || ntt_it == m_IntelNtt.end()) {
+        intel::hexl::NTT ntt(element->GetLength(), modulus.ConvertToInt(),
+                             rootOfUnity.ConvertToInt());
+        m_IntelNtt[key] = std::move(ntt);
+        ntt_it = m_IntelNtt.find(key);
+      }
+      p_ntt = &ntt_it->second;
+      lock.unlock();
+      auto *data = reinterpret_cast<uint64_t *>(&element->at(0));
+      p_ntt->ComputeInverse(data, data, 1, 1);
+      element->SetModulus(modulus);
+    } else {
+      NumberTheoreticTransform<VecType>::InverseTransformFromBitReverseInPlace(
+          m_rootOfUnityInverseReverseTableByModulus[modulus],
+          m_rootOfUnityInversePreconReverseTableByModulus[modulus],
+          m_cycloOrderInverseTableByModulus[modulus][msb],
+          m_cycloOrderInversePreconTableByModulus[modulus][msb], element);
+    }
+#else
+    NumberTheoreticTransform<VecType>::InverseTransformFromBitReverseInPlace(
+        m_rootOfUnityInverseReverseTableByModulus[modulus],
+        m_rootOfUnityInversePreconReverseTableByModulus[modulus],
+        m_cycloOrderInverseTableByModulus[modulus][msb],
+        m_cycloOrderInversePreconTableByModulus[modulus][msb], element);
+#endif
+  } else {
+    NumberTheoreticTransform<VecType>::InverseTransformFromBitReverseInPlace(
+        m_rootOfUnityInverseReverseTableByModulus[modulus],
+        m_cycloOrderInverseTableByModulus[modulus][msb], element);
+  }
 }
 
 template <typename VecType>
@@ -492,22 +785,59 @@ void ChineseRemainderTransformFTT<VecType>::InverseTransformFromBitReverse(
 
   IntType modulus = element.GetModulus();
 
+  bool reCompute = false;
+  (void)reCompute;  // Avoid unused variable
   auto mapSearch = m_rootOfUnityReverseTableByModulus.find(modulus);
   if (mapSearch == m_rootOfUnityReverseTableByModulus.end() ||
-      mapSearch->second.GetLength() < CycloOrderHf) {
+      mapSearch->second.GetLength() != CycloOrderHf) {
     PreCompute(rootOfUnity, CycloOrder, modulus);
+    reCompute = true;
+  }
+
+  usint n = element.GetLength();
+  result->SetModulus(element.GetModulus());
+  for (usint i = 0; i < n; i++) {
+    (*result)[i] = element[i];
   }
 
   usint msb = GetMSB64(CycloOrderHf - 1);
   if (typeid(IntType) == typeid(NativeInteger)) {
-    NumberTheoreticTransform<VecType>::InverseTransformFromBitReverse(
-        element, m_rootOfUnityInverseReverseTableByModulus[modulus],
+#ifdef WITH_INTEL_HEXL
+    if (std::is_same<VecType, NativeVector64>::value) {
+      std::pair<uint64_t, uint64_t> key{element.GetLength(),
+                                        modulus.ConvertToInt()};
+      intel::hexl::NTT *p_ntt;
+      std::unique_lock<std::mutex> lock(m_mtxIntelNTT);
+      auto ntt_it = m_IntelNtt.find(key);
+      if (reCompute || ntt_it == m_IntelNtt.end()) {
+        intel::hexl::NTT ntt(element.GetLength(), modulus.ConvertToInt(),
+                             rootOfUnity.ConvertToInt());
+        m_IntelNtt[key] = std::move(ntt);
+        ntt_it = m_IntelNtt.find(key);
+      }
+      p_ntt = &ntt_it->second;
+      lock.unlock();
+      auto *input = reinterpret_cast<const uint64_t *>(&result->at(0));
+      uint64_t *output = reinterpret_cast<uint64_t *>(&result->at(0));
+      p_ntt->ComputeInverse(output, input, 1, 1);
+      result->SetModulus(modulus);
+    } else {
+      NumberTheoreticTransform<VecType>::InverseTransformFromBitReverseInPlace(
+          m_rootOfUnityInverseReverseTableByModulus[modulus],
+          m_rootOfUnityInversePreconReverseTableByModulus[modulus],
+          m_cycloOrderInverseTableByModulus[modulus][msb],
+          m_cycloOrderInversePreconTableByModulus[modulus][msb], result);
+    }
+#else
+    NumberTheoreticTransform<VecType>::InverseTransformFromBitReverseInPlace(
+        m_rootOfUnityInverseReverseTableByModulus[modulus],
         m_rootOfUnityInversePreconReverseTableByModulus[modulus],
         m_cycloOrderInverseTableByModulus[modulus][msb],
         m_cycloOrderInversePreconTableByModulus[modulus][msb], result);
+#endif
   } else {
-    NumberTheoreticTransform<VecType>::InverseTransformFromBitReverse(
-        element, m_rootOfUnityInverseReverseTableByModulus[modulus],
+    NumberTheoreticTransform<VecType>::InverseTransformFromBitReverseInPlace(
+        m_rootOfUnityInverseReverseTableByModulus[modulus],
         m_cycloOrderInverseTableByModulus[modulus][msb], result);
   }
 
@@ -518,11 +848,12 @@ template <typename VecType>
 void ChineseRemainderTransformFTT<VecType>::PreCompute(
     const IntType &rootOfUnity, const usint CycloOrder,
     const IntType &modulus) {
+  // Half of cyclo order
   usint CycloOrderHf = (CycloOrder >> 1);
 
   auto mapSearch = m_rootOfUnityReverseTableByModulus.find(modulus);
   if (mapSearch == m_rootOfUnityReverseTableByModulus.end() ||
-      mapSearch->second.GetLength() < CycloOrderHf) {
+      mapSearch->second.GetLength() != CycloOrderHf) {
 #pragma omp critical
     {
       IntType x(1), xinv(1);
@@ -556,26 +887,21 @@ void ChineseRemainderTransformFTT<VecType>::PreCompute(
 
         for (usint i = 0; i < CycloOrderHf; i++) {
           preconTable[i] =
-              NativeInteger(m_rootOfUnityReverseTableByModulus[modulus]
-                                .
-                                operator[](i)
-                                .ConvertToInt())
+              NativeInteger(
+                  m_rootOfUnityReverseTableByModulus[modulus][i].ConvertToInt())
                   .PrepModMulConst(nativeModulus);
           preconTableI[i] =
-              NativeInteger(m_rootOfUnityInverseReverseTableByModulus[modulus]
-                                .
-                                operator[](i)
-                                .ConvertToInt())
+              NativeInteger(
+                  m_rootOfUnityInverseReverseTableByModulus[modulus][i]
+                      .ConvertToInt())
                   .PrepModMulConst(nativeModulus);
         }
 
         NativeVector preconTableCOI(msb + 1, nativeModulus);
         for (usint i = 0; i < msb + 1; i++) {
           preconTableCOI[i] =
-              NativeInteger(m_cycloOrderInverseTableByModulus[modulus]
-                                .
-                                operator[](i)
-                                .ConvertToInt())
+              NativeInteger(
+                  m_cycloOrderInverseTableByModulus[modulus][i].ConvertToInt())
                   .PrepModMulConst(nativeModulus);
         }
 

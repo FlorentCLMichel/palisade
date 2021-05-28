@@ -457,7 +457,7 @@ BigInteger<uint_type, BITLENGTH> BigInteger<uint_type, BITLENGTH>::Mul(
   return ans;
 }
 
-// FIXME reconsider operation
+// TODO reconsider operation
 template <typename uint_type, usint BITLENGTH>
 const BigInteger<uint_type, BITLENGTH> &BigInteger<uint_type, BITLENGTH>::MulEq(
     const BigInteger &b) {
@@ -577,7 +577,7 @@ BigInteger<uint_type, BITLENGTH> BigInteger<uint_type, BITLENGTH>::DividedBy(
   return ans;
 }
 
-// FIXME reconsider operation
+// TODO reconsider operation
 template <typename uint_type, usint BITLENGTH>
 const BigInteger<uint_type, BITLENGTH>
     &BigInteger<uint_type, BITLENGTH>::DividedByEq(const BigInteger &b) {
@@ -753,7 +753,7 @@ BigInteger<uint_type, BITLENGTH>::DivideAndRound(const BigInteger &q) const {
   return ans;
 }
 
-// FIXME reconsider the method
+// TODO reconsider the method
 template <typename uint_type, usint BITLENGTH>
 const BigInteger<uint_type, BITLENGTH>
     &BigInteger<uint_type, BITLENGTH>::DivideAndRoundEq(const BigInteger &q) {
@@ -789,7 +789,7 @@ BigInteger<uint_type, BITLENGTH> BigInteger<uint_type, BITLENGTH>::Mod(
   BigInteger j = modulus << initial_shift;
   BigInteger result(*this);
   BigInteger temp;
-  // FIXME true -> result < modulus
+  // TODO true -> result < modulus
   while (true) {
     // exit criteria
     if (result < modulus) {
@@ -837,7 +837,7 @@ const BigInteger<uint_type, BITLENGTH> &BigInteger<uint_type, BITLENGTH>::ModEq(
   }
   BigInteger j = modulus << initial_shift;
   BigInteger temp;
-  // FIXME true -> *this < modulus
+  // TODO true -> *this < modulus
   while (true) {
     // exit criteria
     if (*this < modulus) {
@@ -1067,13 +1067,12 @@ template <typename uint_type, usint BITLENGTH>
 const BigInteger<uint_type, BITLENGTH>
     &BigInteger<uint_type, BITLENGTH>::ModSubFastEq(const BigInteger &b,
                                                     const BigInteger &modulus) {
-  BigInteger b_op(b);
-  if (*this >= b_op) {
-    this->SubEq(b_op);
+  if (*this >= b) {
+    this->SubEq(b);
     this->ModEq(modulus);
   } else {
     this->AddEq(modulus);
-    this->SubEq(b_op);
+    this->SubEq(b);
   }
   return *this;
 }
@@ -1290,7 +1289,7 @@ BigInteger<uint_type, BITLENGTH> BigInteger<uint_type, BITLENGTH>::ModExp(
   return product;
 }
 
-// FIXME method should be reconsidered
+// TODO method should be reconsidered
 template <typename uint_type, usint BITLENGTH>
 const BigInteger<uint_type, BITLENGTH>
     &BigInteger<uint_type, BITLENGTH>::ModExpEq(const BigInteger &b,

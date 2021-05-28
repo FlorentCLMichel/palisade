@@ -24,13 +24,9 @@
 #ifndef LBCRYPTO_SERIALIZABLE_H
 #define LBCRYPTO_SERIALIZABLE_H
 
-#include <fstream>
-#include <iomanip>
+// TODO (dsuponit): purge the headers below and combine #pragma for GNU and clang
 #include <iostream>
-#include <sstream>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
 #ifndef CEREAL_RAPIDJSON_HAS_STDSTRING
 #define CEREAL_RAPIDJSON_HAS_STDSTRING 1
@@ -81,24 +77,8 @@ class Serializable {
  public:
   virtual ~Serializable() {}
 
-  /**
-   * Serialize the object into a Serialized
-   * @param serObj is used to store the serialized result. It MUST be a
-   * rapidjson Object (SetObject());
-   * @return true if successfully serialized
-   */
-  bool Serialize(Serialized* serObj) const __attribute__((
-      deprecated("serialization changed, see wiki for details")));
-
   virtual std::string SerializedObjectName() const = 0;
 
-  /**
-   * Populate the object from the deserialization of the Serialized
-   * @param serObj contains the serialized object
-   * @return true on success
-   */
-  bool Deserialize(const Serialized& serObj) __attribute__((
-      deprecated("serialization changed, see wiki for details")));
 };
 
 // helper template to stream vector contents provided T has an stream operator<<

@@ -55,43 +55,6 @@ inline CryptoContext<Element> GenCryptoContextNull(usint ORDER,
 }
 
 template <typename Element>
-inline CryptoContext<Element> GenCryptoContextStSt(usint ORDER,
-                                                   PlaintextModulus ptm,
-                                                   usint bits = DefaultQbits,
-                                                   usint towers = DefaultT) {
-  auto p = ElemParamFactory::GenElemParams<typename Element::Params>(
-      ORDER, bits, towers);
-
-  CryptoContext<Element> cc =
-      CryptoContextFactory<Element>::genCryptoContextStehleSteinfeld(
-          p, ptm, 1, 4, 41411.5);
-  cc->Enable(ENCRYPTION);
-  cc->Enable(PRE);
-  cc->Enable(SHE);
-
-  return cc;
-}
-
-template <typename Element>
-inline CryptoContext<Element> GenCryptoContextBGV(usint ORDER,
-                                                  PlaintextModulus ptm,
-                                                  usint bits = DefaultQbits,
-                                                  usint towers = DefaultT,
-                                                  MODE mode = RLWE) {
-  shared_ptr<typename Element::Params> p =
-      ElemParamFactory::GenElemParams<typename Element::Params>(ORDER, bits,
-                                                                towers);
-
-  CryptoContext<Element> cc =
-      CryptoContextFactory<Element>::genCryptoContextBGV(p, ptm, 1, 4, mode);
-  cc->Enable(ENCRYPTION);
-  cc->Enable(PRE);
-  cc->Enable(SHE);
-
-  return cc;
-}
-
-template <typename Element>
 inline CryptoContext<Element> GenCryptoContextBFV(usint ORDER,
                                                   PlaintextModulus ptm,
                                                   usint bits = DefaultQbits,
@@ -307,7 +270,7 @@ inline CryptoContext<DCRTPoly> GenCryptoContextCKKS(
           numPrimes - 1, dcrtBits, batch, HEStd_NotSet, n, /*ringDimension*/
           rsTech, ksTech, 0,                               /*numLargeDigits*/
           2,                                               /*maxDepth*/
-          60,                                              /*firstMod*/
+          FIRSTMODSIZE,                                    /*firstMod*/
           relinWin, mode);
 
   cc->Enable(ENCRYPTION);
@@ -397,14 +360,6 @@ inline CryptoContext<Element> GenTestCryptoContext(
 
   if (name == "Null") {
     cc = CryptoContextFactory<Element>::genCryptoContextNull(ORDER, ptm);
-  } else if (name == "StSt") {
-    cc = CryptoContextFactory<Element>::genCryptoContextStehleSteinfeld(
-        p, ptm, 1, 4, 41411.5);
-  } else if (name == "BGV_rlwe") {
-    cc = CryptoContextFactory<Element>::genCryptoContextBGV(p, ptm, 1, 4, RLWE);
-  } else if (name == "BGV_opt") {
-    cc = CryptoContextFactory<Element>::genCryptoContextBGV(p, ptm, 1, 4,
-                                                            OPTIMIZED);
   } else if (name == "BFV_rlwe") {
     cc = GenCryptoContextBFV<Element>(ORDER, ptm, bits, towers, RLWE);
   } else if (name == "BFV_opt") {

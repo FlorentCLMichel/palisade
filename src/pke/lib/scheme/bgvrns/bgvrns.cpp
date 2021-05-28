@@ -20,6 +20,25 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+/*
+Description:
+
+This code implements an RNS variant of the Brakerski-Gentry-Vaikuntanathan
+scheme.
+
+The BGV scheme is introduced in the following paper:
+- Zvika Brakerski, Craig Gentry, and Vinod Vaikuntanathan. (leveled) fully
+homomorphic encryption without bootstrapping. ACM Transactions on Computation
+Theory (TOCT), 6(3):13, 2014.
+
+ Our implementation builds from the designs here:
+ - Craig Gentry, Shai Halevi, and Nigel P Smart. Homomorphic evaluation of the
+aes circuit. In Advances in Cryptology–CRYPTO 2012, pages 850–867. Springer,
+2012.
+ - Andrey Kim, Yuriy Polyakov, and Vincent Zucca. Revisiting homomorphic
+encryption schemes for finite fields. Cryptology ePrint Archive, Report
+2021/204, 2021. https://eprint.iacr.org/2021/204.
+ */
 
 #ifndef LBCRYPTO_CRYPTO_BGVRNS_C
 #define LBCRYPTO_CRYPTO_BGVRNS_C
@@ -88,46 +107,40 @@ template <class Element>
 Ciphertext<Element> LPAlgorithmSHEBGVrns<Element>::EvalAddCore(
     ConstCiphertext<Element> ciphertext1,
     ConstCiphertext<Element> ciphertext2) const {
+  Ciphertext<Element> result = ciphertext1->Clone();
+  EvalAddCoreInPlace(result, ciphertext2);
+  return result;
+}
+
+template <class Element>
+void LPAlgorithmSHEBGVrns<Element>::EvalAddCoreInPlace(
+    Ciphertext<Element> &ciphertext1,
+    ConstCiphertext<Element> ciphertext2) const {
   if (ciphertext1->GetLevel() != ciphertext2->GetLevel()) {
     PALISADE_THROW(config_error,
                    "EvalAddCore cannot add ciphertexts with different number "
                    "of CRT components.");
   }
 
-  Ciphertext<Element> result = ciphertext1->CloneEmpty();
-
-  const std::vector<Element> &cv1 = ciphertext1->GetElements();
+  std::vector<Element> &cv1 = ciphertext1->GetElements();
   const std::vector<Element> &cv2 = ciphertext2->GetElements();
 
   size_t c1Size = cv1.size();
   size_t c2Size = cv2.size();
-  size_t cSmallSize, cLargeSize;
-  if (c1Size < c2Size) {
-    cSmallSize = c1Size;
-    cLargeSize = c2Size;
-  } else {
-    cSmallSize = c2Size;
-    cLargeSize = c1Size;
-  }
-
-  std::vector<Element> cvAdd;
+  size_t cSmallSize = std::min(c1Size, c2Size);
 
   for (size_t i = 0; i < cSmallSize; i++) {
-    cvAdd.push_back(std::move(cv1[i] + cv2[i]));
+    cv1[i] += cv2[i];
   }
-  for (size_t i = cSmallSize; i < cLargeSize; i++) {
-    if (c1Size < c2Size)
-      cvAdd.push_back(cv2[i]);
-    else
-      cvAdd.push_back(cv1[i]);
+  if (c1Size < c2Size) {
+    cv1.reserve(c2Size);
+    for (size_t i = c1Size; i < c2Size; i++) {
+      cv1.emplace_back(cv2[i]);
+    }
   }
 
-  result->SetElements(std::move(cvAdd));
-
-  result->SetDepth(std::max(ciphertext1->GetDepth(),ciphertext2->GetDepth()));
-  result->SetLevel(ciphertext1->GetLevel());
-
-  return result;
+  ciphertext1->SetDepth(
+      std::max(ciphertext1->GetDepth(), ciphertext2->GetDepth()));
 }
 
 template <class Element>
@@ -190,7 +203,7 @@ Ciphertext<Element> LPAlgorithmSHEBGVrns<Element>::EvalSubCore(
 
   result->SetElements(std::move(cvSub));
 
-  result->SetDepth(std::max(ciphertext1->GetDepth(),ciphertext2->GetDepth()));
+  result->SetDepth(std::max(ciphertext1->GetDepth(), ciphertext2->GetDepth()));
   result->SetLevel(ciphertext1->GetLevel());
 
   return result;
@@ -279,7 +292,7 @@ Ciphertext<Element> LPAlgorithmSHEBGVrns<Element>::EvalMultCore(
 
   result->SetElements(std::move(cvMult));
   result->SetDepth(ciphertext->GetDepth() + 1);
-  result->SetLevel(ciphertext->GetLevel() - 1);
+  result->SetLevel(ciphertext->GetLevel());
 
   return result;
 }
@@ -355,8 +368,8 @@ Ciphertext<Element> LPAlgorithmSHEBGVrns<Element>::EvalMult(
     ConstCiphertext<Element> ciphertext1, ConstCiphertext<Element> ciphertext2,
     const LPEvalKey<Element> ek) const {
   Ciphertext<Element> cMult = EvalMult(ciphertext1, ciphertext2);
-
-  return KeySwitch(ek, cMult);
+  KeySwitchInPlace(ek, cMult);
+  return cMult;
 }
 
 template <class Element>
@@ -364,8 +377,8 @@ Ciphertext<Element> LPAlgorithmSHEBGVrns<Element>::EvalMultMutable(
     Ciphertext<Element> &ciphertext1, Ciphertext<Element> &ciphertext2,
     const LPEvalKey<Element> ek) const {
   Ciphertext<Element> cMult = EvalMultMutable(ciphertext1, ciphertext2);
-
-  return KeySwitch(ek, cMult);
+  KeySwitchInPlace(ek, cMult);
+  return cMult;
 }
 
 template <class Element>
@@ -410,13 +423,18 @@ Ciphertext<Element> LPAlgorithmSHEBGVrns<Element>::EvalAutomorphism(
     PALISADE_THROW(config_error, errorMsg + CALLER_INFO);
   }
 
+  usint n = ciphertext->GetElements()[0].GetRingDimension();
+  std::vector<usint> map(n);
+  PrecomputeAutoMap(n, i, &map);
+
   Ciphertext<Element> permutedCiphertext = ciphertext->CloneEmpty();
-  permutedCiphertext->SetElements({std::move(c[0].AutomorphismTransform(i)),
-                                   std::move(c[1].AutomorphismTransform(i))});
+  permutedCiphertext->SetElements({std::move(c[0].AutomorphismTransform(i, map)),
+                                   std::move(c[1].AutomorphismTransform(i, map))});
   permutedCiphertext->SetDepth(ciphertext->GetDepth());
   permutedCiphertext->SetLevel(ciphertext->GetLevel());
 
-  return this->KeySwitch(fk, permutedCiphertext);
+  KeySwitchInPlace(fk, permutedCiphertext);
+  return permutedCiphertext;
 }
 
 template <class Element>
@@ -484,7 +502,7 @@ LPKeyPair<Element> LPAlgorithmMultipartyBGVrns<Element>::MultipartyKeyGen(
   // public key is generated and set
   // privateKey->MakePublicKey(a, publicKey);
   Element e(dgg, elementParams, Format::COEFFICIENT);
-  e.SwitchFormat();
+  e.SetFormat(Format::EVALUATION);
 
   Element b = t * e - a * s;
 
@@ -533,12 +551,12 @@ LPKeyPair<Element> LPAlgorithmMultipartyBGVrns<Element>::MultipartyKeyGen(
     default:
       break;
   }
-  s.SwitchFormat();
+  s.SetFormat(Format::EVALUATION);
 
   // public key is generated and set
   // privateKey->MakePublicKey(a, publicKey);
   Element e(dgg, elementParams, Format::COEFFICIENT);
-  e.SwitchFormat();
+  e.SetFormat(Format::EVALUATION);
   // a.SwitchFormat();
 
   Element b;
@@ -570,13 +588,13 @@ Ciphertext<Element> LPAlgorithmMultipartyBGVrns<Element>::MultipartyDecryptLead(
   const std::vector<Element> &cv = ciphertext->GetElements();
   const Element &s = privateKey->GetPrivateElement();
 
-  const DggType &dgg = cryptoParams->GetDiscreteGaussianGenerator();
-  Element e = Element(dgg, elementParams, Format::EVALUATION);
+  DggType dgg(MP_SD);
+  Element e(dgg, elementParams, Format::EVALUATION);
 
   Element b = cv[0] + s * cv[1] + t * e;
 
   Ciphertext<Element> result = ciphertext->CloneEmpty();
-  result->SetElements({b});
+  result->SetElements({std::move(b)});
 
   return result;
 }
@@ -595,13 +613,13 @@ Ciphertext<Element> LPAlgorithmMultipartyBGVrns<Element>::MultipartyDecryptMain(
   const std::vector<Element> &cv = ciphertext->GetElements();
   const Element &s = privateKey->GetPrivateElement();
 
-  const DggType &dgg = cryptoParams->GetDiscreteGaussianGenerator();
-  Element e = Element(dgg, elementParams, Format::EVALUATION);
+  DggType dgg(MP_SD);
+  Element e(dgg, elementParams, Format::EVALUATION);
 
   Element b = s * cv[1] + t * e;
 
   Ciphertext<Element> result = ciphertext->CloneEmpty();
-  result->SetElements({b});
+  result->SetElements({std::move(b)});
 
   return result;
 }
@@ -793,10 +811,10 @@ LPEvalKey<Element> LPAlgorithmMultipartyBGVrns<Element>::MultiMultEvalKey(
 
   for (usint i = 0; i < a0.size(); i++) {
     Element f1(dgg, elementParams, Format::COEFFICIENT);
-    f1.SwitchFormat();
+    f1.SetFormat(Format::EVALUATION);
 
     Element f2(dgg, elementParams, Format::COEFFICIENT);
-    f2.SwitchFormat();
+    f2.SetFormat(Format::EVALUATION);
 
     a.push_back(a0[i] * s + p * f1);
     b.push_back(b0[i] * s + p * f2);

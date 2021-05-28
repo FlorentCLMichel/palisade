@@ -30,6 +30,7 @@
 #include <complex>
 #include <fstream>
 #include <map>
+#include <mutex>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -37,6 +38,10 @@
 #include "math/backend.h"
 #include "math/nbtheory.h"
 #include "utils/utilities.h"
+
+#ifdef WITH_INTEL_HEXL
+#include "hexl/hexl.hpp"
+#endif
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -47,6 +52,20 @@
  * The namespace of lbcrypto
  */
 namespace lbcrypto {
+
+struct HashPair {
+  template <class T1, class T2>
+  size_t operator()(const std::pair<T1, T2>& p) const {
+    auto hash1 = std::hash<T1>{}(std::get<0>(p));
+    auto hash2 = std::hash<T2>{}(std::get<1>(p));
+    return HashCombine(hash1, hash2);
+  }
+
+  static size_t HashCombine(size_t lhs, size_t rhs) {
+    lhs ^= rhs + 0x9e3779b9 + (lhs << 6) + (lhs >> 2);
+    return lhs;
+  }
+};
 
 /**
  * @brief Number Theoretic Transform implemetation
@@ -63,7 +82,7 @@ class NumberTheoreticTransform {
    * s.t. n|q-1.
    * @param &rootOfUnityTable is the table with the root of unity powers.
    * @return is the result of the transform, a VecType should be of the same
-   * size as input or a throw of an error occurs.
+   * size as input or a throw if an error occurs.
    */
   static void ForwardTransformIterative(const VecType& element,
                                         const VecType& rootOfUnityTable,
@@ -73,32 +92,49 @@ class NumberTheoreticTransform {
    * Inverse transform in the ring Z_q[X]/(X^n-1) with prime q and power-of-two
    * n s.t. n|q-1.
    *
-   * @param &element is the input to the transform of type VecType and length n.
+   * @param[in,out] &element is the input and output to the transform of type VecType and length n.
    * @param &rootOfUnityTable is the table with the inverse n-th root of unity
    * powers.
    * @return is the result of the transform, a VecType should be of the same
-   * size as input or a throw of an error occurs.
+   * size as input or a throw if an error occurs.
    */
   static void InverseTransformIterative(const VecType& element,
                                         const VecType& rootOfUnityInverseTable,
                                         VecType* result);
 
   /**
+   * Copies \p element into \p result and calls ForwardTransformToBitReverseInPlace()
+   *
    * Forward transform in the ring Z_q[X]/(X^n+1) with prime q and power-of-two
    * n s.t. 2n|q-1. Bit reversing indexes. [Algorithm 1 in
    * https://eprint.iacr.org/2016/504.pdf]
    *
-   * @param &element is the input to the transform of type VecType and length n.
+   * @param[in] &element is the input to the transform of type VecType and length n.
    * @param &rootOfUnityTable is the table with the n-th root of unity powers in
    * bit reverse order.
-   * @return is the result of the transform, a VecType should be of the same
-   * size as input or a throw of an error occurs.
+   * @param[out] *result is the result of the transform, a VecType should be of the same
+   * size as input or a throw if an error occurs.
+   * @see ForwardTransformToBitReverseInPlace()
    */
   static void ForwardTransformToBitReverse(const VecType& element,
                                            const VecType& rootOfUnityTable,
                                            VecType* result);
+  /**
+   * In-place forward transform in the ring Z_q[X]/(X^n+1) with prime q and
+   * power-of-two n s.t. 2n|q-1. Bit reversing indexes. [Algorithm 1 in
+   * https://eprint.iacr.org/2016/504.pdf]
+   *
+   * @param &rootOfUnityTable is the table with the n-th root of unity powers in
+   * bit reverse order.
+   * @param &element[in,out] is the input/output of the transform of type VecType and length n.
+   * @return none
+   */
+  static void ForwardTransformToBitReverseInPlace(
+      const VecType& rootOfUnityTable, VecType* element);
 
   /**
+   * Copies \p element into \p result and calls ForwardTransformToBitReverseInPlace()
+   *
    * Forward transform in the ring Z_q[X]/(X^n+1) with prime q and power-of-two
    * n s.t. 2n|q-1. Bit reversing indexes. The method works for the
    * NativeInteger case based on NTL's modular multiplication. [Algorithm 1 in
@@ -109,14 +145,35 @@ class NumberTheoreticTransform {
    * reverse order.
    * @param &preconRootOfUnityTable is NTL-specific precomputations for
    * optimized NativeInteger modulo multiplications.
-   * @return is the result of the transform, a VecType should be of the same
-   * size as input or a throw of an error occurs.
+   * @param[out] *result is the result of the transform, a VecType should be of the same
+   * size as input or a throw if an error occurs.
+   * @return none
+   * @see ForwardTransformToBitReverseInPlace()
    */
   static void ForwardTransformToBitReverse(
       const VecType& element, const VecType& rootOfUnityTable,
       const NativeVector& preconRootOfUnityTable, VecType* result);
 
   /**
+   * In-place forward transform in the ring Z_q[X]/(X^n+1) with prime q and
+   * power-of-two n s.t. 2n|q-1. Bit reversing indexes. The method works for the
+   * NativeInteger case based on NTL's modular multiplication. [Algorithm 1 in
+   * https://eprint.iacr.org/2016/504.pdf]
+   *
+   * @param &rootOfUnityTable is the table with the root of unity powers in bit
+   * reverse order.
+   * @param &preconRootOfUnityTable is NTL-specific precomputations for
+   * optimized NativeInteger modulo multiplications.
+   * @param[in,out] &element is the input/output of the transform of type VecType and length n.
+   * @return none
+   */
+  static void ForwardTransformToBitReverseInPlace(
+      const VecType& rootOfUnityTable,
+      const NativeVector& preconRootOfUnityTable, VecType* element);
+
+  /**
+   * Copies \p element into \p result and calls InverseTransformFromBitReverseInPlace()
+   *
    * Inverse transform in the ring Z_q[X]/(X^n+1) with prime q and power-of-two
    * n s.t. 2n|q-1. Bit reversing indexes. [Algorithm 2 in
    * https://eprint.iacr.org/2016/504.pdf]
@@ -125,14 +182,33 @@ class NumberTheoreticTransform {
    * @param &rootOfUnityInverseTable is the table with the inverse 2n-th root of
    * unity powers in bit reverse order.
    * @param &cycloOrderInv is inverse of n modulo q
-   * @return is the result of the transform, a VecType should be of the same
-   * size as input or a throw of an error occurs.
+   * @param[out] *result is the result of the transform, a VecType should be of the same
+   * size as input or a throw if an error occurs.
+   * @return none
+   * @see InverseTransformFromBitReverseInPlace()
    */
   static void InverseTransformFromBitReverse(
       const VecType& element, const VecType& rootOfUnityInverseTable,
       const IntType& cycloOrderInv, VecType* result);
 
   /**
+   * In-place inverse transform in the ring Z_q[X]/(X^n+1) with prime q and
+   * power-of-two n s.t. 2n|q-1. Bit reversing indexes. [Algorithm 2 in
+   * https://eprint.iacr.org/2016/504.pdf]
+   *
+   * @param &rootOfUnityInverseTable is the table with the inverse 2n-th root of
+   * unity powers in bit reverse order.
+   * @param &cycloOrderInv is inverse of n modulo q
+   * @param[in,out] &element is the input/output of the transform of type VecType and length n.
+   * @return none
+   */
+  static void InverseTransformFromBitReverseInPlace(
+      const VecType& rootOfUnityInverseTable, const IntType& cycloOrderInv,
+      VecType* element);
+
+  /**
+   * Copies \p element into \p result and calls InverseTransformFromBitReverseInPlace()
+   *
    * Inverse transform in the ring Z_q[X]/(X^n+1) with prime q and power-of-two
    * n s.t. 2n|q-1. Bit reversing indexes. The method works for the
    * NativeInteger case based on NTL's modular multiplication. [Algorithm 2 in
@@ -146,14 +222,38 @@ class NumberTheoreticTransform {
    * @param &cycloOrderInv is inverse of n modulo q
    * @param &preconCycloOrderInv is NTL-specific precomputations for optimized
    * NativeInteger modulo multiplications.
-   * @return is the result of the transform, a VecType should be of the same
-   * size as input or a throw of an error occurs.
+   * @param *result is the result of the transform, a VecType should be of the same
+   * size as input or a throw if an error occurs.
+   * @return none.
+   * @see InverseTransformFromBitReverseInPlace()
    */
   static void InverseTransformFromBitReverse(
       const VecType& element, const VecType& rootOfUnityInverseTable,
       const NativeVector& preconRootOfUnityInverseTable,
       const IntType& cycloOrderInv, const NativeInteger& preconCycloOrderInv,
       VecType* result);
+
+  /**
+   * In-place Inverse transform in the ring Z_q[X]/(X^n+1) with prime q and
+   * power-of-two n s.t. 2n|q-1. Bit reversing indexes. The method works for the
+   * NativeInteger case based on NTL's modular multiplication. [Algorithm 2 in
+   * https://eprint.iacr.org/2016/504.pdf]
+   *
+   * @param &rootOfUnityInverseTable is the table with the inverse 2n-th root of
+   * unity powers in bit reverse order.
+   * @param &preconRootOfUnityInverseTable is NTL-specific precomputations for
+   * optimized NativeInteger modulo multiplications.
+   * @param &cycloOrderInv is inverse of n modulo q
+   * @param &preconCycloOrderInv is NTL-specific precomputations for optimized
+   * NativeInteger modulo multiplications.
+   * @param &element[in,out] is the input/output of the transform of type VecType and length n.
+   * @return none
+   */
+  static void InverseTransformFromBitReverseInPlace(
+      const VecType& rootOfUnityInverseTable,
+      const NativeVector& preconRootOfUnityInverseTable,
+      const IntType& cycloOrderInv, const NativeInteger& preconCycloOrderInv,
+      VecType* element);
 };
 
 /**
@@ -165,17 +265,20 @@ class ChineseRemainderTransformFTT {
 
  public:
   /**
+   * Copies \p element into \p result and calls NumberTheoreticTransform::ForwardTransformToBitReverseInPlace()
+   *
    * Forward Transform in the ring Z_q[X]/(X^n+1) with prime q and power-of-two
    * n s.t. 2n|q-1. Bit reversing indexes.
    *
-   * @param &element is the input to the transform of type VecType and length n.
+   * @param[in] &element is the input to the transform of type VecType and length n.
    * @param &rootOfUnity is the 2n-th root of unity in Z_q. Used to precompute
    * the root of unity tables if needed. If rootOfUnity == 0 or 1, then the
    * result == input.
-   * @param CycloOrder is 2n, should be a power-of-two or a throw of an error
+   * @param CycloOrder is 2n, should be a power-of-two or a throw if an error
    * occurs.
-   * @return is the result of the transform, a VecType should be of the same
+   * @param[out] *result is the result of the transform, a VecType should be of the same
    * size as input or a throw of error occurs.
+   * @see NumberTheoreticTransform::ForwardTransformToBitReverseInPlace()
    */
   static void ForwardTransformToBitReverse(const VecType& element,
                                            const IntType& rootOfUnity,
@@ -183,22 +286,60 @@ class ChineseRemainderTransformFTT {
                                            VecType* result);
 
   /**
-   * Inverse Transform in the ring Z_q[X]/(X^n+1) with prime q and power-of-two
-   * n s.t. 2n|q-1. Bit reversing indexes.
+   * In-place Forward Transform in the ring Z_q[X]/(X^n+1) with prime q and
+   * power-of-two n s.t. 2n|q-1. Bit reversing indexes.
    *
-   * @param &element is the input to the transform of type VecType and length n.
    * @param &rootOfUnity is the 2n-th root of unity in Z_q. Used to precompute
    * the root of unity tables if needed. If rootOfUnity == 0 or 1, then the
    * result == input.
-   * @param CycloOrder is 2n, should be a power-of-two or a throw of an error
+   * @param CycloOrder is 2n, should be a power-of-two or a throw if an error
    * occurs.
-   * @return is the result of the transform, a VecType should be of the same
-   * size as input or a throw of an error occurs.
+   * @param[in,out] &element is the input to the transform of type VecType and length n.
+   * @return none
+   * @see NumberTheoreticTransform::ForwardTransformToBitReverseInPlace()
+   */
+  static void ForwardTransformToBitReverseInPlace(const IntType& rootOfUnity,
+                                                  const usint CycloOrder,
+                                                  VecType* element);
+
+  /**
+   * Copies \p element into \p result and calls NumberTheoreticTransform::InverseTransformFromBitReverseInPlace()
+   *
+   * Inverse Transform in the ring Z_q[X]/(X^n+1) with prime q and power-of-two
+   * n s.t. 2n|q-1. Bit reversing indexes.
+   *
+   * @param &element[in] is the input to the transform of type VecType and length n.
+   * @param &rootOfUnity is the 2n-th root of unity in Z_q. Used to precompute
+   * the root of unity tables if needed. If rootOfUnity == 0 or 1, then the
+   * result == input.
+   * @param CycloOrder is 2n, should be a power-of-two or a throw if an error
+   * occurs.
+   * @param[out] *result is the result of the transform, a VecType should be of the same
+   * size as input or a throw if an error occurs.
+   * @return none
+   * @see NumberTheoreticTransform::InverseTransformFromBitReverseInPlace()
    */
   static void InverseTransformFromBitReverse(const VecType& element,
                                              const IntType& rootOfUnity,
                                              const usint CycloOrder,
                                              VecType* result);
+
+  /**
+   * In-place Inverse Transform in the ring Z_q[X]/(X^n+1) with prime q and
+   * power-of-two n s.t. 2n|q-1. Bit reversing indexes.
+   *
+   * @param &rootOfUnity is the 2n-th root of unity in Z_q. Used to precompute
+   * the root of unity tables if needed. If rootOfUnity == 0 or 1, then the
+   * result == input.
+   * @param CycloOrder is 2n, should be a power-of-two or a throw if an error
+   * occurs.
+   * @param[in,out] &element is the input/output of the transform of type VecType and length n.
+   * @return none
+   * @see NumberTheoreticTransform::InverseTransformFromBitReverseInPlace()
+   */
+  static void InverseTransformFromBitReverseInPlace(const IntType& rootOfUnity,
+                                                    const usint CycloOrder,
+                                                    VecType* element);
 
   /**
    * Precomputation of root of unity tables for transforms in the ring
@@ -233,15 +374,34 @@ class ChineseRemainderTransformFTT {
   static void Reset();
 
   // private:
+
+  /// map to store the cyclo order inverse with modulus as a key
+  /// For inverse FTT, we also need #m_cycloOrderInversePreconTableByModulus (this is to use an N-size NTT for FTT instead of 2N-size NTT).
   static std::map<IntType, VecType> m_cycloOrderInverseTableByModulus;
-  static std::map<IntType, NativeVector>
-      m_cycloOrderInversePreconTableByModulus;
+
+  /// map to store the cyclo order inverse preconditioned with modulus as a key
+  /// Shoup's precomputation of above #m_cycloOrderInverseTableByModulus
+  static std::map<IntType, NativeVector> m_cycloOrderInversePreconTableByModulus;
+
+  /// map to store the forward roots of Unity for NTT, with bits reversed, with modulus as a key (aka twiddle factors)
   static std::map<IntType, VecType> m_rootOfUnityReverseTableByModulus;
+
+  /// map to store inverse roots of unity for iNTT, with bits reversed, with modulus as a key (aka inverse twiddle factors)
   static std::map<IntType, VecType> m_rootOfUnityInverseReverseTableByModulus;
-  static std::map<IntType, NativeVector>
-      m_rootOfUnityPreconReverseTableByModulus;
-  static std::map<IntType, NativeVector>
-      m_rootOfUnityInversePreconReverseTableByModulus;
+
+  /// map to store Shoup's precomputations of forward roots of unity for NTT, with bits reversed, with modulus as a key
+  static std::map<IntType, NativeVector> m_rootOfUnityPreconReverseTableByModulus;
+
+  /// map to store Shoup's precomputations of inverse rou for iNTT, with bits reversed, with modulus as a key
+  static std::map<IntType, NativeVector> m_rootOfUnityInversePreconReverseTableByModulus;
+
+#ifdef WITH_INTEL_HEXL
+  // Key is <modulus, CycloOrderHalf>
+  static std::unordered_map<std::pair<uint64_t, uint64_t>, intel::hexl::NTT,
+                            HashPair>
+      m_IntelNtt;
+  static std::mutex m_mtxIntelNTT;
+#endif
 };
 
 // struct used as a key in BlueStein transform

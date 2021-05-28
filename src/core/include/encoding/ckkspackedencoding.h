@@ -127,6 +127,14 @@ class CKKSPackedEncoding : public PlaintextImpl {
     m_logError = 0.0;
   }
 
+  CKKSPackedEncoding(const CKKSPackedEncoding &rhs)
+      : PlaintextImpl(rhs), value(rhs.value), m_logError(rhs.m_logError) {}
+
+  CKKSPackedEncoding(const CKKSPackedEncoding &&rhs)
+      : PlaintextImpl(rhs),
+        value(std::move(rhs.value)),
+        m_logError(rhs.m_logError) {}
+
   bool Encode();
 
   bool Decode() {
@@ -247,6 +255,41 @@ class CKKSPackedEncoding : public PlaintextImpl {
    */
   void FitToNativeVector(const std::vector<int64_t> &vec, int64_t bigBound,
                          NativeVector *nativeVec) const;
+
+#if NATIVEINT == 128
+  /**
+   * Set modulus and recalculates the vector values to fit the modulus
+   *
+   * @param &vec input vector
+   * @param &bigValue big bound of the vector values.
+   * @param &modulus modulus to be set for vector.
+   */
+  void FitToNativeVector(const std::vector<__int128> &vec, __int128 bigBound,
+                         NativeVector *nativeVec) const;
+
+  constexpr __int128 Max128BitValue() const {
+    // 2^127-2^73-1 - max value that could be rounded to int128_t
+    return ((unsigned __int128)1 << 127) - ((unsigned __int128)1 << 73) -
+           (unsigned __int128)1;
+  }
+
+  inline bool is128BitOverflow(double d) const {
+    const double EPSILON = 0.000001;
+
+    return EPSILON < (std::abs(d) - Max128BitValue());
+  }
+#else  // NATIVEINT == 64
+  constexpr int64_t Max64BitValue() const {
+    // 2^63-2^9-1 - max value that could be rounded to int64_t
+    return 9223372036854775295;
+  }
+
+  inline bool is64BitOverflow(double d) const {
+    const double EPSILON = 0.000001;
+
+    return EPSILON < (std::abs(d) - Max64BitValue());
+  }
+#endif
 };
 
 }  // namespace lbcrypto

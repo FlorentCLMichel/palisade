@@ -33,7 +33,7 @@
 namespace lbcrypto {
 
 template <class Element>
-class MatrixStrassen {  // FIXME : public Serializable {
+class MatrixStrassen {  // TODO : public Serializable {
  public:
   typedef vector<vector<Element>> data_t;
   typedef vector<Element> lineardata_t;

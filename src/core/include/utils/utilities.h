@@ -25,10 +25,11 @@
 #define LBCRYPTO_UTILS_UTILITIES_H
 
 #include <string>
+#include <iomanip>
 
 #include "math/backend.h"
-#include "math/nbtheory.h"
 #include "math/distributiongenerator.h"
+#include "math/nbtheory.h"
 
 /**
  * @namespace lbcrypto
@@ -70,7 +71,9 @@ V ZeroPadInverse(const V &InputPoly, usint target_order);
  * @param Input to test if it is a power of 2.
  * @return is true if the unsigned int is a power of 2.
  */
-bool IsPowerOfTwo(usint Input);
+inline bool IsPowerOfTwo(usint Input) {
+  return Input && !(Input & (Input - 1));
+}
 
 /**
  * Auxiliary function to replace a specific character "in" with another

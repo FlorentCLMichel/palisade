@@ -54,7 +54,6 @@ static CryptoContext<Element> buildContextFromSerialized(
   std::string rootOfUnity;
   std::string relinWindow;
   std::string stDev;
-  std::string stDevStSt;
   std::string secLevel;
   std::string numPrimes;
   std::string scaleExp;
@@ -65,18 +64,7 @@ static CryptoContext<Element> buildContextFromSerialized(
     return 0;
   }
 
-  if (parmtype == "StehleSteinfeld") {
-    if (!getValueForName(s, "plaintextModulus", plaintextModulus) ||
-        !getValueForName(s, "relinWindow", relinWindow) ||
-        !getValueForName(s, "stDev", stDev) ||
-        !getValueForName(s, "stDevStSt", stDevStSt)) {
-      return 0;
-    }
-
-    return CryptoContextFactory<Element>::genCryptoContextStehleSteinfeld(
-        parms, stoul(plaintextModulus), stoul(relinWindow), stof(stDev),
-        stof(stDevStSt));
-  } else if (parmtype == "BFV") {
+  if (parmtype == "BFV") {
     if (!getValueForName(s, "plaintextModulus", plaintextModulus) ||
         !getValueForName(s, "securityLevel", secLevel))
       return 0;
@@ -100,15 +88,6 @@ static CryptoContext<Element> buildContextFromSerialized(
     return CryptoContextFactory<Element>::genCryptoContextBFVrnsB(
         stoul(plaintextModulus), stof(secLevel), 4, 0, 1, 0);
 
-  } else if (parmtype == "BGV") {
-    if (!getValueForName(s, "plaintextModulus", plaintextModulus) ||
-        !getValueForName(s, "relinWindow", relinWindow) ||
-        !getValueForName(s, "stDev", stDev)) {
-      return 0;
-    }
-
-    return CryptoContextFactory<Element>::genCryptoContextBGV(
-        parms, stoul(plaintextModulus), stoul(relinWindow), stof(stDev));
   } else if (parmtype == "CKKS") {
     if (!getValueForName(s, "numPrimes", numPrimes) ||
         !getValueForName(s, "scaleExponent", scaleExp) ||
@@ -236,15 +215,11 @@ shared_ptr<LPPublicKeyEncryptionScheme<Element>> CreateSchemeGivenName(
 
   // return std::make_shared<LPPublicKeyEncryptionSchemeBFVrns<Element>>();
   // return std::make_shared<LPPublicKeyEncryptionSchemeBFVrnsB<Element>>();
-  // return std::make_shared<LPPublicKeyEncryptionSchemeBGV<Element>>();
   // return std::make_shared<LPPublicKeyEncryptionSchemeLElementV<Element>>();
   // return std::make_shared<LPPublicKeyEncryptionSchemeNull<Element>>();
   // return std::make_shared<LPPublicKeyEncryptionSchemeBFV<Element>>();
   // return std::make_shared<LPPublicKeyEncryptionSchemeBFVrns<Element>>();
   // return std::make_shared<LPPublicKeyEncryptionSchemeBFVrnsB<Element>>();
-  // return std::make_shared<LPPublicKeyEncryptionSchemeBGV<Element>>();
-  // return
-  // std::make_shared<LPPublicKeyEncryptionSchemeStehleSteinfeld<Element>>();
   //  };
   //
   //  return SchemeFromName[schemeName];
@@ -309,18 +284,13 @@ CryptoContext<Element> CryptoContextHelper::ContextFromAppProfile(
   //  usint relinWindow;
   //  float dist;
   //
-  // if( sch == "StSt" ) {
-  //////    return
-  /// CryptoContextFactory<Element>::genCryptoContextStehleSteinfeld(parms, p,
-  /// relinWindow, stdev, 98.4359);
-  //////  }
-  //  else if( sch == "BFVrns" ) {
+  // if( sch == "BFVrns" ) {
   //    return
   // CryptoContextFactory<Element>::genCryptoContextBFVrns(ptm, secFactor, dist,
   // nA, nM, nK, OPTIMIZED, 5, relinWindow);
   //  }
   //  else {
-  //, "StSt", "BFV", "BFVrns", "BGV", "FV", "Null"
+  //, "BFV", "BFVrns", "FV", "Null"
   return 0;
   //  }
 }
@@ -334,7 +304,7 @@ CryptoContext<Element> CryptoContextHelper::ContextFromAppProfile(
 static void printSet(std::ostream& out, string key, map<string, string>& pset) {
   out << "Parameter set: " << key << std::endl;
 
-  for (auto P : pset) {
+  for (const auto& P : pset) {
     out << "  " << P.first << ": " << P.second << std::endl;
   }
 }
@@ -369,14 +339,12 @@ void CryptoContextHelper::printAllParmSetNames(std::ostream& out) {
 void CryptoContextHelper::printParmSetNamesByFilter(std::ostream& out,
                                                     const string& filter) {
   size_t counter = 0;
-  for (map<string, map<string, string>>::iterator it =
-           CryptoContextParameterSets.begin();
-       it != CryptoContextParameterSets.end(); it++) {
-    if (it->first.find(filter) != string::npos) {
+  for (const auto& it : CryptoContextParameterSets) {
+    if (it.first.find(filter) != string::npos) {
       if (counter == 0)
-        out << it->first;
+        out << it.first;
       else
-        out << ", " << it->first;
+        out << ", " << it.first;
       counter++;
     }
   }
@@ -386,15 +354,13 @@ void CryptoContextHelper::printParmSetNamesByFilter(std::ostream& out,
 void CryptoContextHelper::printParmSetNamesByFilters(
     std::ostream& out, std::initializer_list<std::string> filters) {
   size_t counter = 0;
-  for (map<string, map<string, string>>::iterator it =
-           CryptoContextParameterSets.begin();
-       it != CryptoContextParameterSets.end(); it++) {
-    for (auto filter : filters) {
-      if (it->first.find(filter) != string::npos) {
+  for (const auto& it : CryptoContextParameterSets) {
+    for (const auto& filter : filters) {
+      if (it.first.find(filter) != string::npos) {
         if (counter == 0)
-          out << it->first;
+          out << it.first;
         else
-          out << ", " << it->first;
+          out << ", " << it.first;
         counter++;
         break;
       }
@@ -406,14 +372,12 @@ void CryptoContextHelper::printParmSetNamesByFilters(
 void CryptoContextHelper::printParmSetNamesByExcludeFilter(
     std::ostream& out, const string& filter) {
   size_t counter = 0;
-  for (map<string, map<string, string>>::iterator it =
-           CryptoContextParameterSets.begin();
-       it != CryptoContextParameterSets.end(); it++) {
-    if (it->first.find(filter) == string::npos) {
+  for (const auto& it : CryptoContextParameterSets) {
+    if (it.first.find(filter) == string::npos) {
       if (counter == 0)
-        out << it->first;
+        out << it.first;
       else
-        out << ", " << it->first;
+        out << ", " << it.first;
       counter++;
     }
   }
@@ -423,12 +387,10 @@ void CryptoContextHelper::printParmSetNamesByExcludeFilter(
 void CryptoContextHelper::printParmSetNamesByExcludeFilters(
     std::ostream& out, std::initializer_list<std::string> filters) {
   size_t counter = 0;
-  for (map<string, map<string, string>>::iterator it =
-           CryptoContextParameterSets.begin();
-       it != CryptoContextParameterSets.end(); it++) {
+  for (const auto& it : CryptoContextParameterSets) {
     bool isFound = false;
-    for (auto filter : filters) {
-      if (it->first.find(filter) != string::npos) {
+    for (const auto& filter : filters) {
+      if (it.first.find(filter) != string::npos) {
         isFound = true;
         break;
       }
@@ -436,9 +398,9 @@ void CryptoContextHelper::printParmSetNamesByExcludeFilters(
 
     if (!isFound) {
       if (counter == 0)
-        out << it->first;
+        out << it.first;
       else
-        out << ", " << it->first;
+        out << ", " << it.first;
       counter++;
     }
   }

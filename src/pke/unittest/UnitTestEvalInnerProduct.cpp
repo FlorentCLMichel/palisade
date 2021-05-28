@@ -47,42 +47,8 @@ class UTEvalIP : public ::testing::Test {
  public:
 };
 
-int64_t ArbBGVInnerProductPackedArray(std::vector<int64_t> &input1,
-                                      std::vector<int64_t> &input2);
-int64_t ArbBFVInnerProductPackedArray(std::vector<int64_t> &input1,
-                                      std::vector<int64_t> &input2);
-
-TEST_F(UTEvalIP, Test_BGV_EvalInnerProduct) {
-  usint size = 10;
-  std::vector<int64_t> input1(size, 0);
-  std::vector<int64_t> input2(size, 0);
-  usint limit = 15;
-  usint plainttextMod = 89;
-
-  PRNG rand_engine(1);
-
-  uniform_int_distribution<usint> dist(0, limit);
-
-  auto gen = std::bind(dist, rand_engine);
-  generate(input1.begin(), input1.end() - 2, gen);
-  generate(input2.begin(), input2.end() - 2, gen);
-
-  int64_t expectedResult =
-      std::inner_product(input1.begin(), input1.end(), input2.begin(), 0);
-  expectedResult %= plainttextMod;
-
-  int64_t half = int64_t(plainttextMod) / 2;
-
-  if (expectedResult > half) expectedResult -= plainttextMod;
-
-  try {
-    int64_t result = ArbBGVInnerProductPackedArray(input1, input2);
-
-    EXPECT_EQ(result, expectedResult);
-  } catch (const std::logic_error &e) {
-    FAIL() << e.what();
-  }
-}
+int64_t ArbBFVInnerProductPackedArray(std::vector<int64_t>& input1,
+                                      std::vector<int64_t>& input2);
 
 TEST_F(UTEvalIP, Test_BFV_EvalInnerProduct) {
   usint size = 10;
@@ -113,67 +79,6 @@ TEST_F(UTEvalIP, Test_BFV_EvalInnerProduct) {
   } catch (const std::logic_error &e) {
     FAIL() << e.what();
   }
-}
-
-int64_t ArbBGVInnerProductPackedArray(std::vector<int64_t> &input1,
-                                      std::vector<int64_t> &input2) {
-  usint m = 22;
-  PlaintextModulus p = 89;
-  BigInteger modulusP(p);
-
-  BigInteger modulusQ("955263939794561");
-  BigInteger squareRootOfRoot("941018665059848");
-
-  BigInteger bigmodulus("80899135611688102162227204937217");
-  BigInteger bigroot("77936753846653065954043047918387");
-
-  auto cycloPoly = GetCyclotomicPolynomial<BigVector>(m, modulusQ);
-  ChineseRemainderTransformArb<BigVector>::SetCylotomicPolynomial(cycloPoly,
-                                                                  modulusQ);
-
-  float stdDev = 4;
-
-  usint batchSize = 8;
-
-  auto params = std::make_shared<ILParams>(m, modulusQ, squareRootOfRoot,
-                                           bigmodulus, bigroot);
-
-  EncodingParams encodingParams(std::make_shared<EncodingParamsImpl>(
-      p, batchSize, PackedEncoding::GetAutomorphismGenerator(m)));
-
-  PackedEncoding::SetParams(m, encodingParams);
-
-  CryptoContext<Poly> cc = CryptoContextFactory<Poly>::genCryptoContextBGV(
-      params, encodingParams, 8, stdDev);
-
-  cc->Enable(ENCRYPTION);
-  cc->Enable(SHE);
-
-  // Initialize the public key containers.
-  LPKeyPair<Poly> kp = cc->KeyGen();
-
-  Ciphertext<Poly> ciphertext1;
-  Ciphertext<Poly> ciphertext2;
-
-  std::vector<int64_t> vectorOfInts1 = std::move(input1);
-  std::vector<int64_t> vectorOfInts2 = std::move(input2);
-
-  Plaintext intArray1 = cc->MakePackedPlaintext(vectorOfInts1);
-  Plaintext intArray2 = cc->MakePackedPlaintext(vectorOfInts2);
-
-  cc->EvalSumKeyGen(kp.secretKey);
-  cc->EvalMultKeyGen(kp.secretKey);
-
-  ciphertext1 = cc->Encrypt(kp.publicKey, intArray1);
-  ciphertext2 = cc->Encrypt(kp.publicKey, intArray2);
-
-  auto result = cc->EvalInnerProduct(ciphertext1, ciphertext2, batchSize);
-
-  Plaintext intArrayNew;
-
-  cc->Decrypt(kp.secretKey, result, &intArrayNew);
-
-  return intArrayNew->GetPackedValue()[0];
 }
 
 int64_t ArbBFVInnerProductPackedArray(std::vector<int64_t> &input1,

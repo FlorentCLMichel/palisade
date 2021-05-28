@@ -212,6 +212,10 @@ std::vector<int> GetCyclotomicPolynomialRecursive(usint m) {
 }
 
 uint32_t FindAutomorphismIndex2n(int32_t i, uint32_t m) {
+  if (i == 0) {
+    return 1;
+  }
+
   uint32_t n = GetTotient(m);
   uint32_t f1, f2;
   if (i < 0) {
@@ -242,6 +246,10 @@ uint32_t FindAutomorphismIndex2n(int32_t i, uint32_t m) {
 }
 
 uint32_t FindAutomorphismIndexCyclic(int32_t i, uint32_t m, uint32_t g) {
+  if (i == 0) {
+    return 1;
+  }
+
   int32_t n = GetTotient(m);
   int32_t i_signed = i % n;
   if (i_signed <= 0) {
@@ -257,9 +265,13 @@ uint32_t FindAutomorphismIndexCyclic(int32_t i, uint32_t m, uint32_t g) {
 }
 
 uint32_t FindAutomorphismIndex2nComplex(int32_t i, uint32_t m) {
+  if (i == 0) {
+    return 1;
+  }
+
   // conjugation automorphism
   if (i == int32_t(m - 1)) {
-    return i;
+    return uint32_t(i);
   } else {
     // generator
     int32_t g0;
@@ -275,7 +287,21 @@ uint32_t FindAutomorphismIndex2nComplex(int32_t i, uint32_t m) {
     for (size_t j = 1; j < i_unsigned; j++) {
       g = (g * g0) % m;
     }
-    return g;
+    return uint32_t(g);
   }
 }
+
+void PrecomputeAutoMap(uint32_t n, uint32_t k, std::vector<uint32_t> *precomp) {
+  uint32_t m = n << 1;  // cyclOrder
+  uint32_t logm = std::round(log2(m));
+  uint32_t logn = std::round(log2(n));
+  for (uint32_t j = 0; j < n; j++) {
+    uint32_t jTmp = ((j << 1) + 1);
+    usint idx = ((jTmp * k) - (((jTmp * k) >> logm) << logm)) >> 1;
+    usint jrev = ReverseBits(j, logn);
+    usint idxrev = ReverseBits(idx, logn);
+    (*precomp)[jrev] = idxrev;
+  }
+}
+
 }  // namespace lbcrypto

@@ -25,6 +25,7 @@
 
 #include "gtest/gtest.h"
 #include <vector>
+#include <string>
 #include <algorithm>
 
 // simple macro for in cases with exceptions
@@ -91,6 +92,23 @@ inline bool CheckAutomorphism(const std::vector<int64_t>& result,
   }
 
   return true;
+}
+
+// generate a random printable string of length outStrLength
+inline std::string RandomString(uint64_t outStringLength) {
+    auto getRandomChar = []() -> char {
+        const char charset[] =
+            "0123456789"
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz";
+        const size_t max_index = (sizeof(charset) - 1);
+        return charset[rand() % max_index];
+    };
+
+    std::string retString(outStringLength, 0);
+    std::generate_n(retString.begin(), outStringLength, getRandomChar);
+
+    return retString;
 }
 
 #endif // _UNIT_TEST_UTILS_H_

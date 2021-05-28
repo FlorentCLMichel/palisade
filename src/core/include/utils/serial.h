@@ -24,14 +24,11 @@
 #ifndef LBCRYPTO_SERIAL_H
 #define LBCRYPTO_SERIAL_H
 
+// TODO (dsuponit): purge the headers below and combine #pragma for GNU and clang
 #include <fstream>
-#include <iomanip>
 #include <iostream>
-#include <memory>
 #include <sstream>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
 #ifndef CEREAL_RAPIDJSON_HAS_STDSTRING
 #define CEREAL_RAPIDJSON_HAS_STDSTRING 1
@@ -52,6 +49,10 @@
 #pragma clang diagnostic ignored "-Wunused-private-field"
 #endif
 
+#include "utils/sertype.h"
+
+#include "cereal/archives/portable_binary.hpp"
+#include "cereal/archives/json.hpp"
 #include "cereal/cereal.hpp"
 #include "cereal/types/map.hpp"
 #include "cereal/types/memory.hpp"
@@ -69,88 +70,119 @@
 #pragma clang diagnostic pop
 #endif
 
-#include "utils/sertype.h"
 
 namespace lbcrypto {
 
-template <typename Element>
-class CryptoContextImpl;
+	namespace Serial {
+		//========================== BINARY serialization ==========================
+		/**
+		 * Serialize an object
+		 * @param obj - object to serialize
+		 * @param stream - Stream to serialize to
+		 * @param sertype - type of serialization; default is BINARY
+		 */
+		template <typename T>
+		void Serialize(const T& obj, std::ostream& stream, const SerType::SERBINARY& st) {
+			cereal::PortableBinaryOutputArchive archive(stream);
+			archive(obj);
+		}
 
-namespace Serial {
-/**
- * SerializeToString - serialize the object to a JSON string and return the
- * string
- * @param t - any serializable object
- * @return JSON string
- */
-template <typename T>
-inline static std::string SerializeToString(const std::shared_ptr<T> t) {
-  std::stringstream s;
-  {
-    extern void Serialize(decltype(t), std::ostream&, SerType::SERJSON);
-    Serialize(t, s, SerType::JSON);
-  }
-  return s.str();
-}
+		/**
+		 * Deserialize an object
+		 * @param obj - object to deserialize into
+		 * @param stream - Stream to deserialize from
+		 * @param sertype - type of de-serialization; default is BINARY
+		 */
+		template <typename T>
+		void Deserialize(T& obj, std::istream& stream, const SerType::SERBINARY& st) {
+			cereal::PortableBinaryInputArchive archive(stream);
+			archive(obj);
+		}
 
-/**
- * SerializeToString - serialize the object to a JSON string and return the
- * string
- * @param t - any serializable object
- * @return JSON string
- */
-template <typename T>
-inline static std::string SerializeToString(const T& t) {
-  std::stringstream s;
-  {
-    extern void Serialize(decltype(t), std::ostream&, SerType::SERJSON);
-    Serialize(t, s, SerType::JSON);
-  }
-  return s.str();
-}
+		template <typename T>
+		bool SerializeToFile(const std::string& filename, const T& obj, const SerType::SERBINARY& sertype) {
+			std::ofstream file(filename, std::ios::out | std::ios::binary);
+			if (file.is_open()) {
+				Serial::Serialize(obj, file, sertype);
+				file.close();
+				return true;
+			}
+			return false;
+		}
 
-/**
- * Deserialize a CryptoContext as a special case
- * @param obj - CryptoContext to deserialize into
- * @param stream - Stream to deserialize from
- * @param sertype - binary serialization
- */
-template <typename T>
-static void Deserialize(std::shared_ptr<CryptoContextImpl<T>>& obj,
-                        std::istream& stream, const SerType::SERBINARY& st);
+		template <typename T>
+		bool DeserializeFromFile(const std::string& filename, T& obj, const SerType::SERBINARY& sertype) {
+			std::ifstream file(filename, std::ios::in | std::ios::binary);
+			if (file.is_open()) {
+				Serial::Deserialize(obj, file, sertype);
+				file.close();
+				return true;
+			}
+			return false;
+		}
 
-/**
- * Deserialize a CryptoContext as a special case
- * @param obj - CryptoContext to deserialize into
- * @param stream - Stream to deserialize from
- * @param sertype - JSON serialization
- */
-template <typename T>
-static void Deserialize(std::shared_ptr<CryptoContextImpl<T>>& obj,
-                        std::istream& stream, const SerType::SERJSON& ser);
+		//========================== JSON serialization ==========================
+		/**
+		 * Serialize an object
+		 * @param obj - object to serialize
+		 * @param stream - Stream to serialize to
+		 * @param sertype - type of serialization; default is BINARY
+		 */
+		template <typename T>
+		void Serialize(const T& obj, std::ostream& stream, const SerType::SERJSON& ser) {
+			cereal::JSONOutputArchive archive(stream);
+			archive(obj);
+		}
 
-/**
- * Serialize an object; uses the default serialization of BINARY
- * @param obj - object to serialize
- * @param stream - Stream to serialize to
- */
-template <typename T>
-inline static void Serialize(const T& t, std::ostream& stream) {
-  extern void Serialize(decltype(t), std::ostream&, const SerType::SERBINARY&);
-  Serialize(t, stream, SerType::BINARY);
-}
+		/**
+		 * Deserialize an object
+		 * @param obj - object to deserialize into
+		 * @param stream - Stream to deserialize from
+		 * @param sertype - type of serialization; default is BINARY
+		 */
+		template <typename T>
+		void Deserialize(T& obj, std::istream& stream, const SerType::SERJSON& ser) {
+			cereal::JSONInputArchive archive(stream);
+			archive(obj);
+		}
 
-/**
- * Deserialize an object; uses the default serialization of BINARY
- * @param obj - object to deserialize into
- * @param stream - Stream to deserialize from
- */
-template <typename T>
-inline static void Deserialize(T& t, std::istream& stream) {
-  extern void Serialize(decltype(t), std::ostream&, const SerType::SERBINARY&);
-  Serialize(t, stream, SerType::BINARY);
-}
-}  // namespace Serial
+		template <typename T>
+		bool SerializeToFile(const std::string& filename, const T& obj, const SerType::SERJSON& sertype) {
+			std::ofstream file(filename, std::ios::out | std::ios::binary);
+			if (file.is_open()) {
+				Serial::Serialize(obj, file, sertype);
+				file.close();
+				return true;
+			}
+			return false;
+		}
+
+		template <typename T>
+		bool DeserializeFromFile(const std::string& filename, T& obj, const SerType::SERJSON& sertype) {
+			std::ifstream file(filename, std::ios::in | std::ios::binary);
+			if (file.is_open()) {
+				Serial::Deserialize(obj, file, sertype);
+				file.close();
+				return true;
+			}
+			return false;
+		}
+
+		/**
+		 * SerializeToString - serialize the object to a JSON string and return the
+		 * string
+		 * @param t - any serializable object
+		 * @return JSON string
+		 */
+		template <typename T>
+		std::string SerializeToString(const T& t) {
+			std::stringstream s;
+			Serialize(t, s, SerType::JSON);
+			return s.str();
+		}
+
+
+	}  // namespace Serial
 
 }  // namespace lbcrypto
 

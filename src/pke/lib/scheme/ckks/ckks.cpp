@@ -20,6 +20,26 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+/*
+Description:
+
+This code implements RNS variants of the Cheon-Kim-Kim-Song scheme.
+
+The CKKS scheme is introduced in the following paper:
+- Jung Hee Cheon, Andrey Kim, Miran Kim, and Yongsoo Song. Homomorphic
+encryption for arithmetic of approximate numbers. Cryptology ePrint Archive,
+Report 2016/421, 2016. https://eprint.iacr.org/2016/421.
+
+ Our implementation builds from the designs here:
+ - Marcelo Blatt, Alexander Gusev, Yuriy Polyakov, Kurt Rohloff, and Vinod
+Vaikuntanathan. Optimized homomorphic encryption solution for secure genomewide
+association studies. Cryptology ePrint Archive, Report 2019/223, 2019.
+https://eprint.iacr.org/2019/223.
+ - Andrey Kim, Antonis Papadimitriou, and Yuriy Polyakov. Approximate homomorphic
+encryption with reduced approximation error. Cryptology ePrint
+Archive, Report 2020/1118, 2020. https://eprint.iacr.org/2020/
+1118.
+ */
 
 #ifndef LBCRYPTO_CRYPTO_CKKS_C
 #define LBCRYPTO_CRYPTO_CKKS_C
@@ -66,12 +86,12 @@ LPKeyPair<Element> LPAlgorithmCKKS<Element>::KeyGen(CryptoContext<Element> cc,
     default:
       break;
   }
-  s.SwitchFormat();
+  s.SetFormat(Format::EVALUATION);
 
   // public key is generated and set
   // privateKey->MakePublicKey(a, publicKey);
   Element e(dgg, elementParams, Format::COEFFICIENT);
-  e.SwitchFormat();
+  e.SetFormat(Format::EVALUATION);
 
   Element b = e - a * s;
 
@@ -92,11 +112,11 @@ LPEvalKey<Element> LPAlgorithmSHECKKS<Element>::KeySwitchGHSGen(
 }
 
 template <class Element>
-Ciphertext<Element> LPAlgorithmSHECKKS<Element>::KeySwitchGHS(
+void LPAlgorithmSHECKKS<Element>::KeySwitchGHSInPlace(
     const LPEvalKey<Element> keySwitchHint,
-    ConstCiphertext<Element> ciphertext) const {
+    Ciphertext<Element> &ciphertext) const {
   std::string errMsg =
-      "LPAlgorithmSHECKKS::KeySwitchGHS is only supported for DCRTPoly.";
+      "LPAlgorithmSHECKKS::KeySwitchGHSInPlace is only supported for DCRTPoly.";
   PALISADE_THROW(not_implemented_error, errMsg);
 }
 
@@ -115,51 +135,41 @@ template <class Element>
 Ciphertext<Element> LPAlgorithmSHECKKS<Element>::EvalAddCore(
     ConstCiphertext<Element> ciphertext1,
     ConstCiphertext<Element> ciphertext2) const {
+  Ciphertext<Element> result = ciphertext1->Clone();
+  EvalAddCoreInPlace(result, ciphertext2);
+  return result;
+}
+
+template <class Element>
+void LPAlgorithmSHECKKS<Element>::EvalAddCoreInPlace(
+    Ciphertext<Element> &ciphertext1,
+    ConstCiphertext<Element> ciphertext2) const {
   if (ciphertext1->GetDepth() != ciphertext2->GetDepth()) {
     PALISADE_THROW(config_error, "Depths of two ciphertexts do not match.");
   }
 
-  if (ciphertext1->GetLevel() != ciphertext2->GetLevel()) {
+  if (ciphertext1->GetLevel() < ciphertext2->GetLevel()) {
     PALISADE_THROW(config_error,
-                   "EvalAddCore cannot add ciphertexts with different number "
-                   "of CRT components.");
+                   "EvalAddCoreInPlace cannot add ciphertexts with ciphertext1 "
+                   "level less than ciphertext2 level.");
   }
 
-  Ciphertext<Element> result = ciphertext1->CloneEmpty();
-
-  const std::vector<Element> &cv1 = ciphertext1->GetElements();
+  std::vector<Element> &cv1 = ciphertext1->GetElements();
   const std::vector<Element> &cv2 = ciphertext2->GetElements();
 
   size_t c1Size = cv1.size();
   size_t c2Size = cv2.size();
-  size_t cSmallSize, cLargeSize;
-  if (c1Size < c2Size) {
-    cSmallSize = c1Size;
-    cLargeSize = c2Size;
-  } else {
-    cSmallSize = c2Size;
-    cLargeSize = c1Size;
-  }
-
-  std::vector<Element> cvAdd;
+  size_t cSmallSize = std::min(c1Size, c2Size);
 
   for (size_t i = 0; i < cSmallSize; i++) {
-    cvAdd.push_back(std::move(cv1[i] + cv2[i]));
+    cv1[i] += cv2[i];
   }
-  for (size_t i = cSmallSize; i < cLargeSize; i++) {
-    if (c1Size < c2Size)
-      cvAdd.push_back(cv2[i]);
-    else
-      cvAdd.push_back(cv1[i]);
+  if (c1Size < c2Size) {
+    cv1.reserve(c2Size);
+    for (size_t i = c1Size; i < c2Size; i++) {
+      cv1.emplace_back(cv2[i]);
+    }
   }
-
-  result->SetElements(std::move(cvAdd));
-
-  result->SetDepth(ciphertext1->GetDepth());
-  result->SetScalingFactor(ciphertext1->GetScalingFactor());
-  result->SetLevel(ciphertext1->GetLevel());
-
-  return result;
 }
 
 template <class Element>
@@ -174,7 +184,7 @@ Ciphertext<Element> LPAlgorithmSHECKKS<Element>::EvalSubCore(
 
   if (ciphertext1->GetLevel() != ciphertext2->GetLevel()) {
     PALISADE_THROW(config_error,
-                   "EvalAddCore cannot sub ciphertexts with different number "
+                   "EvalSubCore cannot sub ciphertexts with different number "
                    "of CRT components.");
   }
 
@@ -233,29 +243,36 @@ Ciphertext<Element> LPAlgorithmSHECKKS<Element>::EvalMultCore(
 
   Ciphertext<Element> result = ciphertext1->CloneEmpty();
 
-  const std::vector<Element> &cv1 = ciphertext1->GetElements();
+  std::vector<Element> cv1 = ciphertext1->GetElements();
   const std::vector<Element> &cv2 = ciphertext2->GetElements();
 
   size_t cResultSize = cv1.size() + cv2.size() - 1;
-
   std::vector<Element> cvMult(cResultSize);
 
-  bool isFirstAdd[cResultSize];
-  std::fill_n(isFirstAdd, cResultSize, true);
+  if (cv1.size() == 2 && cv2.size() == 2) {
+    // cvMult[0] = cv1[0] * cv2[0];
+    // cvMult[1] = (cv1[0] *= cv2[1]) + (cv2[0] * cv1[1]);
+    // cvMult[2] = (cv1[1] *= cv2[1]);
+    cvMult[2] = (cv1[1] * cv2[1]);
+    cvMult[1] = (cv1[1] *= cv2[0]);
+    cvMult[0] = (cv2[0] * cv1[0]);
+    cvMult[1] += (cv1[0] *= cv2[1]);
+  } else {
+    bool isFirstAdd[cResultSize];
+    std::fill_n(isFirstAdd, cResultSize, true);
 
-  for (size_t i = 0; i < cv1.size(); i++) {
-    for (size_t j = 0; j < cv2.size(); j++) {
-      if (isFirstAdd[i + j] == true) {
-        cvMult[i + j] = cv1[i] * cv2[j];
-        isFirstAdd[i + j] = false;
-      } else {
-        cvMult[i + j] += cv1[i] * cv2[j];
+    for (size_t i = 0; i < cv1.size(); i++) {
+      for (size_t j = 0; j < cv2.size(); j++) {
+        if (isFirstAdd[i + j] == true) {
+          cvMult[i + j] = cv1[i] * cv2[j];
+          isFirstAdd[i + j] = false;
+        } else {
+          cvMult[i + j] += cv1[i] * cv2[j];
+        }
       }
     }
   }
-
   result->SetElements(std::move(cvMult));
-
   result->SetDepth(ciphertext1->GetDepth() + ciphertext2->GetDepth());
   result->SetScalingFactor(ciphertext1->GetScalingFactor() *
                            ciphertext2->GetScalingFactor());
@@ -265,10 +282,21 @@ Ciphertext<Element> LPAlgorithmSHECKKS<Element>::EvalMultCore(
 }
 
 template <class Element>
-Ciphertext<Element> LPAlgorithmSHECKKS<Element>::EvalAdd(
-    ConstCiphertext<Element> ciphertext1,
+void LPAlgorithmSHECKKS<Element>::EvalAddInPlace(
+    Ciphertext<Element> &ciphertext1,
     ConstCiphertext<Element> ciphertext2) const {
-  return LPAlgorithmSHECKKS<Element>::EvalAddCore(ciphertext1, ciphertext2);
+  if (ciphertext1->GetDepth() != ciphertext2->GetDepth()) {
+    PALISADE_THROW(config_error, "Depths of two ciphertexts do not match.");
+  }
+
+  if (ciphertext1->GetLevel() != ciphertext2->GetLevel()) {
+    PALISADE_THROW(
+        config_error,
+        "EvalAddInPlace cannot add ciphertexts with different number "
+        "of CRT components.");
+  }
+
+  LPAlgorithmSHECKKS<Element>::EvalAddCoreInPlace(ciphertext1, ciphertext2);
 }
 
 template <class Element>
@@ -308,7 +336,7 @@ Ciphertext<Element> LPAlgorithmSHECKKS<Element>::EvalAdd(
 
   int32_t depth = ciphertext->GetDepth();
 
-  // FIXME EvalAdd does not work for depth > 1 because of
+  // TODO EvalAdd does not work for depth > 1 because of
   // overflow. We need BigIntegers to handle this case.
   // For now, we address this issue in the DCRTPoly
   // implementation of EvalAdd, by doing the operation
@@ -379,7 +407,7 @@ Ciphertext<Element> LPAlgorithmSHECKKS<Element>::EvalSub(
 
   int32_t depth = ciphertext->GetDepth();
 
-  // FIXME EvalSub does not work for depth > 1 because of
+  // TODO EvalSub does not work for depth > 1 because of
   // overflow. We need BigIntegers to handle this case.
   // For now, we address this issue in the DCRTPoly
   // implementation of EvalSub, by doing the operation
@@ -566,9 +594,9 @@ LPEvalKey<Element> LPAlgorithmSHECKKS<Element>::KeySwitchGen(
 }
 
 template <class Element>
-Ciphertext<Element> LPAlgorithmSHECKKS<Element>::KeySwitch(
-    const LPEvalKey<Element> ek, ConstCiphertext<Element> ciphertext) const {
-  Ciphertext<Element> result = ciphertext->CloneEmpty();
+void LPAlgorithmSHECKKS<Element>::KeySwitchInPlace(
+    const LPEvalKey<Element> ek, Ciphertext<Element> &ciphertext) const {
+  Ciphertext<Element> result = ciphertext->Clone();
 
   const auto cryptoParams =
       std::static_pointer_cast<LPCryptoParametersCKKS<Element>>(
@@ -604,18 +632,16 @@ Ciphertext<Element> LPAlgorithmSHECKKS<Element>::KeySwitch(
     ct1 += digitsC2[0] * av[0];
   }
 
-  ct0 += digitsC2[0] * bv[0];
+  ct0 += (digitsC2[0] *= bv[0]);
 
   for (usint i = 1; i < digitsC2.size(); ++i) {
     ct0 += digitsC2[i] * bv[i];
-    ct1 += digitsC2[i] * av[i];
+    ct1 += (digitsC2[i] *= av[i]);
   }
 
-  result->SetElements({ct0, ct1});
+  result->SetElements({std::move(ct0), std::move(ct1)});
 
   result->SetDepth(ciphertext->GetDepth());
-
-  return result;
 }
 
 template <class Element>
@@ -623,8 +649,8 @@ Ciphertext<Element> LPAlgorithmSHECKKS<Element>::EvalMult(
     ConstCiphertext<Element> ciphertext1, ConstCiphertext<Element> ciphertext2,
     const LPEvalKey<Element> ek) const {
   Ciphertext<Element> cMult = EvalMult(ciphertext1, ciphertext2);
-
-  return KeySwitch(ek, cMult);
+  KeySwitchInPlace(ek, cMult);
+  return cMult;
 }
 
 template <class Element>
@@ -632,8 +658,8 @@ Ciphertext<Element> LPAlgorithmSHECKKS<Element>::EvalMultMutable(
     Ciphertext<Element> &ciphertext1, Ciphertext<Element> &ciphertext2,
     const LPEvalKey<Element> ek) const {
   Ciphertext<Element> cMult = EvalMultMutable(ciphertext1, ciphertext2);
-
-  return KeySwitch(ek, cMult);
+  KeySwitchInPlace(ek, cMult);
+  return cMult;
 }
 
 template <class Element>
@@ -758,14 +784,17 @@ Ciphertext<Element> LPAlgorithmSHECKKS<Element>::EvalAutomorphism(
         not_available_error,
         "automorphism indices higher than 2*n are not allowed " + CALLER_INFO);
 
-  Ciphertext<Element> permutedCiphertext = ciphertext->CloneEmpty();
-  permutedCiphertext->SetElements({std::move(c[0].AutomorphismTransform(i)),
-                                   std::move(c[1].AutomorphismTransform(i))});
-  permutedCiphertext->SetDepth(ciphertext->GetDepth());
-  permutedCiphertext->SetLevel(ciphertext->GetLevel());
-  permutedCiphertext->SetScalingFactor(ciphertext->GetScalingFactor());
+  usint n = ciphertext->GetElements()[0].GetRingDimension();
+  std::vector<usint> map(n);
+  PrecomputeAutoMap(n, i, &map);
 
-  return this->KeySwitch(fk, permutedCiphertext);
+  Ciphertext<Element> permutedCiphertext = this->KeySwitch(fk, ciphertext);
+
+  permutedCiphertext->SetElements(
+      {permutedCiphertext->GetElements()[0].AutomorphismTransform(i, map),
+       permutedCiphertext->GetElements()[1].AutomorphismTransform(i, map)});
+
+  return permutedCiphertext;
 }
 
 template <class Element>
@@ -777,11 +806,7 @@ LPAlgorithmSHECKKS<Element>::EvalAutomorphismKeyGen(
 
   usint n = s.GetRingDimension();
 
-  LPPrivateKey<Element> privateKeyPermuted(
-      std::make_shared<LPPrivateKeyImpl<Element>>(
-          privateKey->GetCryptoContext()));
-
-  auto evalKeys = std::make_shared<std::map<usint, LPEvalKey<Element>>>();
+  std::vector<LPEvalKey<Element>> keysVector(indexList.size());
 
   auto it = std::find(indexList.begin(), indexList.end(), 2 * n - 1);
   if (it != indexList.end())
@@ -789,13 +814,25 @@ LPAlgorithmSHECKKS<Element>::EvalAutomorphismKeyGen(
 
   if (indexList.size() > n - 1)
     PALISADE_THROW(math_error, "size exceeds the ring dimension");
+#pragma omp parallel for if (indexList.size() >= 4)
   for (usint i = 0; i < indexList.size(); i++) {
-    Element sPermuted = s.AutomorphismTransform(indexList[i]);
+    LPPrivateKey<Element> privateKeyPermuted(
+        std::make_shared<LPPrivateKeyImpl<Element>>(
+            privateKey->GetCryptoContext()));
+    // Element sPermuted = s.AutomorphismTransform(indexList[i]);
+    usint index = NativeInteger(indexList[i]).ModInverse(2 * n).ConvertToInt();
+    std::vector<usint> map(n);
+    PrecomputeAutoMap(n, index, &map);
 
+    Element sPermuted = s.AutomorphismTransform(index, map);
     privateKeyPermuted->SetPrivateElement(sPermuted);
 
-    (*evalKeys)[indexList[i]] =
-        this->KeySwitchGen(privateKeyPermuted, privateKey);
+    keysVector[i] = this->KeySwitchGen(privateKey, privateKeyPermuted);
+  }
+
+  auto evalKeys = std::make_shared<std::map<usint, LPEvalKey<Element>>>();
+  for (usint i = 0; i < indexList.size(); i++) {
+    (*evalKeys)[indexList[i]] = keysVector[i];
   }
 
   return evalKeys;
@@ -945,7 +982,7 @@ Ciphertext<Element> LPAlgorithmPRECKKS<Element>::ReEncrypt(
       c0 = p0 * u + e1;
       c1 = p1 * u + e2;
 
-      zeroCiphertext->SetElements({c0, c1});
+      zeroCiphertext->SetElements({std::move(c0), std::move(c1)});
 
       c->SetKeyTag(zeroCiphertext->GetKeyTag());
 
@@ -957,10 +994,10 @@ Ciphertext<Element> LPAlgorithmPRECKKS<Element>::ReEncrypt(
 }
 
 template <class Element>
-Ciphertext<Element> LPLeveledSHEAlgorithmCKKS<Element>::ModReduce(
-    ConstCiphertext<Element> ciphertext, size_t levels) const {
+void LPLeveledSHEAlgorithmCKKS<Element>::ModReduceInPlace(
+    Ciphertext<Element> &ciphertext, size_t levels) const {
   std::string errMsg =
-      "LPAlgorithmSHECKKS::ModReduce is only supported for DCRTPoly.";
+      "LPAlgorithmSHECKKS::ModReduceInPlace is only supported for DCRTPoly.";
   PALISADE_THROW(not_implemented_error, errMsg);
 }
 
@@ -1004,12 +1041,12 @@ LPKeyPair<Element> LPAlgorithmMultipartyCKKS<Element>::MultipartyKeyGen(
     Element si = ski->GetPrivateElement();
     s += si;
   }
-  //    s.SwitchFormat();
+  // s.SwitchFormat();
 
   // public key is generated and set
   // privateKey->MakePublicKey(a, publicKey);
   Element e(dgg, elementParams, Format::COEFFICIENT);
-  e.SwitchFormat();
+  e.SetFormat(Format::EVALUATION);
 
   Element b = e - a * s;
 
@@ -1058,12 +1095,12 @@ LPKeyPair<Element> LPAlgorithmMultipartyCKKS<Element>::MultipartyKeyGen(
     default:
       break;
   }
-  s.SwitchFormat();
+  s.SetFormat(Format::EVALUATION);
 
   // public key is generated and set
   // privateKey->MakePublicKey(a, publicKey);
   Element e(dgg, elementParams, Format::COEFFICIENT);
-  e.SwitchFormat();
+  e.SetFormat(Format::EVALUATION);
   // a.SwitchFormat();
 
   Element b;
@@ -1093,13 +1130,14 @@ Ciphertext<Element> LPAlgorithmMultipartyCKKS<Element>::MultipartyDecryptLead(
   const std::vector<Element> &cv = ciphertext->GetElements();
   const Element &s = privateKey->GetPrivateElement();
 
-  const DggType &dgg = cryptoParams->GetDiscreteGaussianGenerator();
+  DggType dgg(MP_SD);
   Element e(dgg, elementParams, Format::EVALUATION);
 
+  // e is added to do noise flooding
   Element b = cv[0] + s * cv[1] + e;
 
   Ciphertext<Element> result = ciphertext->CloneEmpty();
-  result->SetElements({b});
+  result->SetElements({std::move(b)});
 
   return result;
 }
@@ -1116,14 +1154,15 @@ Ciphertext<Element> LPAlgorithmMultipartyCKKS<Element>::MultipartyDecryptMain(
   const std::vector<Element> &cv = ciphertext->GetElements();
   const Element &s = privateKey->GetPrivateElement();
 
-  const DggType &dgg = cryptoParams->GetDiscreteGaussianGenerator();
+  DggType dgg(MP_SD);
   Element e(dgg, elementParams, Format::EVALUATION);
 
+  // e is added to do noise flooding
   Element b = s * cv[1] + e;
 
   Ciphertext<Element> result = ciphertext->CloneEmpty();
 
-  result->SetElements({b});
+  result->SetElements({std::move(b)});
 
   return result;
 }
@@ -1232,13 +1271,16 @@ LPAlgorithmMultipartyCKKS<Element>::MultiEvalAutomorphismKeyGen(
     PALISADE_THROW(config_error, "size exceeds the ring dimension");
   } else {
     for (usint i = 0; i < indexList.size(); i++) {
-      Element permutedPrivateKeyElement =
-          privateKeyElement.AutomorphismTransform(indexList[i]);
+      usint index =
+          NativeInteger(indexList[i]).ModInverse(2 * n).ConvertToInt();
+      std::vector<usint> map(n);
+      PrecomputeAutoMap(n, index, &map);
 
-      tempPrivateKey->SetPrivateElement(permutedPrivateKeyElement);
+      Element sPermuted = privateKeyElement.AutomorphismTransform(index, map);
+      tempPrivateKey->SetPrivateElement(sPermuted);
 
       (*evalKeys)[indexList[i]] = MultiKeySwitchGen(
-          tempPrivateKey, privateKey, eAuto->find(indexList[i])->second);
+          privateKey, tempPrivateKey, eAuto->find(indexList[i])->second);
     }
   }
 
@@ -1306,10 +1348,10 @@ LPEvalKey<Element> LPAlgorithmMultipartyCKKS<Element>::MultiMultEvalKey(
 
   for (usint i = 0; i < a0.size(); i++) {
     Element f1(dgg, elementParams, Format::COEFFICIENT);
-    f1.SwitchFormat();
+    f1.SetFormat(Format::EVALUATION);
 
     Element f2(dgg, elementParams, Format::COEFFICIENT);
-    f2.SwitchFormat();
+    f2.SetFormat(Format::EVALUATION);
 
     a.push_back(a0[i] * s + f1);
     b.push_back(b0[i] * s + f2);

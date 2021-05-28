@@ -84,8 +84,20 @@ class DiscreteFourierTransform {
   static std::vector<std::complex<double>> InverseTransform(
       std::vector<std::complex<double>> A);
 
+  /**
+   * In-place FFT-like algorithm used in CKKS encoding. For more details,
+   * see Algorithm 1 in https://eprint.iacr.org/2018/1043.pdf.
+   *
+   * @param vals is a vector of complex numbers.
+   */
   static void FFTSpecialInv(std::vector<std::complex<double>> &vals);
 
+  /**
+   * In-place FFT-like algorithm used in CKKS decoding. For more details,
+   * see Algorithm 1 in https://eprint.iacr.org/2018/1043.pdf.
+   *
+   * @param vals is a vector of complex numbers.
+   */
   static void FFTSpecial(std::vector<std::complex<double>> &vals);
 
   /**
