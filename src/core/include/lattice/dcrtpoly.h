@@ -249,7 +249,7 @@ class DCRTPolyImpl : public ILElement<DCRTPolyImpl<VecType>, VecType> {
    * @brief Clone the object by making a copy of it and returning the copy
    * @return new Element
    */
-  DCRTPolyType Clone() const { return std::move(DCRTPolyImpl(*this)); }
+  DCRTPolyType Clone() const { return DCRTPolyImpl(*this); }
 
   /**
    * @brief Makes a copy of the DCRTPoly, but it includes only a sequential
@@ -287,7 +287,7 @@ class DCRTPolyImpl : public ILElement<DCRTPolyImpl<VecType>, VecType> {
    * @brief Clone the object, but have it contain nothing
    * @return new Element
    */
-  DCRTPolyType CloneEmpty() const { return std::move(DCRTPolyImpl()); }
+  DCRTPolyType CloneEmpty() const { return DCRTPolyImpl(); }
 
   /**
    * @brief Clone method creates a new DCRTPoly and clones only the params. The
@@ -327,9 +327,7 @@ class DCRTPolyImpl : public ILElement<DCRTPolyImpl<VecType>, VecType> {
    * @brief returns the element's cyclotomic order
    * @return returns the cyclotomic order of the element.
    */
-  usint GetCyclotomicOrder() const {
-    return m_params->GetCyclotomicOrder();
-  }
+  usint GetCyclotomicOrder() const { return m_params->GetCyclotomicOrder(); }
 
   /**
    * @brief returns the element's ring dimension
@@ -496,7 +494,7 @@ class DCRTPolyImpl : public ILElement<DCRTPolyImpl<VecType>, VecType> {
    * @param &rhs the vector to set the PolyImpl to.
    * @return the resulting PolyImpl.
    */
-  DCRTPolyType &operator=(std::vector<int64_t> rhs);
+  DCRTPolyType &operator=(const std::vector<int64_t> &rhs);
 
   /**
    * @brief Creates a Poly from a vector of signed integers (used for trapdoor
@@ -505,7 +503,7 @@ class DCRTPolyImpl : public ILElement<DCRTPolyImpl<VecType>, VecType> {
    * @param &rhs the vector to set the PolyImpl to.
    * @return the resulting PolyImpl.
    */
-  DCRTPolyType &operator=(std::vector<int32_t> rhs);
+  DCRTPolyType &operator=(const std::vector<int32_t> &rhs);
 
   /**
    * @brief Initalizer list
@@ -563,6 +561,23 @@ class DCRTPolyImpl : public ILElement<DCRTPolyImpl<VecType>, VecType> {
     DCRTPolyType result(*this);
     for (usint k = 0; k < m_vectors.size(); k++) {
       result.m_vectors[k] = m_vectors[k].AutomorphismTransform(i);
+    }
+    return result;
+  }
+
+  /**
+   * @brief Performs an automorphism transform operation using precomputed bit
+   * reversal indices.
+   *
+   * @param &i is the element to perform the automorphism transform with.
+   * @param &map a vector with precomputed indices
+   * @return is the result of the automorphism transform.
+   */
+  DCRTPolyType AutomorphismTransform(usint i,
+                                     const std::vector<usint> &map) const {
+    DCRTPolyType result(*this);
+    for (usint k = 0; k < m_vectors.size(); k++) {
+      result.m_vectors[k] = m_vectors[k].AutomorphismTransform(i, map);
     }
     return result;
   }
@@ -819,9 +834,20 @@ class DCRTPolyImpl : public ILElement<DCRTPolyImpl<VecType>, VecType> {
    * @brief Sets element at index
    *
    * @param index where the element should be set
+   * @param element The element to store
    */
   void SetElementAtIndex(usint index, const PolyType &element) {
     m_vectors[index] = element;
+  }
+
+  /**
+   * @brief Sets element at index
+   *
+   * @param index where the element should be set
+   * @param element The element to store
+   */
+  void SetElementAtIndex(usint index, PolyType &&element) {
+    m_vectors[index] = std::move(element);
   }
 
   /**
@@ -883,15 +909,6 @@ class DCRTPolyImpl : public ILElement<DCRTPolyImpl<VecType>, VecType> {
       const std::vector<NativeInteger> &QlQlInvModqlDivqlModqPrecon,
       const std::vector<NativeInteger> &qlInvModq,
       const std::vector<NativeInteger> &qlInvModqPrecon);
-
-  /**
-   * @brief ModReduces reduces the DCRTPoly element's composite modulus by
-   * dropping the last modulus from the chain of moduli as well as dropping the
-   * last tower.
-   *
-   * @param &t is the plaintextModulus used for the DCRTPoly
-   */
-  void ModReduce(const Integer &t);
 
   /**
    * @brief ModReduces reduces the DCRTPoly element's composite modulus by

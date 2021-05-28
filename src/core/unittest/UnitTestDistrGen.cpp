@@ -665,6 +665,7 @@ TEST(UTDistrGen, Karney_Variance) {
   RUN_ALL_BACKENDS(Karney_Variance, "Karney_Variance")
 }
 
+#ifdef PARALLEL
 void ThreadSafetyTestHelper() {
   PRNG& engine = PseudoRandomNumberGenerator::GetPRNG();
   engine();
@@ -681,3 +682,4 @@ void ThreadSafetyInGetPRNG(const string& msg) {
 TEST(UTDistrGen, ThreadSafetyInGetPRNG) {
   RUN_ALL_BACKENDS(ThreadSafetyInGetPRNG, "Thread safety in getPRNG")
 }
+#endif

@@ -54,9 +54,6 @@ class Encrypt_Decrypt : public ::testing::Test {
 
 #define GENERATE_TEST_CASES_FUNC(x, y, ORD, PTM)                   \
   GENERATE_PKE_TEST_CASE(x, y, Poly, Null, ORD, PTM)               \
-  GENERATE_PKE_TEST_CASE(x, y, Poly, StSt, ORD, PTM)               \
-  GENERATE_PKE_TEST_CASE(x, y, Poly, BGV_rlwe, ORD, PTM)           \
-  GENERATE_PKE_TEST_CASE(x, y, Poly, BGV_opt, ORD, PTM)            \
   GENERATE_PKE_TEST_CASE(x, y, Poly, BGVrns_rlwe, ORD, PTM)        \
   GENERATE_PKE_TEST_CASE(x, y, Poly, BGVrns_opt, ORD, PTM)         \
   GENERATE_PKE_TEST_CASE(x, y, Poly, BFV_rlwe, ORD, PTM)           \
@@ -66,9 +63,6 @@ class Encrypt_Decrypt : public ::testing::Test {
   GENERATE_PKE_TEST_CASE(x, y, Poly, BFVrnsB_rlwe, ORD, PTM)       \
   GENERATE_PKE_TEST_CASE(x, y, Poly, BFVrnsB_opt, ORD, PTM)        \
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, Null, ORD, PTM)         \
-  GENERATE_PKE_TEST_CASE(x, y, NativePoly, StSt, ORD, PTM)         \
-  GENERATE_PKE_TEST_CASE(x, y, NativePoly, BGV_rlwe, ORD, PTM)     \
-  GENERATE_PKE_TEST_CASE(x, y, NativePoly, BGV_opt, ORD, PTM)      \
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, BGVrns_rlwe, ORD, PTM)  \
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, BGVrns_opt, ORD, PTM)   \
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, BFVrns_rlwe, ORD, PTM)  \
@@ -76,78 +70,12 @@ class Encrypt_Decrypt : public ::testing::Test {
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, BFVrnsB_rlwe, ORD, PTM) \
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, BFVrnsB_opt, ORD, PTM)  \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, Null, ORD, PTM)           \
-  GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, StSt, ORD, PTM)           \
-  GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGV_rlwe, ORD, PTM)       \
-  GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGV_opt, ORD, PTM)        \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGVrns_rlwe, ORD, PTM)    \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGVrns_opt, ORD, PTM)     \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrns_rlwe, ORD, PTM)    \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrns_opt, ORD, PTM)     \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrnsB_rlwe, ORD, PTM)   \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrnsB_opt, ORD, PTM)
-
-template <typename Element>
-static void EncryptionScalar(const CryptoContext<Element> cc,
-                             const string& failmsg) {
-  uint64_t value = 29;
-  Plaintext plaintext = cc->MakeScalarPlaintext(value);
-
-  LPKeyPair<Element> kp = cc->KeyGen();
-  EXPECT_EQ(kp.good(), true)
-      << failmsg << " key generation for scalar encrypt/decrypt failed";
-
-  Ciphertext<Element> ciphertext = cc->Encrypt(kp.publicKey, plaintext);
-  Plaintext plaintextNew;
-  cc->Decrypt(kp.secretKey, ciphertext, &plaintextNew);
-  EXPECT_EQ(*plaintext, *plaintextNew)
-      << failmsg << " unsigned scalar encrypt/decrypt failed";
-
-  Plaintext plaintext2 = cc->MakeScalarPlaintext(-value);
-  ciphertext = cc->Encrypt(kp.publicKey, plaintext2);
-  cc->Decrypt(kp.secretKey, ciphertext, &plaintextNew);
-  EXPECT_EQ(*plaintext2, *plaintextNew)
-      << failmsg << " signed scalar encrypt/decrypt failed";
-}
-
-GENERATE_TEST_CASES_FUNC(Encrypt_Decrypt, EncryptionScalar, 32, 64)
-
-template <typename Element>
-void EncryptionInteger(const CryptoContext<Element> cc, const string& failmsg) {
-  int64_t value = 250;
-  Plaintext plaintext = cc->MakeIntegerPlaintext(value);
-
-  LPKeyPair<Element> kp = cc->KeyGen();
-  EXPECT_EQ(kp.good(), true)
-      << failmsg << " key generation for integer encrypt/decrypt failed";
-
-  Ciphertext<Element> ciphertext = cc->Encrypt(kp.publicKey, plaintext);
-  Plaintext plaintextNew;
-  cc->Decrypt(kp.secretKey, ciphertext, &plaintextNew);
-  EXPECT_EQ(*plaintext, *plaintextNew)
-      << failmsg << " integer encrypt/decrypt failed";
-}
-
-GENERATE_TEST_CASES_FUNC(Encrypt_Decrypt, EncryptionInteger, 128, 512)
-
-template <typename Element>
-void EncryptionNegativeInteger(const CryptoContext<Element> cc,
-                               const string& failmsg) {
-  int64_t value = -250;
-  Plaintext plaintext = cc->MakeIntegerPlaintext(value);
-
-  LPKeyPair<Element> kp = cc->KeyGen();
-  EXPECT_EQ(kp.good(), true)
-      << failmsg
-      << " key generation for negative integer encrypt/decrypt failed";
-
-  Ciphertext<Element> ciphertext = cc->Encrypt(kp.publicKey, plaintext);
-  Plaintext plaintextNew;
-  cc->Decrypt(kp.secretKey, ciphertext, &plaintextNew);
-  EXPECT_EQ(*plaintext, *plaintextNew)
-      << failmsg << " negative integer encrypt/decrypt failed";
-}
-
-GENERATE_TEST_CASES_FUNC(Encrypt_Decrypt, EncryptionNegativeInteger, 128, 512)
 
 template <typename Element>
 void EncryptionString(const CryptoContext<Element> cc, const string& failmsg) {

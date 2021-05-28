@@ -205,8 +205,8 @@ class LPAlgorithmPRENull : public LPPREAlgorithm<Element> {
       const LPPublicKey<Element> newPrivateKey,
       const LPPrivateKey<Element> origPrivateKey) const {
     // create a new ReKey of the proper type, in this context
-    LPEvalKeyNTRURelin<Element> EK(
-        std::make_shared<LPEvalKeyNTRURelinImpl<Element>>(
+    LPEvalKeyRelin<Element> EK(
+        std::make_shared<LPEvalKeyRelinImpl<Element>>(
             newPrivateKey->GetCryptoContext()));
 
     Element a(newPrivateKey->GetCryptoContext()
@@ -401,11 +401,18 @@ class LPLeveledSHEAlgorithmNull : public LPLeveledSHEAlgorithm<Element> {
    * @param *cipherText Ciphertext to perform and apply modreduce on.
    */
   Ciphertext<Element> ModReduce(ConstCiphertext<Element> cipherText,
-                                size_t levels = 1) const {
-    Ciphertext<Element> newcipherText(
-        std::make_shared<CiphertextImpl<Element>>(*cipherText));
+                                size_t levels = 1) const override {
+    return cipherText->Clone();
+  }
 
-    return newcipherText;
+ /**
+   * Method for ModReducing CipherText and the Private Key used for encryption.
+   *
+   * @param *cipherText Ciphertext to perform and apply modreduce on.
+   */
+  void ModReduceInPlace(Ciphertext<Element>& cipherText,
+                                size_t levels = 1) const override {
+    return;
   }
 
   /**
@@ -423,7 +430,7 @@ class LPLeveledSHEAlgorithmNull : public LPLeveledSHEAlgorithm<Element> {
   Ciphertext<Element> ComposedEvalMult(
       ConstCiphertext<Element> cipherText1,
       ConstCiphertext<Element> cipherText2,
-      const LPEvalKey<Element> quadKeySwitchHint) const {
+      const LPEvalKey<Element> quadKeySwitchHint) const override {
     Ciphertext<Element> prod =
         cipherText1->GetCryptoContext()->GetEncryptionAlgorithm()->EvalMult(
             cipherText1, cipherText2, quadKeySwitchHint);
@@ -443,7 +450,7 @@ class LPLeveledSHEAlgorithmNull : public LPLeveledSHEAlgorithm<Element> {
    */
   Ciphertext<Element> LevelReduce(ConstCiphertext<Element> cipherText1,
                                   const LPEvalKey<Element> linearKeySwitchHint,
-                                  size_t levels) const {
+                                  size_t levels) const override {
     PALISADE_THROW(not_implemented_error,
                    "LevelReduce not implemented for Null");
   }
@@ -461,21 +468,16 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
   LPAlgorithmSHENull() {}
 
   /**
-   * Function for evaluation addition on ciphertext.
+   * Function for evaluation of in-place homomorphic addition of
+   * ciphertexts.
    *
-   * @param ciphertext1 first input ciphertext.
-   * @param ciphertext2 second input ciphertext.
-   * @return the new resulting ciphertext.
+   * @param ciphertext1 the input/output ciphertext.
+   * @param ciphertext2 the input ciphertext.
    */
-  Ciphertext<Element> EvalAdd(ConstCiphertext<Element> ciphertext1,
-                              ConstCiphertext<Element> ciphertext2) const {
-    Ciphertext<Element> newCiphertext = ciphertext1->CloneEmpty();
-
-    Element cResult = ciphertext1->GetElement() + ciphertext2->GetElement();
-
-    newCiphertext->SetElement(std::move(cResult));
-
-    return newCiphertext;
+  void EvalAddInPlace(
+      Ciphertext<Element>& ciphertext1,
+      ConstCiphertext<Element> ciphertext2) const override {
+      ciphertext1->GetElement() += ciphertext2->GetElement();
   }
 
   /**
@@ -486,7 +488,7 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
    * @return the new resulting ciphertext.
    */
   Ciphertext<Element> EvalAdd(ConstCiphertext<Element> ciphertext,
-                              ConstPlaintext plaintext) const {
+                              ConstPlaintext plaintext) const override {
     Ciphertext<Element> newCiphertext = ciphertext->CloneEmpty();
 
     Element cResult =
@@ -504,8 +506,9 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
    * @param ciphertext2 second input ciphertext.
    * @return the new resulting ciphertext.
    */
-  Ciphertext<Element> EvalSub(ConstCiphertext<Element> ciphertext1,
-                              ConstCiphertext<Element> ciphertext2) const {
+  Ciphertext<Element> EvalSub(
+      ConstCiphertext<Element> ciphertext1,
+      ConstCiphertext<Element> ciphertext2) const override {
     Ciphertext<Element> newCiphertext = ciphertext1->CloneEmpty();
 
     Element cResult = ciphertext1->GetElement() - ciphertext2->GetElement();
@@ -523,7 +526,7 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
    * @return the new resulting ciphertext.
    */
   Ciphertext<Element> EvalSub(ConstCiphertext<Element> ciphertext,
-                              ConstPlaintext plaintext) const {
+                              ConstPlaintext plaintext) const override {
     Ciphertext<Element> newCiphertext = ciphertext->CloneEmpty();
 
     Element cResult =
@@ -541,8 +544,9 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
    * @param ciphertext2 second input ciphertext.
    * @return the new resulting ciphertext.
    */
-  Ciphertext<Poly> EvalMult(ConstCiphertext<Poly> ciphertext1,
-                            ConstCiphertext<Poly> ciphertext2) const;
+  Ciphertext<Element> EvalMult(
+      ConstCiphertext<Element> ciphertext1,
+      ConstCiphertext<Element> ciphertext2) const override;
 
   /**
    * Function for evaluating multiplication of ciphertext by plaintext
@@ -551,67 +555,15 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
    * @param plaintext input plaintext embedded in cryptocontext.
    * @return the new resulting ciphertext.
    */
-  Ciphertext<Poly> EvalMult(ConstCiphertext<Poly> ciphertext1,
-                            ConstPlaintext plaintext) const;
+  Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext1,
+                               ConstPlaintext plaintext) const override;
 
-  Ciphertext<Poly> EvalMult(ConstCiphertext<Poly> ciphertext,
-                            double constant) const {
+  Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext,
+                               double constant) const override {
     PALISADE_THROW(not_implemented_error,
                    "Scalar multiplication is not implemented for this scheme");
   }
 
-  /**
-   * Function for evaluating multiplication on ciphertext.
-   *
-   * @param ciphertext1 first input ciphertext.
-   * @param ciphertext2 second input ciphertext.
-   * @return the new resulting ciphertext.
-   */
-  Ciphertext<NativePoly> EvalMult(
-      ConstCiphertext<NativePoly> ciphertext1,
-      ConstCiphertext<NativePoly> ciphertext2) const;
-
-  /**
-   * Function for evaluating multiplication of ciphertext by plaintext
-   *
-   * @param ciphertext input ciphertext.
-   * @param plaintext input plaintext embedded in cryptocontext.
-   * @return the new resulting ciphertext.
-   */
-  Ciphertext<NativePoly> EvalMult(ConstCiphertext<NativePoly> ciphertext1,
-                                  ConstPlaintext plaintext) const;
-
-  Ciphertext<NativePoly> EvalMult(ConstCiphertext<NativePoly> ciphertext,
-                                  double constant) const {
-    PALISADE_THROW(not_implemented_error,
-                   "Scalar multiplication is not implemented for this scheme");
-  }
-
-  /**
-   * Function for evaluating multiplication on ciphertext.
-   *
-   * @param ciphertext1 first input ciphertext.
-   * @param ciphertext2 second input ciphertext.
-   * @return the new resulting ciphertext.
-   */
-  Ciphertext<DCRTPoly> EvalMult(ConstCiphertext<DCRTPoly> ciphertext1,
-                                ConstCiphertext<DCRTPoly> ciphertext2) const;
-
-  /**
-   * Function for evaluating multiplication of ciphertext by plaintext
-   *
-   * @param ciphertext input ciphertext.
-   * @param plaintext input plaintext embedded in cryptocontext.
-   * @return the new resulting ciphertext.
-   */
-  Ciphertext<DCRTPoly> EvalMult(ConstCiphertext<DCRTPoly> ciphertext,
-                                ConstPlaintext plaintext) const;
-
-  Ciphertext<DCRTPoly> EvalMult(ConstCiphertext<DCRTPoly> ciphertext,
-                                double constant) const {
-    PALISADE_THROW(not_implemented_error,
-                   "Scalar multiplication is not implemented for this scheme");
-  }
   /**
    * Function for evaluating multiplication on ciphertext followed by key
    * switching operation.
@@ -624,7 +576,7 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
    */
   Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext1,
                                ConstCiphertext<Element> ciphertext2,
-                               const LPEvalKey<Element> ek) const {
+                               const LPEvalKey<Element> ek) const override {
     return EvalMult(ciphertext1, ciphertext2);
   }
 
@@ -641,7 +593,7 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
   Ciphertext<Element> EvalMultAndRelinearize(
       ConstCiphertext<Element> ciphertext1,
       ConstCiphertext<Element> ciphertext2,
-      const vector<LPEvalKey<Element>> &evalKey) const {
+      const vector<LPEvalKey<Element>> &evalKey) const override {
     // since there's no relinearize needed in NULL:
     return EvalMult(ciphertext1, ciphertext2);
   }
@@ -653,7 +605,8 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
    * @param *newCiphertext the new resulting ciphertext.
    */
 
-  Ciphertext<Element> EvalNegate(ConstCiphertext<Element> ciphertext) const {
+  Ciphertext<Element> EvalNegate(
+      ConstCiphertext<Element> ciphertext) const override {
     Ciphertext<Element> newCiphertext = ciphertext->CloneEmpty();
 
     const Element &c1 = ciphertext->GetElement();
@@ -674,8 +627,8 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
    */
   LPEvalKey<Element> KeySwitchGen(
       const LPPrivateKey<Element> originalPrivateKey,
-      const LPPrivateKey<Element> newPrivateKey) const {
-    return std::make_shared<LPEvalKeyNTRURelinImpl<Element>>(
+      const LPPrivateKey<Element> newPrivateKey) const override {
+    return std::make_shared<LPEvalKeyRelinImpl<Element>>(
         originalPrivateKey->GetCryptoContext());
   }
 
@@ -684,41 +637,10 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
    *
    * @param &keySwitchHint the evaluation key.
    * @param &ciphertext the input ciphertext.
-   * @param *newCiphertext the new ciphertext.
    */
-  Ciphertext<Element> KeySwitch(const LPEvalKey<Element> keySwitchHint,
-                                ConstCiphertext<Element> cipherText) const {
-    Ciphertext<Element> newCiphertext = cipherText->CloneEmpty();
-    return newCiphertext;
-  }
-
-  /**
-   * Method for KeySwitching based on RLWE relinearization.
-   * Function to generate 1..log(q) encryptions for each bit of the original
-   * private key
-   *
-   * @param &newPublicKey encryption key for the new ciphertext.
-   * @param origPrivateKey original private key used for decryption.
-   */
-  LPEvalKey<Element> KeySwitchRelinGen(
-      const LPPublicKey<Element> newPublicKey,
-      const LPPrivateKey<Element> origPrivateKey) const {
-    return std::make_shared<LPEvalKeyNTRURelinImpl<Element>>(
-        origPrivateKey->GetCryptoContext());
-  }
-
-  /**
-   * Method for KeySwitching based on RLWE relinearization
-   *
-   * @param evalKey the evaluation key.
-   * @param ciphertext the input ciphertext.
-   * @return the resulting Ciphertext
-   */
-  Ciphertext<Element> KeySwitchRelin(
-      const LPEvalKey<Element> evalKey,
-      ConstCiphertext<Element> ciphertext) const {
-    Ciphertext<Element> newCiphertext = ciphertext->CloneEmpty();
-    return newCiphertext;
+  void KeySwitchInPlace(const LPEvalKey<Element> keySwitchHint,
+                        Ciphertext<Element> &cipherText) const override {
+    return;
   }
 
   /**
@@ -728,8 +650,8 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
    * @param *keySwitchHint the key switch hint.
    */
   LPEvalKey<Element> EvalMultKeyGen(
-      const LPPrivateKey<Element> originalPrivateKey) const {
-    LPEvalKey<Element> EK(std::make_shared<LPEvalKeyNTRURelinImpl<Element>>(
+      const LPPrivateKey<Element> originalPrivateKey) const override {
+    LPEvalKey<Element> EK(std::make_shared<LPEvalKeyRelinImpl<Element>>(
         originalPrivateKey->GetCryptoContext()));
 
     Element a(originalPrivateKey->GetCryptoContext()
@@ -752,7 +674,7 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
    * @param *keySwitchHint the key switch hint list.
    */
   vector<LPEvalKey<Element>> EvalMultKeysGen(
-      const LPPrivateKey<Element> originalPrivateKey) const {
+      const LPPrivateKey<Element> originalPrivateKey) const override {
     std::string errMsg =
         "LPAlgorithmSHENULL::EvalMultKeysGen is not implemented for NULL SHE "
         "Scheme.";
@@ -771,7 +693,7 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
   Ciphertext<Element> EvalAutomorphism(
       ConstCiphertext<Element> ciphertext, usint i,
       const std::map<usint, LPEvalKey<Element>> &evalKeys,
-      CALLER_INFO_ARGS_HDR) const {
+      CALLER_INFO_ARGS_HDR) const override {
     Ciphertext<Element> permutedCiphertext(
         std::make_shared<CiphertextImpl<Element>>(*ciphertext));
     permutedCiphertext->SetElement(
@@ -791,7 +713,7 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
   shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAutomorphismKeyGen(
       const LPPublicKey<Element> publicKey,
       const LPPrivateKey<Element> origPrivateKey,
-      const std::vector<usint> &indexList) const {
+      const std::vector<usint> &indexList) const override {
     auto evalKeys = std::make_shared<std::map<usint, LPEvalKey<Element>>>();
 
     for (auto &i : indexList) {
@@ -803,7 +725,7 @@ class LPAlgorithmSHENull : public LPSHEAlgorithm<Element> {
 
   shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAutomorphismKeyGen(
       const LPPrivateKey<Element> privateKey,
-      const std::vector<usint> &indexList) const {
+      const std::vector<usint> &indexList) const override {
     auto evalKeys = std::make_shared<std::map<usint, LPEvalKey<Element>>>();
 
     for (auto &i : indexList) {

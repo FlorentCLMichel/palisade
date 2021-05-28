@@ -26,8 +26,8 @@ endif()
 project (PALISADE C CXX)
 
 set(PALISADE_VERSION_MAJOR 1)
-set(PALISADE_VERSION_MINOR 10)
-set(PALISADE_VERSION_PATCH 6)
+set(PALISADE_VERSION_MINOR 11)
+set(PALISADE_VERSION_PATCH 3)
 set(PALISADE_VERSION ${PALISADE_VERSION_MAJOR}.${PALISADE_VERSION_MINOR}.${PALISADE_VERSION_PATCH})
 
 set(CMAKE_CXX_STANDARD 11)
@@ -59,16 +59,30 @@ endif()
 
 message(STATUS "Building in ${CMAKE_BUILD_TYPE} mode" )
 
+if ( EMSCRIPTEN )
+set(BUILD_SHARED OFF)
+message( "Shared library is not supported by Emscripten")
+option( BUILD_STATIC "Set to ON to build static versions of the library" ON)
+option( BUILD_UNITTESTS "Set to ON to build unit tests for the library" OFF)
+option( BUILD_EXAMPLES "Set to ON to build examples for the library" OFF)
+option( BUILD_BENCHMARKS "Set to ON to build benchmarks for the library" OFF)
+option( WITH_OPENMP "OpenMP is not supported by Emscripten" OFF)
+else()
+option( BUILD_SHARED "Set to ON to build shared versions of the library" ON)
+option( BUILD_STATIC "Set to ON to build static versions of the library" OFF)
 option( BUILD_UNITTESTS "Set to ON to build unit tests for the library" ON)
 option( BUILD_EXAMPLES "Set to ON to build examples for the library" ON)
 option( BUILD_BENCHMARKS "Set to ON to build benchmarks for the library" ON)
+option( WITH_OPENMP "Use OpenMP to enable <omp.h>" ON)
+endif()
+
 option( BUILD_EXTRAS "Set to ON to build extras for the library" OFF)
-option( BUILD_STATIC "Set to ON to include static versions of the library" OFF)
+option( GIT_SUBMOD_AUTO "Submodules auto-update" ON)
 option( WITH_BE2 "Include Backend 2 in build by setting WITH_BE2 to ON" ON )
 option( WITH_BE4 "Include Backend 4 in build by setting WITH_BE4 to ON" ON )
 option( WITH_NTL "Include Backend 6 and NTL in build by setting WITH_NTL to ON" OFF )
 option( WITH_TCM "Activate tcmalloc by setting WITH_TCM to ON" OFF )
-option( USE_OpenMP "Use OpenMP to enable <omp.h>" ON)
+option( WITH_INTEL_HEXL "Use Intel HEXL library" OFF)
 option( WITH_NATIVEOPT "Use machine-specific optimizations" OFF)
 option( WITH_COVTEST "Turn on to enable coverage testing" OFF)
 
@@ -88,11 +102,14 @@ message( STATUS "BUILD_EXAMPLES:   ${BUILD_EXAMPLES}")
 message( STATUS "BUILD_BENCHMARKS: ${BUILD_BENCHMARKS}")
 message( STATUS "BUILD_EXTRAS:     ${BUILD_EXTRAS}")
 message( STATUS "BUILD_STATIC:     ${BUILD_STATIC}")
+message( STATUS "BUILD_SHARED:     ${BUILD_SHARED}")
+message( STATUS "GIT_SUBMOD_AUTO:  ${GIT_SUBMOD_AUTO}")
 message( STATUS "WITH_BE2:         ${WITH_BE2}")
 message( STATUS "WITH_BE4:         ${WITH_BE4}")
 message( STATUS "WITH_NTL:         ${WITH_NTL}")
 message( STATUS "WITH_TCM:         ${WITH_TCM}")
-message( STATUS "USE_OpenMP:       ${USE_OpenMP}")
+message( STATUS "WITH_INTEL_HEXL:  ${WITH_INTEL_HEXL}")
+message( STATUS "WITH_OPENMP:      ${WITH_OPENMP}")
 message( STATUS "NATIVE_SIZE:      ${NATIVE_SIZE}")
 message( STATUS "CKKS_M_FACTOR:    ${CKKS_M_FACTOR}")
 message( STATUS "WITH_NATIVEOPT:   ${WITH_NATIVEOPT}")
@@ -157,10 +174,15 @@ endif()
 set(C_COMPILE_FLAGS "-Wall -Werror -O3 ${NATIVE_OPT} -DPALISADE_VERSION=${PALISADE_VERSION}")
 set(CXX_COMPILE_FLAGS "-Wall -Werror -O3 ${NATIVE_OPT} -DPALISADE_VERSION=${PALISADE_VERSION} ${IGNORE_WARNINGS}")
 
+if ( EMSCRIPTEN )
+set(EMCXX_COMPILE_FLAGS "-s INITIAL_MEMORY=2047MB -s MAXIMUM_MEMORY=4gb -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=1 -s MALLOC=emmalloc -s NO_DISABLE_EXCEPTION_CATCHING")
+set(CXX_COMPILE_FLAGS "${CXX_COMPILE_FLAGS} ${EMCXX_COMPILE_FLAGS}")
+endif()
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_COMPILE_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_COMPILE_FLAGS}")
 
-if( ${WITH_COVTEST} )
+if(WITH_COVTEST)
 #Set flags
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
@@ -168,6 +190,16 @@ if( ${WITH_COVTEST} )
     set( BUILDDIR ${CMAKE_CURRENT_SOURCE_DIR}/build/)
     set( COVDIR ${BUILDDIR}coverage/)
 endif()
+
+if(BUILD_STATIC)
+    set(PALISADE_STATIC_LIBS "PALISADEcore_static PALISADEpke_static PALISADEbinfhe_static")
+endif()
+
+if(BUILD_SHARED)
+    set(PALISADE_SHARED_LIBS "PALISADEcore PALISADEpke PALISADEbinfhe")
+endif()
+
+set(PALISADE_PACKAGE_LIBS ${PALISADE_STATIC_LIBS} ${PALISADE_SHARED_LIBS})
 
 #--------------------------------------------------------------------
 # Installation logic
@@ -182,7 +214,7 @@ set(INSTALL_INCLUDE_DIR include/palisade CACHE PATH
 if(WIN32 AND NOT CYGWIN)
   set(DEF_INSTALL_CMAKE_DIR CMake)
 else()
-  set(DEF_INSTALL_CMAKE_DIR lib/CMake/Palisade)
+  set(DEF_INSTALL_CMAKE_DIR lib/Palisade)
 endif()
 set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH
   "Installation directory for CMake files")
@@ -219,6 +251,10 @@ include(CheckTypeSize)
 check_type_size("__int128" INT128)
 check_type_size("uint64_t" INT64)
 
+if (NOT(BUILD_SHARED OR BUILD_STATIC))
+	message(SEND_ERROR "Either BUILD_SHARED or BUILD_STATIC neeed to be turned on.")
+endif()
+
 if( "${NATIVE_SIZE}" EQUAL 128 )
     if( ${HAVE_INT128} )
         set( NATIVEINT 128 )
@@ -250,9 +286,11 @@ endif()
 #--------------------------------------------------------------------
 # Backend logic
 #--------------------------------------------------------------------
-## default backend is 2
-if( NOT MATHBACKEND )
+## default math backend is 2 for 32-bit and 64-bit integers and 4 for 128-bit integers
+if( NOT MATHBACKEND AND NOT ${NATIVE_SIZE} EQUAL 128)
 	set( MATHBACKEND 2 )
+elseif(NOT MATHBACKEND AND ${NATIVE_SIZE} EQUAL 128)
+	set( MATHBACKEND 4 )
 endif()
 
 message (STATUS "MATHBACKEND is set to " ${MATHBACKEND})
@@ -280,7 +318,7 @@ endif()
 
 add_definitions(-DMATHBACKEND=${MATHBACKEND})
 
-if(${WITH_TCM})
+if(WITH_TCM)
 	message(STATUS "tcmalloc is turned ON")
 	if(MINGW)
 		message(SEND_ERROR "***ERROR*** tcmalloc is not supported for MinGW")
@@ -313,7 +351,7 @@ endif()
 #--------------------------------------------------------------------
 # OpenMP logic
 #--------------------------------------------------------------------
-if (${USE_OpenMP})
+if (WITH_OPENMP)
 	# Used to optionally compile openmp code
 	add_definitions(-DPARALLEL)
 
@@ -354,7 +392,7 @@ if (${USE_OpenMP})
 		set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 	endif()
 
-else() # USE_OpenMP == OFF
+else() # WITH_OPENMP == OFF
 	find_package (Threads REQUIRED)
 	# Disable unknown #pragma omp warning
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unknown-pragmas")
@@ -375,6 +413,35 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 # Documentation logic
 #--------------------------------------------------------------------
 find_package (Git REQUIRED)
+if(GIT_SUBMOD_AUTO AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
+    # Update submodules as needed
+    message(STATUS "Submodule update")
+    if(NOT GIT_SUBMODULE_SYNCED)
+        # "git submodule sync --recursive" should run only once, when CMakeCache.txt doesn't exist'
+        execute_process(COMMAND ${GIT_EXECUTABLE} submodule sync --recursive
+                        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                        RESULT_VARIABLE GIT_SUBMODULE_RESULT)
+        if(NOT GIT_SUBMODULE_RESULT EQUAL "0")
+            message(FATAL_ERROR "\"git submodule sync --recursive\" failed with ${GIT_SUBMODULE_RESULT}, please checkout submodules")
+        endif()
+    endif()
+
+    execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                    RESULT_VARIABLE GIT_SUBMODULE_RESULT)
+    if(NOT GIT_SUBMODULE_RESULT EQUAL "0")
+        if(NOT GIT_SUBMODULE_SYNCED)
+            # print this message only if update has never happened
+            message(FATAL_ERROR "\"git submodule update --init\" failed with ${GIT_SUBMODULE_RESULT}, please checkout submodules")
+        else()
+            message(SEND_ERROR "\"git submodule update --init\" failed with ${GIT_SUBMODULE_RESULT}, please checkout submodules or disable autoupdate with -DGIT_SUBMOD_AUTO=OFF")
+        endif()
+    endif()
+
+    if(NOT GIT_SUBMODULE_SYNCED)
+        set(GIT_SUBMODULE_SYNCED ON CACHE BOOL "" FORCE)
+    endif()
+endif()
 
 find_package (Doxygen QUIET COMPONENTS dot)
 if (DOXYGEN_FOUND)
@@ -399,14 +466,11 @@ if ( WITH_COVTEST )
     if (LCOV_BIN MATCHES "lcov$")
         #Creates the command make cov
             add_custom_target( cov
-            DEPENDS core_tests pke_tests abe_tests signature_tests binfhe_tests #trapdoor_tests
+            DEPENDS core_tests pke_tests binfhe_tests
             COMMAND cd ${BUILDDIR} && mkdir -p coverage
             COMMAND cd ${BUILDDIR}/src/core/CMakeFiles/core_tests.dir/unittest/ && gcov *.gcno && lcov --capture --directory . --output-file ${COVDIR}/core.info
             COMMAND cd ${BUILDDIR}/src/pke/CMakeFiles/pke_tests.dir/unittest/ && gcov *.gcno && lcov --capture --directory . --output-file ${COVDIR}/pke.info
-            COMMAND cd ${BUILDDIR}/src/abe/CMakeFiles/abe_tests.dir/unittest/ && gcov  *.gcno && lcov --capture --directory . --output-file ${COVDIR}/abe.info
-            COMMAND cd ${BUILDDIR}/src/signature/CMakeFiles/signature_tests.dir/unittest/ && gcov *.gcno && lcov --capture --directory . --output-file ${COVDIR}/signature.info
             COMMAND cd ${BUILDDIR}/src/binfhe/CMakeFiles/binfhe_tests.dir/unittest/ && gcov  *.gcno && lcov --capture --directory . --output-file ${COVDIR}/binfhe.info
-            #COMMAND cd ${BUILDDIR}/src/trapdoor/CMakeFiles/trapdoor_tests.dir/unittest/ && gcov *.gcno && lcov --capture --directory . --output-file ${COVDIR}/trapdoor.info
             COMMAND cd ${COVDIR} && mkdir -p assets && genhtml -t "Coverage Test" -o ${COVDIR}/assets/ *.info
             )
         message(STATUS "lcov found in ${LCOV_BIN}")
@@ -422,6 +486,10 @@ endif()
 #--------------------------------------------------------------------
 include (ExternalProject)
 
+if (WITH_INTEL_HEXL)
+	include(third-party/intel-hexl/intel-hexl.cmake)
+endif()
+
 # third party directories
 set( THIRDPARTYDIR ${CMAKE_CURRENT_SOURCE_DIR}/third-party )
 include_directories( ${THIRDPARTYDIR}/include )
@@ -430,133 +498,10 @@ include_directories( ${THIRDPARTYDIR}/include )
 include_directories( ${THIRDPARTYDIR}/cereal/include )
 install(DIRECTORY ${THIRDPARTYDIR}/cereal/include/ DESTINATION include/palisade)
 
-include_directories( third-party/google-test/googletest third-party/google-test/googletest/include )
-include_directories( ${CMAKE_CURRENT_BINARY_DIR}/third-party/include )
-include_directories( ${CMAKE_CURRENT_BINARY_DIR}/src/core )
-
-### handle third-party gmp
-
-set(GMPSRCDIR ${THIRDPARTYDIR}/distros/gmp-6.1.2)
-set(GMPLIBDIR ${CMAKE_CURRENT_BINARY_DIR}/third-party/lib)
-if(MINGW)
-	set(GMPLIBFILE ${GMPLIBDIR}/libgmp.dll.a)
-else()
-	set(GMPLIBFILE ${GMPLIBDIR}/libgmp${CMAKE_SHARED_LIBRARY_SUFFIX})
-endif()
-
-set(GMPCONF ${GMPSRCDIR}/config.h)
-
-# unpack gmp distro
-
-add_custom_target(
-	gmp_unpack
-	COMMAND cd ${THIRDPARTYDIR}/distros && ${TAR} xf gmp-6.1.2.tar.lz
-	COMMAND cd ${GMPSRCDIR} && ./configure --host=${CROSS_TRIPLE} --prefix=${CMAKE_CURRENT_BINARY_DIR}/third-party --disable-static --enable-shared
-)
-
-add_custom_target(
-	gmp_clobber
-	COMMAND rm -fr ${THIRDPARTYDIR}/distros/gmp-6.1.2
-	COMMAND rm -f "${CMAKE_CURRENT_BINARY_DIR}/third-party/lib/libgmp*"
-	COMMAND rm -f "${CMAKE_CURRENT_BINARY_DIR}/third-party/include/gmp.h"
-	COMMAND rm -fr "${CMAKE_CURRENT_BINARY_DIR}/third-party/share/info"
-)
-
-add_custom_target(
-	gmp_all
-	COMMAND make
-	COMMAND make install
-	WORKING_DIRECTORY ${GMPSRCDIR}
-)
-
-add_library(gmp SHARED IMPORTED GLOBAL)
-if(MINGW)
-	set_target_properties(gmp PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/third-party/bin/libgmp-10.dll)
-	set_target_properties(gmp PROPERTIES IMPORTED_IMPLIB ${GMPLIBFILE})
-else()
-	set_target_properties(gmp PROPERTIES IMPORTED_LOCATION ${GMPLIBFILE})
-endif()
-
-if(${WITH_NTL})
-	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/third-party/lib DESTINATION .
-		FILES_MATCHING PATTERN "libgmp.*" )
-	# also copies the gmp dll file
-	if(MINGW)
-		install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/third-party/bin/ DESTINATION lib
-			FILES_MATCHING PATTERN "libgmp*" )
-	endif()
-endif()
-
-### Handle third-party libntl
-
-set(NTLSRCDIR ${THIRDPARTYDIR}/distros/ntl-10.5.0/src)
-set(NTLZIPNAME ntl-10.5.0.tar.gz)
-set(NTLTARGET all)
-
-set(NTLCONF ${NTLSRCDIR}/../include/NTL/config.h)
-set(NTLLIBDIR ${CMAKE_CURRENT_BINARY_DIR}/third-party/lib)
-if (MINGW)
-	set(NTLLIBFILE ${NTLLIBDIR}/libntl.dll.a)
-else()
-	set(NTLLIBFILE ${NTLLIBDIR}/libntl${CMAKE_SHARED_LIBRARY_SUFFIX})
-endif()
-
-# unpack ntl distro
-
-if(MINGW)
-	add_custom_target(
-		ntl_unpack
-		COMMAND cd ${THIRDPARTYDIR}/distros && ${TAR} xf ${NTLZIPNAME}
-		COMMAND cd ${NTLSRCDIR} && ./configure PREFIX=${CMAKE_CURRENT_BINARY_DIR}/third-party GMP_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/third-party NTL_THREADS=on NTL_THREAD_BOOST=on NTL_EXCEPTIONS=on SHARED=on NTL_STD_CXX11=on NTL_SAFE_VECTORS=off LIBTOOL_LINK_FLAGS=-no-undefined )
-else()
-	add_custom_target(
-		ntl_unpack
-		COMMAND cd ${THIRDPARTYDIR}/distros && ${TAR} xf ${NTLZIPNAME}
-		COMMAND cd ${NTLSRCDIR} && ./configure PREFIX=${CMAKE_CURRENT_BINARY_DIR}/third-party GMP_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/third-party NTL_THREADS=on NTL_THREAD_BOOST=on NTL_EXCEPTIONS=on SHARED=on NTL_STD_CXX11=on NTL_SAFE_VECTORS=off )
-endif()
-
-if(MINGW)
-add_custom_target(
-	ntl_unpack_nowizard
-	COMMAND cd ${THIRDPARTYDIR}/distros && ${TAR} xf ${NTLZIPNAME}
-	COMMAND cd ${NTLSRCDIR} && ./configure PREFIX=${CMAKE_CURRENT_BINARY_DIR}/third-party GMP_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/third-party NTL_THREADS=on NTL_THREAD_BOOST=on NTL_EXCEPTIONS=on SHARED=on NTL_STD_CXX11=on NTL_SAFE_VECTORS=off TUNE=generic LIBTOOL_LINK_FLAGS=-no-undefined )
-else()
-add_custom_target(
-	ntl_unpack_nowizard
-	COMMAND cd ${THIRDPARTYDIR}/distros && ${TAR} xf ${NTLZIPNAME}
-	COMMAND cd ${NTLSRCDIR} && ./configure PREFIX=${CMAKE_CURRENT_BINARY_DIR}/third-party GMP_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/third-party NTL_THREADS=on NTL_THREAD_BOOST=on NTL_EXCEPTIONS=on SHARED=on NTL_STD_CXX11=on NTL_SAFE_VECTORS=off TUNE=generic)
-endif()
-
-add_custom_target(
-	ntl_clobber
-	COMMAND rm -fr ${THIRDPARTYDIR}/distros/ntl-10.5.0
-	COMMAND rm -f "${CMAKE_CURRENT_BINARY_DIR}/third-party/lib/libntl*"
-	COMMAND rm -fr "${CMAKE_CURRENT_BINARY_DIR}/third-party/include/NTL"
-	COMMAND rm -fr "${CMAKE_CURRENT_BINARY_DIR}/third-party/share/doc" )
-
-add_custom_target(
-	ntl_all
-	COMMAND make
-	COMMAND make install
-	WORKING_DIRECTORY ${NTLSRCDIR} )
-
-add_library(ntl SHARED IMPORTED GLOBAL)
-if(MINGW)
-	set_target_properties(ntl PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/third-party/bin/libntl-35.dll)
-	set_target_properties(ntl PROPERTIES IMPORTED_IMPLIB ${NTLLIBFILE})
-else()
-	set_target_properties(ntl PROPERTIES IMPORTED_LOCATION ${NTLLIBFILE})
-endif()
-
-if(${WITH_NTL})
-	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/third-party/lib DESTINATION .
-		FILES_MATCHING PATTERN "libntl.*" )
-	# also copies the dll file
-	if(MINGW)
-		install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/third-party/bin/ DESTINATION lib
-			FILES_MATCHING PATTERN "libntl*" )
-	endif()
-endif()
+include_directories( ${CMAKE_SOURCE_DIR}/third-party/google-test/googletest )
+include_directories( ${CMAKE_SOURCE_DIR}/third-party/google-test/googletest/include )
+include_directories( ${CMAKE_SOURCE_DIR}/src/core/include )
+include_directories( ${CMAKE_BINARY_DIR}/src/core )
 
 ### Handle third-party gperftools for optional tcmalloc
 
@@ -575,46 +520,97 @@ add_custom_target(
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/third-party
 )
 
-add_library(tcmalloc SHARED IMPORTED GLOBAL)
-set_target_properties(tcmalloc PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/third-party/lib/libtcmalloc_minimal${CMAKE_SHARED_LIBRARY_SUFFIX})
+if(BUILD_STATIC)
 add_library(tcmalloc_static STATIC IMPORTED GLOBAL)
 set_target_properties(tcmalloc_static PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/third-party/lib/libtcmalloc_minimal${CMAKE_STATIC_LIBRARY_SUFFIX})
+endif()
 
-if(${WITH_TCM})
+if(BUILD_SHARED)
+add_library(tcmalloc SHARED IMPORTED GLOBAL)
+set_target_properties(tcmalloc PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/third-party/lib/libtcmalloc_minimal${CMAKE_SHARED_LIBRARY_SUFFIX})
+endif()
+
+if(WITH_TCM)
 	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/third-party/lib DESTINATION .
 		FILES_MATCHING PATTERN "libtcmalloc_minimal.*")
+    list(APPEND THIRDPARTYLIBS "tcmalloc")
+	list(APPEND THIRDPARTYSTATICLIBS "tcmalloc_static")
+    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/third-party/include DESTINATION include/palisade/third-party/)
 endif()
 
-if(${WITH_TCM})
-	set(THIRDPARTYLIBS tcmalloc)
-	set(THIRDPARTYSTATICLIBS tcmalloc_static )
+if(WITH_NTL)
+    ### Find gmp and ntl libraries. They must be installed by the user
+    list(APPEND general_paths "/usr" "/usr/local" "/opt" "/opt/local")
+    list(APPEND header_suffixes "include" "include/NTL" "include/${CMAKE_LIBRARY_ARCHITECTURE}")
+    list(APPEND lib_suffixes "lib" "lib/${CMAKE_LIBRARY_ARCHITECTURE}")
+    if (NOT(NTL_INCLUDE_DIR AND NTL_LIBRARIES))
+        find_path(NTL_INCLUDE_DIR
+            NAMES RR.h
+            PATHS ${general_paths}
+            PATH_SUFFIXES ${header_suffixes}
+        )
+        find_library(NTL_LIBRARIES
+            NAMES ntl libntl
+            ONLY_CMAKE_FIND_ROOT_PATH
+            PATHS ${general_paths}
+            PATH_SUFFIXES ${lib_suffixes}
+        )
+
+        include(FindPackageHandleStandardArgs)
+        FIND_PACKAGE_HANDLE_STANDARD_ARGS(NTL DEFAULT_MSG NTL_INCLUDE_DIR NTL_LIBRARIES)
+        if(NTL_FOUND)
+            get_filename_component(NTL_LIBRARIES ${NTL_LIBRARIES} DIRECTORY)
+        else()
+    	    message(FATAL_ERROR "** ERROR ** libntl is not found."
+	                "In order to use MATHBACKEND 6, install libntl or pass -DNTL_INCLUDE_DIR=<dir> and -DNTL_LIBRARIES=<dir> to cmake")
+        endif()
+    endif()
+
+    if (NOT(GMP_INCLUDE_DIR AND GMP_LIBRARIES))
+        find_path(GMP_INCLUDE_DIR
+            NAMES gmp.h
+            PATHS ${general_paths}
+            PATH_SUFFIXES ${header_suffixes}
+        )
+        find_library(GMP_LIBRARIES
+            NAMES gmp libgmp
+            ONLY_CMAKE_FIND_ROOT_PATH
+            PATHS ${general_paths}
+            PATH_SUFFIXES ${lib_suffixes}
+        )
+
+        include(FindPackageHandleStandardArgs)
+        FIND_PACKAGE_HANDLE_STANDARD_ARGS(GMP DEFAULT_MSG GMP_INCLUDE_DIR GMP_LIBRARIES)
+        if(GMP_FOUND)
+            get_filename_component(GMP_LIBRARIES ${GMP_LIBRARIES} DIRECTORY)
+        else()
+		    message(FATAL_ERROR "** ERROR ** libgmp is not found."
+		            "In order to use MATHBACKEND 6, install libgmp or pass -DGMP_INCLUDE_DIR=<dir> and -GMPL_LIBRARIES=<dir> to cmake")
+        endif()
+    endif()
+    mark_as_advanced(NTL_INCLUDE_DIR NTL_LIBRARIES)
+    mark_as_advanced(GMP_INCLUDE_DIR GMP_LIBRARIES)
+    include_directories(${NTL_INCLUDE_DIR})
+    include_directories(${GMP_INCLUDE_DIR})
+    link_directories(${NTL_LIBRARIES})
+    link_directories(${GMP_LIBRARIES})
+
+    list(APPEND THIRDPARTYLIBS "ntl")
+    list(APPEND THIRDPARTYLIBS "gmp")
+    list(APPEND THIRDPARTYSTATICLIBS "ntl")
+    list(APPEND THIRDPARTYSTATICLIBS "gmp")
 endif()
 
-if(${WITH_NTL})
-	set(THIRDPARTYLIBS "${THIRDPARTYLIBS}" ntl gmp )
-	set(THIRDPARTYSTATICLIBS "${THIRDPARTYSTATICLIBS}" ntl gmp )
-else()
-	set(THIRDPARTYLIBS "${THIRDPARTYLIBS}" )
-	set(THIRDPARTYSTATICLIBS "${THIRDPARTYSTATICLIBS}" )
-endif()
-
-if(${WITH_NTL} OR ${WITH_TCM})
-	install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/third-party/include DESTINATION include/palisade/third-party/)
+if (WITH_INTEL_HEXL)
+	list(APPEND THIRDPARTYLIBS HEXL::hexl)
 endif()
 
 set(DEMODATAPATH ${CMAKE_CURRENT_SOURCE_DIR}/demoData)
 set(BINDEMODATAPATH ${CMAKE_CURRENT_BINARY_DIR}/demoData)
 
 # copies demoData folder from the root of the repo to build/demoData if the folder does not exist
-# also checks whether NTL and GMP have been installed if the user chose to use NTL by setting WITH_NTL=OFF
-if(${WITH_NTL})
-	add_custom_target(third-party ALL
-	COMMAND [ ! -f  ${GMPLIBFILE} ] && echo ***ERROR*** Be sure to run \"make gmp_unpack\" and \"make gmp_all\" || [ ! -f  ${NTLLIBFILE} ] && echo ***ERROR*** Be sure to run \"make ntl_unpack\" and \"make ntl_all\" || echo "-- NTL/GMP is already installed"
+add_custom_target(third-party ALL
 	COMMAND [ ! -d ${BINDEMODATAPATH} ] && cp -R ${DEMODATAPATH} ${BINDEMODATAPATH} && echo "-- Copied demoData files" || echo "-- demoData folder already exists" )
-else()
-	add_custom_target(third-party ALL
-	COMMAND [ ! -d ${BINDEMODATAPATH} ] && cp -R ${DEMODATAPATH} ${BINDEMODATAPATH} && echo "-- Copied demoData files" || echo "-- demoData folder already exists" )
-endif()
 
 # when running "make clean", additionally deletes the demoData folder and CMake cache file
 set(ADDITIONAL_CLEAN_FILES "")
@@ -631,8 +627,6 @@ endif()
 ### add each of the subdirs of src
 add_subdirectory(src/core)
 add_subdirectory(src/pke)
-add_subdirectory(src/abe)
-add_subdirectory(src/signature)
 add_subdirectory(src/binfhe)
 
 ### build the google test handlers
@@ -650,32 +644,29 @@ if ( BUILD_BENCHMARKS )
 endif()
 
 ## clobber cleans AND deletes the third-party stuff
-add_custom_target( clobber DEPENDS gmp_clobber ntl_clobber
+add_custom_target( clobber
         COMMAND make clean
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} )
 
 if( BUILD_UNITTESTS )
 	add_custom_target( testall
-		DEPENDS core_tests pke_tests abe_tests signature_tests binfhe_tests
+		DEPENDS core_tests pke_tests  binfhe_tests
 		COMMAND echo core: && unittest/core_tests -t || true
 		COMMAND echo pke: && unittest/pke_tests -t || true
-		COMMAND echo abe: && unittest/abe_tests -t || true
-		COMMAND echo signature: && unittest/signature_tests -t || true
 		COMMAND echo binfhe: && unittest/binfhe_tests -t )
 endif()
 
 if (BUILD_EXAMPLES)
 	add_custom_target( allexamples
-		DEPENDS allcoreexamples allpkeexamples allabeexamples allsignatureexamples allbinfheexamples )
+		DEPENDS allcoreexamples allpkeexamples allbinfheexamples )
 endif()
 
 if (BUILD_EXTRAS)
 	add_custom_target( allextras
-		DEPENDS allcoreextras allpkeextras )
+		DEPENDS allcoreextras allpkeextras  )
 endif()
 
-add_custom_target( allmodules
-	DEPENDS PALISADEcore PALISADEpke PALISADEabe PALISADEsignature PALISADEbinfhe )
+add_custom_target( allmodules DEPENDS ${PALISADE_PACKAGE_LIBS} )
 
 # Add the additional "make clean" files
 GET_DIRECTORY_PROPERTY(clean_files ADDITIONAL_MAKE_CLEAN_FILES)

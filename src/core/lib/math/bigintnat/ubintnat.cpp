@@ -32,8 +32,8 @@ template <typename T>
 std::ostream &operator<<(std::ostream &os, const std::vector<T> &v) {
   os << "[";
   // for (const auto itr : v){
-  for (auto i = v.begin(); i != v.end(); ++i) {
-    os << " " << *i;
+  for (const auto &i : v) {
+    os << " " << i;
   }
   os << " ]";
   return os;

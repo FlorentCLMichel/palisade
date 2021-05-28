@@ -24,20 +24,17 @@
 #ifndef LBCRYPTO_SERTYPE_H
 #define LBCRYPTO_SERTYPE_H
 
+
 namespace lbcrypto {
 
 namespace SerType {
-class SERJSON {
-  //  public:
-  //    int  dummy;
-};
-static SERJSON JSON;
 
-class SERBINARY {
-  //  public:
-  //    int  dummy;
-};
-static SERBINARY BINARY;
+class SERJSON { };
+const static SERJSON JSON; // should be const static to avoid compilation failure
+
+class SERBINARY { };
+const static SERBINARY BINARY; // should be const static to avoid compilation failure
+
 }  // namespace SerType
 
 }  // namespace lbcrypto

@@ -99,13 +99,13 @@ static void common_basic_ops(const string& msg) {
     Element ilv1(ilvector2n1);
     EXPECT_EQ(ilvector2n1, ilv1) << msg << " Failure: copy ctor";
   }
-  // FIXME does not test any other ctor
+  // TODO does not test any other ctor
   {  // test operator=
     Element ilv1 = ilvector2n1;
     EXPECT_EQ(ilvector2n1, ilv1) << msg << " Failure: op=";
   }
   DEBUGEXP(ilvector2n1);
-  // FIXME move += -= to arithmetic ops
+  // TODO move += -= to arithmetic ops
   {  // test operator-=
     Element ilv1 = ilvector2n1;
     DEBUGEXP(ilvector2n1);
@@ -189,7 +189,7 @@ TEST(UTPoly, common_set_format) {
   RUN_ALL_POLYS(common_set_format, "Poly common_set_format");
 }
 
-// FIXME DCRTPoly needs a common_set_format()
+// TODO DCRTPoly needs a common_set_format()
 TEST(UTDCRTPoly, common_set_format) {
   RUN_BIG_DCRTPOLYS(common_set_format, "DCRT common_set_format");
 }

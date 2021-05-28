@@ -27,7 +27,6 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 
 #include "palisade.h"
-#include "utils/serialize-binary.h"
 #include <iomanip>
 #include "ciphertext-ser.h"
 #include "cryptocontext-ser.h"
@@ -217,6 +216,9 @@ serverSetupAndWrite(int multDepth, int scaleFactorBits, int batchSize) {
  */
 void clientProcess() {
   CryptoContext<DCRTPoly> clientCC;
+  clientCC->ClearEvalMultKeys();
+  clientCC->ClearEvalAutomorphismKeys();
+  lbcrypto::CryptoContextFactory<lbcrypto::DCRTPoly>::ReleaseAllContexts();
   if (!Serial::DeserializeFromFile(DATAFOLDER + ccLocation, clientCC,
                                    SerType::BINARY)) {
     std::cerr << "I cannot read serialized data from: " << DATAFOLDER

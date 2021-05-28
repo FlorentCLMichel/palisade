@@ -671,16 +671,15 @@ class LPAlgorithmSHEBFVrns : public LPAlgorithmSHEBFV<Element> {
       const LPPrivateKey<Element> newKey) const override;
 
   /**
-   * Method for key switching based on a KeySwitchHint using RLWE
+   * Method for in-place key switching based on a KeySwitchHint using RLWE
    * relinearization
    *
    * @param keySwitchHint Hint required to perform the ciphertext switching.
-   * @param ciphertext Original ciphertext to perform switching on.
-   * @return new ciphertext
+   * @param &cipherText Original ciphertext to perform in-place key switching
+   * on.
    */
-  Ciphertext<Element> KeySwitch(
-      const LPEvalKey<Element> keySwitchHint,
-      ConstCiphertext<Element> ciphertext) const override;
+  void KeySwitchInPlace(const LPEvalKey<Element> keySwitchHint,
+                        Ciphertext<Element>& ciphertext) const override;
 
   /**
    * Function for evaluating multiplication on ciphertext followed by

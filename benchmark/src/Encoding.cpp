@@ -41,39 +41,6 @@ bool runOnlyOnce = true;
 using namespace std;
 using namespace lbcrypto;
 
-void BM_encoding_Scalar(benchmark::State &state) {
-  usint m = 1024;
-  PlaintextModulus ptm = 128;
-  int64_t value = 47;
-  Plaintext plaintext;
-  shared_ptr<ILParams> lp = ElemParamFactory::GenElemParams<ILParams>(m);
-  EncodingParams ep(new EncodingParamsImpl(ptm));
-
-  while (state.KeepRunning()) {
-    plaintext.reset(new ScalarEncoding(lp, ep, value));
-    plaintext->Encode();
-  }
-}
-
-BENCHMARK(BM_encoding_Scalar);
-
-void BM_encoding_Integer(benchmark::State &state) {  // benchmark
-  Plaintext plaintext;
-  usint m = 1024;
-  PlaintextModulus ptm = 128;
-  int64_t mv = 58;
-
-  shared_ptr<ILParams> lp = ElemParamFactory::GenElemParams<ILParams>(m);
-  EncodingParams ep(new EncodingParamsImpl(ptm));
-
-  while (state.KeepRunning()) {
-    plaintext.reset(new IntegerEncoding(lp, ep, mv));
-    plaintext->Encode();
-  }
-}
-
-BENCHMARK(BM_encoding_Integer);
-
 void BM_encoding_CoefPacked(benchmark::State &state) {
   Plaintext plaintext;
   usint m = 1024;

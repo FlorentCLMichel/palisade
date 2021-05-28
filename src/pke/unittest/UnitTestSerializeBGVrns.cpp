@@ -34,8 +34,6 @@
 #include "cryptocontext-ser.h"
 #include "pubkeylp-ser.h"
 #include "scheme/bgvrns/bgvrns-ser.h"
-#include "utils/serialize-binary.h"
-#include "utils/serialize-json.h"
 
 using namespace std;
 using namespace lbcrypto;

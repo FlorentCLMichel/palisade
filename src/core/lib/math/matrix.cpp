@@ -261,9 +261,8 @@ inline Matrix<Element>& Matrix<Element>::HStack(Matrix<Element> const& other) {
   }
   for (size_t row = 0; row < rows; ++row) {
     data_row_t rowElems;
-    for (auto elem = other.data[row].begin(); elem != other.data[row].end();
-         ++elem) {
-      rowElems.push_back(*elem);
+    for (auto& elem : other.data[row]) {
+      rowElems.push_back(elem);
     }
     MoveAppend(data[row], rowElems);
   }

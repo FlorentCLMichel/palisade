@@ -68,8 +68,8 @@ RLWETrapdoorUtility<DCRTPoly>::TrapdoorGen(shared_ptr<ParmType> params,
   Matrix<DCRTPoly> e(zero_alloc, 1, k, gaussian_alloc);
 
   // Converts discrete gaussians to Evaluation representation
-  r.SwitchFormat();
-  e.SwitchFormat();
+  r.SetFormat(Format::EVALUATION);
+  e.SetFormat(Format::EVALUATION);
 
   Matrix<DCRTPoly> g = Matrix<DCRTPoly>(zero_alloc, 1, k).GadgetVector(base);
 
@@ -113,8 +113,8 @@ RLWETrapdoorUtility<DCRTPoly>::TrapdoorGenSquareMat(shared_ptr<ParmType> params,
   Matrix<DCRTPoly> Abar(zero_alloc, d, d, uniform_alloc);
 
   // Converts discrete gaussians to Evaluation representation
-  R.SwitchFormat();
-  E.SwitchFormat();
+  R.SetFormat(Format::EVALUATION);
+  E.SetFormat(Format::EVALUATION);
 
   Matrix<DCRTPoly> G =
       Matrix<DCRTPoly>(zero_alloc, d, d * k).GadgetVector(base);
@@ -179,8 +179,7 @@ Matrix<DCRTPoly> RLWETrapdoorUtility<DCRTPoly>::GaussSamp(
   DEBUG("t1: " << TOC(t1_tot));  // takes 64
   TIC(t2);
   TIC(t2_tot);
-  // converting perturbed syndrome to coefficient representation
-  perturbedSyndrome.SwitchFormat();
+  perturbedSyndrome.SetFormat(Format::COEFFICIENT);
   DEBUG("t2a: " << TOC(t2));  // takes 1
   TIC(t2);
 
@@ -211,7 +210,7 @@ Matrix<DCRTPoly> RLWETrapdoorUtility<DCRTPoly>::GaussSamp(
 
   DEBUG("t2c: " << TOC(t2));  // takes 0
   // Now converting it to the evaluation representation before multiplication
-  zHat.SwitchFormat();
+  zHat.SetFormat(Format::EVALUATION);
   DEBUG("t2d: " << TOC(t2));  // takes 17
   DEBUG("t2: " << TOC(t2_tot));
 
@@ -253,8 +252,7 @@ Matrix<DCRTPoly> RLWETrapdoorUtility<DCRTPoly>::GaussSampSquareMat(
   // of d*(k + 2) x d perturbedSyndrome is in the evaluation representation
   Matrix<DCRTPoly> perturbedSyndrome = U - (A.Mult(*pHat));
 
-  // converting perturbed syndrome to coefficient representation
-  perturbedSyndrome.SwitchFormat();
+  perturbedSyndrome.SetFormat(Format::COEFFICIENT);
 
   size_t size = perturbedSyndrome(0, 0).GetNumOfElements();
 
@@ -289,7 +287,7 @@ Matrix<DCRTPoly> RLWETrapdoorUtility<DCRTPoly>::GaussSampSquareMat(
 
       // Now converting it to the evaluation representation before
       // multiplication
-      zHat.SwitchFormat();
+      zHat.SetFormat(Format::EVALUATION);
 
       for (size_t p = 0; p < k; p++) zHatMat(i * k + p, j) = zHat(p, 0);
     }

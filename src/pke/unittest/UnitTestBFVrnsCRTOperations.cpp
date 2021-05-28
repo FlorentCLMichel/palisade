@@ -161,8 +161,7 @@ TEST_F(UTBFVrnsCRTOperations, BFVrns_Mult_by_Constant) {
   // Polynomial multiplication in Q*S CRT basis
   DCRTPoly c = a * b;
 
-  // Put it back in coefficient representation
-  c.SwitchFormat();
+  c.SetFormat(Format::COEFFICIENT);
 
   Poly resultC = c.CRTInterpolate();
 
@@ -179,15 +178,13 @@ TEST_F(UTBFVrnsCRTOperations, BFVrns_Mult_by_Constant) {
   aPoly.SwitchModulus(modulus, root);
   bPoly.SwitchModulus(modulus, root);
 
-  // Convert from coefficient polynomial representation to evaluation one
-  aPoly.SwitchFormat();
-  bPoly.SwitchFormat();
+  aPoly.SetFormat(Format::EVALUATION);
+  bPoly.SetFormat(Format::EVALUATION);
 
   // Polynomial multiplication in Q*S CRT basis
   Poly cPoly = aPoly * bPoly;
 
-  // Put it back in coefficient representation
-  cPoly.SwitchFormat();
+  cPoly.SetFormat(Format::COEFFICIENT);
 
   // Ended multiprecision multiplication
 
@@ -302,8 +299,7 @@ TEST_F(UTBFVrnsCRTOperations, BFVrns_Mult_by_Gaussian) {
   // Polynomial multiplication in Q*S CRT basis
   DCRTPoly c = a * b;
 
-  // Put it back in coefficient representation
-  c.SwitchFormat();
+  c.SetFormat(Format::COEFFICIENT);
 
   Poly resultC = c.CRTInterpolate();
 
@@ -320,15 +316,13 @@ TEST_F(UTBFVrnsCRTOperations, BFVrns_Mult_by_Gaussian) {
   aPoly.SwitchModulus(modulus, root);
   bPoly.SwitchModulus(modulus, root);
 
-  // Convert from coefficient polynomial representation to evaluation one
-  aPoly.SwitchFormat();
-  bPoly.SwitchFormat();
+  aPoly.SetFormat(Format::EVALUATION);
+  bPoly.SetFormat(Format::EVALUATION);
 
   // Polynomial multiplication in Q*S CRT basis
   Poly cPoly = aPoly * bPoly;
 
-  // Put it back in coefficient representation
-  cPoly.SwitchFormat();
+  cPoly.SetFormat(Format::COEFFICIENT);
 
   // Ended multiprecision multiplication
 

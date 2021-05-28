@@ -530,14 +530,14 @@ class LPAlgorithmSHEBFV : public LPSHEAlgorithm<Element> {
   virtual ~LPAlgorithmSHEBFV() {}
 
   /**
-   * Function for homomorphic addition of ciphertexts.
+   * Function for in-place homomorphic addition of ciphertexts.
    *
-   * @param ct1 fist input ciphertext.
+   * @param ct1 first input/output ciphertext.
    * @param ct2 second input ciphertext.
-   * @return new ciphertext.
+   * @details \p ct1 stores the result of \p ct1 + \p ct2
    */
-  Ciphertext<Element> EvalAdd(ConstCiphertext<Element> ct1,
-                              ConstCiphertext<Element> ct2) const override;
+  void EvalAddInPlace(Ciphertext<Element>& ct1,
+                      ConstCiphertext<Element> ct2) const override;
 
   /**
    * Function for homomorphic addition of ciphertext and plaintext.
@@ -661,52 +661,15 @@ class LPAlgorithmSHEBFV : public LPSHEAlgorithm<Element> {
       const LPPrivateKey<Element> newPrivateKey) const override;
 
   /**
-   * Method for key switching based on a KeySwitchHint using RLWE
+   * Method for in-place key switching based on a KeySwitchHint using RLWE
    * relinearization
    *
    * @param keySwitchHint Hint required to perform the ciphertext switching.
-   * @param &cipherText Original ciphertext to perform switching on.
-   * @return new ciphertext
+   * @param &cipherText Original ciphertext to perform in-place key switching
+   * on.
    */
-  Ciphertext<Element> KeySwitch(
-      const LPEvalKey<Element> keySwitchHint,
-      ConstCiphertext<Element> cipherText) const override;
-
-  /**
-   * Method for KeySwitching based on RLWE relinearization and NTRU key
-   * generation. Function to generate 1..log(q) encryptions for each bit of the
-   * original private key Not implemented for BFV.
-   *
-   * @param &newPublicKey encryption key for the new ciphertext.
-   * @param origPrivateKey original private key used for decryption.
-   */
-  LPEvalKey<Element> KeySwitchRelinGen(
-      const LPPublicKey<Element> newPublicKey,
-      const LPPrivateKey<Element> origPrivateKey) const override {
-    std::string errMsg =
-        "LPAlgorithmSHEBFV:KeySwitchRelinGen is not needed for this scheme as "
-        "relinearization is the default technique and no NTRU key generation "
-        "is used.";
-    PALISADE_THROW(not_implemented_error, errMsg);
-  }
-
-  /**
-   * Method for KeySwitching based on RLWE relinearization and NTRU key
-   * generation Not implemented for BFV.
-   *
-   * @param evalKey the evaluation key.
-   * @param ciphertext the input ciphertext.
-   * @return the resulting Ciphertext
-   */
-  Ciphertext<Element> KeySwitchRelin(
-      const LPEvalKey<Element> evalKey,
-      ConstCiphertext<Element> ciphertext) const override {
-    std::string errMsg =
-        "LPAlgorithmSHEBFV:KeySwitchRelin is not needed for this scheme as "
-        "relinearization is the default technique and no NTRU key generation "
-        "is used.";
-    PALISADE_THROW(not_implemented_error, errMsg);
-  }
+  void KeySwitchInPlace(const LPEvalKey<Element> keySwitchHint,
+                        Ciphertext<Element> &cipherText) const override;
 
   /**
    * Function to generate 1..log(q) encryptions for each bit of the square of

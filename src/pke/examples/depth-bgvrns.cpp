@@ -265,7 +265,7 @@ int main(int argc, char *argv[]) {
 
   auto ciphertextMult12 =
       cryptoContext->EvalMultNoRelin(ciphertexts[0], ciphertexts[1]);
-  ciphertextMult12 = cryptoContext->ModReduce(ciphertextMult12);
+  cryptoContext->ModReduceInPlace(ciphertextMult12);
 
   processingTime = TOC(t);
 
@@ -297,7 +297,7 @@ int main(int argc, char *argv[]) {
 
   ciphertextMult12 =
       cryptoContext->EvalMultNoRelin(ciphertexts[0], ciphertexts[1]);
-  ciphertextMult12 = cryptoContext->ModReduce(ciphertextMult12);
+  cryptoContext->ModReduceInPlace(ciphertextMult12);
   ciphertextMult123 =
       cryptoContext->EvalMultNoRelin(ciphertextMult12, ciphertexts2);
   ciphertextMult123 = cryptoContext->ModReduce(ciphertextMult123);
@@ -322,7 +322,7 @@ int main(int argc, char *argv[]) {
   TIC(t);
 
   ciphertextMult12 = cryptoContext->EvalMult(ciphertexts[0], ciphertexts[1]);
-  ciphertextMult12 = cryptoContext->ModReduce(ciphertextMult12);
+  cryptoContext->ModReduceInPlace(ciphertextMult12);
 
   processingTime = TOC(t);
   cout << "Completed\n";

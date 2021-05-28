@@ -24,11 +24,7 @@
  *
  */
 
-#include "binfhecontext.h"
-
-// these header files are needed for serialization
 #include "binfhecontext-ser.h"
-#include "utils/serialize-json.h"
 
 using namespace lbcrypto;
 using namespace std;

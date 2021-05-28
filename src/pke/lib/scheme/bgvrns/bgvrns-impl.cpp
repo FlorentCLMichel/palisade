@@ -20,6 +20,24 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+/*
+Description:
+
+This code implements an RNS variant of the Brakerski-Gentry-Vaikuntanathan scheme.
+
+The BGV scheme is introduced in the following paper:
+- Zvika Brakerski, Craig Gentry, and Vinod Vaikuntanathan. (leveled) fully homomorphic
+encryption without bootstrapping. ACM Transactions on Computation
+Theory (TOCT), 6(3):13, 2014.
+
+ Our implementation builds from the designs here:
+ - Craig Gentry, Shai Halevi, and Nigel P Smart. Homomorphic evaluation of the
+aes circuit. In Advances in Cryptology–CRYPTO 2012, pages 850–867. Springer,
+2012.
+ - Andrey Kim, Yuriy Polyakov, and Vincent Zucca. Revisiting homomorphic encryption
+schemes for finite fields. Cryptology ePrint Archive, Report 2021/204,
+2021. https://eprint.iacr.org/2021/204.
+ */
 
 #define PROFILE
 
@@ -887,7 +905,6 @@ DecryptResult LPAlgorithmBGVrns<DCRTPoly>::Decrypt(
   const NativeInteger t = cryptoParams->GetPlaintextModulus();
 
   const std::vector<DCRTPoly> &cv = ciphertext->GetElements();
-  LPPrivateKey<DCRTPoly> sk(privateKey);
   const DCRTPoly &s = privateKey->GetPrivateElement();
 
   size_t sizeQl = cv[0].GetParams()->GetParams().size();
@@ -1080,21 +1097,21 @@ LPEvalKey<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchBVGen(
 }
 
 template <>
-Ciphertext<Poly> LPAlgorithmSHEBGVrns<Poly>::KeySwitchBV(
-    const LPEvalKey<Poly> ek, ConstCiphertext<Poly> ciphertext) const {
+void LPAlgorithmSHEBGVrns<Poly>::KeySwitchBVInPlace(
+    const LPEvalKey<Poly> ek, Ciphertext<Poly>& ciphertext) const {
   NOPOLY
 }
 
 template <>
-Ciphertext<NativePoly> LPAlgorithmSHEBGVrns<NativePoly>::KeySwitchBV(
+void LPAlgorithmSHEBGVrns<NativePoly>::KeySwitchBVInPlace(
     const LPEvalKey<NativePoly> ek,
-    ConstCiphertext<NativePoly> ciphertext) const {
+    Ciphertext<NativePoly>& ciphertext) const {
   NONATIVEPOLY
 }
 
 template <>
-Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchBV(
-    const LPEvalKey<DCRTPoly> ek, ConstCiphertext<DCRTPoly> ciphertext) const {
+void LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchBVInPlace(
+    const LPEvalKey<DCRTPoly> ek, Ciphertext<DCRTPoly>& ciphertext) const {
   Ciphertext<DCRTPoly> result = ciphertext->CloneEmpty();
 
   const auto cryptoParams =
@@ -1104,10 +1121,10 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchBV(
   LPEvalKeyRelin<DCRTPoly> evalKey =
       std::static_pointer_cast<LPEvalKeyRelinImpl<DCRTPoly>>(ek);
 
-  const std::vector<DCRTPoly> &cv = ciphertext->GetElements();
+  std::vector<DCRTPoly> &cv = ciphertext->GetElements();
 
-  std::vector<DCRTPoly> bv(evalKey->GetBVector());
-  std::vector<DCRTPoly> av(evalKey->GetAVector());
+  std::vector<DCRTPoly> bv = evalKey->GetBVector();
+  std::vector<DCRTPoly> av = evalKey->GetAVector();
 
   size_t sizeQl = cv[0].GetParams()->GetParams().size();
   size_t sizeQ = bv[0].GetParams()->GetParams().size();
@@ -1121,11 +1138,9 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchBV(
 
   uint32_t relinWindow = cryptoParams->GetRelinWindow();
 
-  DCRTPoly ct0(cv[0]);
-
   // in the case of EvalMult, c[0] is initially in coefficient format and needs
   // to be switched to evaluation format
-  ct0.SetFormat(Format::EVALUATION);
+  cv[0].SetFormat(Format::EVALUATION);
 
   DCRTPoly ct1;
 
@@ -1133,27 +1148,21 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchBV(
   if (cv.size() == 2) {
     // case of PRE or automorphism
     digitsC2 = cv[1].CRTDecompose(relinWindow);
-    ct1 = digitsC2[0] * av[0];
+    cv[1] = digitsC2[0] * av[0];
   } else {
     // case of EvalMult
     digitsC2 = cv[2].CRTDecompose(relinWindow);
-    ct1 = cv[1];
-    ct1.SetFormat(EVALUATION);
-    ct1 += digitsC2[0] * av[0];
+    cv[1].SetFormat(EVALUATION);
+    cv[1] += digitsC2[0] * av[0];
   }
 
-  ct0 += digitsC2[0] * bv[0];
+  cv[0] += digitsC2[0] * bv[0];
 
   for (usint i = 1; i < digitsC2.size(); ++i) {
-    ct0 += digitsC2[i] * bv[i];
-    ct1 += digitsC2[i] * av[i];
+    cv[0] += digitsC2[i] * bv[i];
+    cv[1] += digitsC2[i] * av[i];
   }
-
-  result->SetElements({ct0, ct1});
-  result->SetDepth(ciphertext->GetDepth());
-  result->SetLevel(ciphertext->GetLevel());
-
-  return result;
+  cv.resize(2);
 }
 
 template <>
@@ -1206,7 +1215,7 @@ LPEvalKey<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchGHSGen(
     NativeInteger rooti = paramsQP->GetParams()[j]->GetRootOfUnity();
     auto sNew0 = sNew.GetElementAtIndex(0);
     sNew0.SwitchModulus(pj, rooti);
-    sNewExt.SetElementAtIndex(j, sNew0);
+    sNewExt.SetElementAtIndex(j, std::move(sNew0));
   }
 
   sNewExt.SetFormat(Format::EVALUATION);
@@ -1257,22 +1266,21 @@ LPEvalKey<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchGHSGen(
 }
 
 template <>
-Ciphertext<Poly> LPAlgorithmSHEBGVrns<Poly>::KeySwitchGHS(
-    const LPEvalKey<Poly> ek, ConstCiphertext<Poly> ciphertext) const {
+void LPAlgorithmSHEBGVrns<Poly>::KeySwitchGHSInPlace(
+    const LPEvalKey<Poly> ek, Ciphertext<Poly>& ciphertext) const {
   NOPOLY
 }
 
 template <>
-Ciphertext<NativePoly> LPAlgorithmSHEBGVrns<NativePoly>::KeySwitchGHS(
+void LPAlgorithmSHEBGVrns<NativePoly>::KeySwitchGHSInPlace(
     const LPEvalKey<NativePoly> ek,
-    ConstCiphertext<NativePoly> ciphertext) const {
+    Ciphertext<NativePoly>& ciphertext) const {
   NONATIVEPOLY
 }
 
 template <>
-Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchGHS(
-    const LPEvalKey<DCRTPoly> ek, ConstCiphertext<DCRTPoly> ciphertext) const {
-  Ciphertext<DCRTPoly> result = ciphertext->CloneEmpty();
+void LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchGHSInPlace(
+    const LPEvalKey<DCRTPoly> ek, Ciphertext<DCRTPoly>& ciphertext) const {
 
   const auto cryptoParams =
       std::static_pointer_cast<LPCryptoParametersBGVrns<DCRTPoly>>(
@@ -1328,8 +1336,8 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchGHS(
     cTilda1.SetElementAtIndex(i, ci * a0i);
   }
 
-  cTilda0.SetFormat(Format::COEFFICIENT);
-  cTilda1.SetFormat(Format::COEFFICIENT);
+  //cTilda0.SetFormat(Format::COEFFICIENT);
+  //cTilda1.SetFormat(Format::COEFFICIENT);
 
   // Get the plaintext modulus
   const NativeInteger t(cryptoParams->GetPlaintextModulus());
@@ -1348,8 +1356,8 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchGHS(
       cryptoParams->GetModqBarrettMu(), cryptoParams->GettInvModp(),
       cryptoParams->GettInvModpPrecon(), t, cryptoParams->GettModqPrecon());
 
-  ct0.SetFormat(Format::EVALUATION);
-  ct1.SetFormat(Format::EVALUATION);
+  //ct0.SetFormat(Format::EVALUATION);
+  //ct1.SetFormat(Format::EVALUATION);
 
   ct0 += cv[0];
   // case of EvalMult
@@ -1357,11 +1365,7 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchGHS(
     ct1 += cv[1];
   }
 
-  result->SetElements({ct0, ct1});
-  result->SetDepth(ciphertext->GetDepth());
-  result->SetLevel(ciphertext->GetLevel());
-
-  return result;
+  ciphertext->SetElements({std::move(ct0), std::move(ct1)});
 }
 
 template <>
@@ -1416,7 +1420,7 @@ LPEvalKey<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchHybridGen(
     const NativeInteger &rootj = paramsQP->GetParams()[j]->GetRootOfUnity();
     auto sNew0 = sNew.GetElementAtIndex(0);
     sNew0.SwitchModulus(pj, rootj);
-    sNewExt.SetElementAtIndex(j, sNew0);
+    sNewExt.SetElementAtIndex(j, std::move(sNew0));
   }
 
   sNewExt.SetFormat(Format::EVALUATION);
@@ -1474,23 +1478,20 @@ LPEvalKey<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchHybridGen(
 }
 
 template <>
-Ciphertext<Poly> LPAlgorithmSHEBGVrns<Poly>::KeySwitchHybrid(
-    const LPEvalKey<Poly> ek, ConstCiphertext<Poly> ciphertext) const {
+void LPAlgorithmSHEBGVrns<Poly>::KeySwitchHybridInPlace(
+    const LPEvalKey<Poly> ek, Ciphertext<Poly> &ciphertext) const {
   NOPOLY
 }
 
 template <>
-Ciphertext<NativePoly> LPAlgorithmSHEBGVrns<NativePoly>::KeySwitchHybrid(
-    const LPEvalKey<NativePoly> ek,
-    ConstCiphertext<NativePoly> ciphertext) const {
+void LPAlgorithmSHEBGVrns<NativePoly>::KeySwitchHybridInPlace(
+    const LPEvalKey<NativePoly> ek, Ciphertext<NativePoly> &ciphertext) const {
   NONATIVEPOLY
 }
 
 template <>
-Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchHybrid(
-    const LPEvalKey<DCRTPoly> ek, ConstCiphertext<DCRTPoly> ciphertext) const {
-  Ciphertext<DCRTPoly> result = ciphertext->CloneEmpty();
-
+void LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchHybridInPlace(
+    const LPEvalKey<DCRTPoly> ek, Ciphertext<DCRTPoly> &ciphertext) const {
   const auto cryptoParams =
       std::static_pointer_cast<LPCryptoParametersBGVrns<DCRTPoly>>(
           ek->GetCryptoParameters());
@@ -1558,7 +1559,7 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchHybrid(
     usint startPartIdx = alpha * part;
     for (uint32_t i = 0, idx = startPartIdx; i < sizePartQl; i++, idx++) {
       auto tmp = c.GetElementAtIndex(idx).Times(QHatInvModq[idx]);
-      partsCt[part].SetElementAtIndex(i, tmp);
+      partsCt[part].SetElementAtIndex(i, std::move(tmp));
     }
   }
 
@@ -1625,8 +1626,8 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchHybrid(
     }
   }
 
-  cTilda0.SetFormat(Format::COEFFICIENT);
-  cTilda1.SetFormat(Format::COEFFICIENT);
+  //cTilda0.SetFormat(Format::COEFFICIENT);
+  //cTilda1.SetFormat(Format::COEFFICIENT);
 
   // Get the plaintext modulus
   const NativeInteger t(cryptoParams->GetPlaintextModulus());
@@ -1645,8 +1646,8 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchHybrid(
       cryptoParams->GetModqBarrettMu(), cryptoParams->GettInvModp(),
       cryptoParams->GettInvModpPrecon(), t, cryptoParams->GettModqPrecon());
 
-  ct0.SetFormat(Format::EVALUATION);
-  ct1.SetFormat(Format::EVALUATION);
+  //ct0.SetFormat(Format::EVALUATION);
+  //ct1.SetFormat(Format::EVALUATION);
 
   ct0 += cv[0];
   // case of EvalMult
@@ -1654,11 +1655,7 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchHybrid(
     ct1 += cv[1];
   }
 
-  result->SetElements({ct0, ct1});
-  result->SetDepth(ciphertext->GetDepth());
-  result->SetLevel(ciphertext->GetLevel());
-
-  return result;
+  ciphertext->SetElements({std::move(ct0), std::move(ct1)});
 }
 
 template <>
@@ -1693,33 +1690,79 @@ LPEvalKey<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchGen(
 }
 
 template <>
-Ciphertext<Poly> LPAlgorithmSHEBGVrns<Poly>::KeySwitch(
-    const LPEvalKey<Poly> ek, ConstCiphertext<Poly> ciphertext) const {
+void LPAlgorithmSHEBGVrns<Poly>::KeySwitchInPlace(
+    const LPEvalKey<Poly> ek, Ciphertext<Poly>& ciphertext) const {
   NOPOLY
 }
 
 template <>
-Ciphertext<NativePoly> LPAlgorithmSHEBGVrns<NativePoly>::KeySwitch(
+void LPAlgorithmSHEBGVrns<NativePoly>::KeySwitchInPlace(
     const LPEvalKey<NativePoly> ek,
-    ConstCiphertext<NativePoly> ciphertext) const {
+    Ciphertext<NativePoly>& ciphertext) const {
   NONATIVEPOLY
 }
 
 template <>
-Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitch(
-    const LPEvalKey<DCRTPoly> ek, ConstCiphertext<DCRTPoly> ciphertext) const {
+void LPAlgorithmSHEBGVrns<DCRTPoly>::KeySwitchInPlace(
+    const LPEvalKey<DCRTPoly> ek, Ciphertext<DCRTPoly> &ciphertext) const {
   const auto cryptoParams =
       std::static_pointer_cast<LPCryptoParametersBGVrns<DCRTPoly>>(
           ciphertext->GetCryptoParameters());
 
   switch (cryptoParams->GetKeySwitchTechnique()) {
     case BV:
-      return KeySwitchBV(ek, ciphertext);
+      KeySwitchBVInPlace(ek, ciphertext);
+      break;
     case GHS:
-      return KeySwitchGHS(ek, ciphertext);
+      KeySwitchGHSInPlace(ek, ciphertext);
+      break;
     default:  // Hybrid
-      return KeySwitchHybrid(ek, ciphertext);
+      KeySwitchHybridInPlace(ek, ciphertext);
+      break;
   }
+}
+
+template <>
+void LPLeveledSHEAlgorithmBGVrns<Poly>::ModReduceInternalInPlace(
+    Ciphertext<Poly>& ciphertext, size_t levels) const {
+  NOPOLY
+}
+
+template <>
+void
+LPLeveledSHEAlgorithmBGVrns<NativePoly>::ModReduceInternalInPlace(
+    Ciphertext<NativePoly>& ciphertext, size_t levels) const {
+  NONATIVEPOLY
+}
+
+template <>
+void LPLeveledSHEAlgorithmBGVrns<DCRTPoly>::ModReduceInternalInPlace(
+    Ciphertext<DCRTPoly>& ciphertext, size_t levels) const {
+  const auto cryptoParams =
+      std::static_pointer_cast<LPCryptoParametersBGVrns<DCRTPoly>>(
+          ciphertext->GetCryptoParameters());
+
+  std::vector<DCRTPoly>& cv = ciphertext->GetElements();
+
+  const auto t = ciphertext->GetCryptoParameters()->GetPlaintextModulus();
+  usint sizeQl = cv[0].GetNumOfElements();
+
+  for (auto &c : cv) {
+    for (size_t l = sizeQl - 1; l >= sizeQl - levels; --l) {
+      const vector<NativeInteger> &tModqPrecon = cryptoParams->GettModqPrecon();
+      const NativeInteger &negtInvModq = cryptoParams->GetNegtInvModq(l);
+      const NativeInteger &negtInvModqPrecon =
+          cryptoParams->GetNegtInvModqPrecon(l);
+      const vector<NativeInteger> &qlInvModq = cryptoParams->GetqlInvModq(l);
+      const vector<NativeInteger> &qlInvModqPrecon =
+          cryptoParams->GetqlInvModqPrecon(l);
+      c.ModReduce(t, tModqPrecon, negtInvModq, negtInvModqPrecon, qlInvModq,
+                  qlInvModqPrecon);
+    }
+  }
+
+  ciphertext->SetLevel(ciphertext->GetLevel() + levels);
+  ciphertext->SetDepth(ciphertext->GetDepth() - levels);
 }
 
 template <>
@@ -1742,58 +1785,33 @@ Ciphertext<DCRTPoly> LPLeveledSHEAlgorithmBGVrns<DCRTPoly>::ModReduceInternal(
       std::static_pointer_cast<LPCryptoParametersBGVrns<DCRTPoly>>(
           ciphertext->GetCryptoParameters());
 
-  Ciphertext<DCRTPoly> result = ciphertext->CloneEmpty();
-
-  std::vector<DCRTPoly> cv(ciphertext->GetElements());
-
-  const auto t = ciphertext->GetCryptoParameters()->GetPlaintextModulus();
-  usint sizeQl = cv[0].GetNumOfElements();
-
-  for (auto &c : cv) {
-    for (size_t l = sizeQl - 1; l >= sizeQl - levels; --l) {
-      const vector<NativeInteger> &tModqPrecon = cryptoParams->GettModqPrecon();
-      const NativeInteger &negtInvModq = cryptoParams->GetNegtInvModq(l);
-      const NativeInteger &negtInvModqPrecon =
-          cryptoParams->GetNegtInvModqPrecon(l);
-      const vector<NativeInteger> &qlInvModq = cryptoParams->GetqlInvModq(l);
-      const vector<NativeInteger> &qlInvModqPrecon =
-          cryptoParams->GetqlInvModqPrecon(l);
-      c.ModReduce(t, tModqPrecon, negtInvModq, negtInvModqPrecon, qlInvModq,
-                  qlInvModqPrecon);
-    }
-  }
-
-  result->SetElements(std::move(cv));
-
-  result->SetLevel(ciphertext->GetLevel() + levels);
-  result->SetDepth(ciphertext->GetDepth() - levels);
-
+  Ciphertext<DCRTPoly> result = ciphertext->Clone();
+  ModReduceInternalInPlace(result, levels);
   return result;
 }
 
 template <>
-Ciphertext<Poly> LPLeveledSHEAlgorithmBGVrns<Poly>::ModReduce(
-    ConstCiphertext<Poly> ciphertext, size_t levels) const {
+void LPLeveledSHEAlgorithmBGVrns<Poly>::ModReduceInPlace(
+    Ciphertext<Poly>& ciphertext, size_t levels) const {
   NOPOLY
 }
 
 template <>
-Ciphertext<NativePoly> LPLeveledSHEAlgorithmBGVrns<NativePoly>::ModReduce(
-    ConstCiphertext<NativePoly> ciphertext, size_t levels) const {
+void LPLeveledSHEAlgorithmBGVrns<NativePoly>::ModReduceInPlace(
+    Ciphertext<NativePoly>& ciphertext, size_t levels) const {
   NONATIVEPOLY
 }
 
 template <>
-Ciphertext<DCRTPoly> LPLeveledSHEAlgorithmBGVrns<DCRTPoly>::ModReduce(
-    ConstCiphertext<DCRTPoly> ciphertext, size_t levels) const {
+void LPLeveledSHEAlgorithmBGVrns<DCRTPoly>::ModReduceInPlace(
+    Ciphertext<DCRTPoly>& ciphertext, size_t levels) const {
   const auto cryptoParams =
       std::static_pointer_cast<LPCryptoParametersBGVrns<DCRTPoly>>(
           ciphertext->GetCryptoParameters());
   if (cryptoParams->GetModSwitchMethod() == MANUAL) {
-    return ModReduceInternal(ciphertext, levels);
+    ModReduceInternalInPlace(ciphertext, levels);
   }
-  // In AUTO rescaling is performed automatically
-  return std::make_shared<CiphertextImpl<DCRTPoly>>(*ciphertext);
+  // In AUTO, rescaling is performed automatically
 }
 
 template <>
@@ -1920,25 +1938,27 @@ void LPAlgorithmSHEBGVrns<DCRTPoly>::AdjustLevelsEq(
 }
 
 template <>
-Ciphertext<Poly> LPAlgorithmSHEBGVrns<Poly>::EvalAdd(
-    ConstCiphertext<Poly> ciphertext1,
+void LPAlgorithmSHEBGVrns<Poly>::EvalAddInPlace(
+    Ciphertext<Poly>& ciphertext1,
     ConstCiphertext<Poly> ciphertext2) const {
   NOPOLY
 }
 
 template <>
-Ciphertext<NativePoly> LPAlgorithmSHEBGVrns<NativePoly>::EvalAdd(
-    ConstCiphertext<NativePoly> ciphertext1,
+void LPAlgorithmSHEBGVrns<NativePoly>::EvalAddInPlace(
+    Ciphertext<NativePoly>& ciphertext1,
     ConstCiphertext<NativePoly> ciphertext2) const {
   NONATIVEPOLY
 }
 
 template <>
-Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::EvalAdd(
-    ConstCiphertext<DCRTPoly> ciphertext1,
+void LPAlgorithmSHEBGVrns<DCRTPoly>::EvalAddInPlace(
+    Ciphertext<DCRTPoly>& ciphertext1,
     ConstCiphertext<DCRTPoly> ciphertext2) const {
-  auto ct = AdjustLevels(ciphertext1, ciphertext2);
-  return EvalAddCore(*ct[0], *ct[1]);
+
+  auto ciphertext2_clone = ciphertext2->Clone();
+  AdjustLevelsEq(ciphertext1, ciphertext2_clone);
+  EvalAddCoreInPlace(ciphertext1, ciphertext2_clone);
 }
 
 template <>
@@ -2065,10 +2085,10 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::EvalMult(
       auto ct1 = ciphertext1->Clone();
       auto ct2 = ciphertext2->Clone();
       if (ciphertext1->GetDepth() > 1) { // do automated modulus switching
-        ct1 = algo->ModReduceInternal(ct1);
+        algo->ModReduceInternalInPlace(ct1);
       }
       if (ciphertext2->GetDepth() > 1) { // do automated modulus switching
-        ct2 = algo->ModReduceInternal(ct2);
+        algo->ModReduceInternalInPlace(ct2);
       }
       AdjustLevelsEq(ct1, ct2);
       return EvalMultCore(ct1, ct2);
@@ -2088,10 +2108,10 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::EvalMultMutable(
   } else { // AUTO mode
       auto algo = ciphertext1->GetCryptoContext()->GetEncryptionAlgorithm();
       if (ciphertext1->GetDepth() > 1) { // do automated modulus switching
-        ciphertext1 = algo->ModReduceInternal(ciphertext1);
+        algo->ModReduceInternalInPlace(ciphertext1);
       }
       if (ciphertext2->GetDepth() > 1) { // do automated modulus switching
-        ciphertext2 = algo->ModReduceInternal(ciphertext2);
+        algo->ModReduceInternalInPlace(ciphertext2);
       }
       AdjustLevelsEq(ciphertext1, ciphertext2);
       return EvalMultCore(ciphertext1, ciphertext2);
@@ -2127,7 +2147,7 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::EvalMult(
     auto algo = ciphertext->GetCryptoContext()->GetEncryptionAlgorithm();
     auto ct = ciphertext->Clone();
     if (ciphertext->GetDepth() > 1) { // do automated modulus switching
-      ct = algo->ModReduceInternal(ciphertext);
+      algo->ModReduceInternalInPlace(ct);
     }
     auto inPair = AdjustLevels(ct, plaintext);
     return EvalMultCore(*(inPair.first), inPair.second);
@@ -2150,7 +2170,7 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::EvalMultMutable(
   } else { // AUTO mode
     auto algo = ciphertext->GetCryptoContext()->GetEncryptionAlgorithm();
     if (ciphertext->GetDepth() > 1) { // do automated modulus switching
-      ciphertext = algo->ModReduceInternal(ciphertext);
+      algo->ModReduceInternalInPlace(ciphertext);
     }
     AdjustLevelsEq(ciphertext, plaintext);
     return EvalMultCore(ciphertext, plaintext->GetElement<DCRTPoly>());
@@ -2216,13 +2236,13 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::EvalMultAndRelinearize(
     cTmp->SetDepth(ciphertext->GetDepth());
     cTmp->SetLevel(ciphertext->GetLevel());
 
-    Ciphertext<DCRTPoly> cTmp2 = KeySwitch(evalKey, cTmp);
+    KeySwitchInPlace(evalKey, cTmp);
 
-    ct0 += cTmp2->GetElements()[0];
-    ct1 += cTmp2->GetElements()[1];
+    ct0 += cTmp->GetElements()[0];
+    ct1 += cTmp->GetElements()[1];
   }
 
-  result->SetElements({ct0, ct1});
+  result->SetElements({std::move(ct0), std::move(ct1)});
 
   result->SetDepth(ciphertext->GetDepth());
   result->SetLevel(ciphertext->GetLevel());
@@ -2288,13 +2308,13 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::Relinearize(
     cTmp->SetDepth(ciphertext->GetDepth());
     cTmp->SetLevel(ciphertext->GetLevel());
 
-    Ciphertext<DCRTPoly> cTmp2 = KeySwitch(evalKey, cTmp);
+    KeySwitchInPlace(evalKey, cTmp);
 
-    ct0 += cTmp2->GetElements()[0];
-    ct1 += cTmp2->GetElements()[1];
+    ct0 += cTmp->GetElements()[0];
+    ct1 += cTmp->GetElements()[1];
   }
 
-  result->SetElements({ct0, ct1});
+  result->SetElements({std::move(ct0), std::move(ct1)});
   result->SetLevel(ciphertext->GetLevel());
 
   return result;
@@ -2415,7 +2435,7 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::EvalFastRotationBV(
   /* Ciphertext c_out = (p'_0 + p''_0, p''_1) is the result of the
    * automorphism.
    */
-  result->SetElements({p0Prime + p0DoublePrime, p1DoublePrime});
+  result->SetElements({p0Prime + p0DoublePrime, std::move(p1DoublePrime)});
   result->SetDepth(ciphertext->GetDepth());
   result->SetLevel(ciphertext->GetLevel());
 
@@ -2540,8 +2560,8 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::EvalFastRotationGHS(
     cTilda1.SetElementAtIndex(i, ci * a0i);
   }
 
-  cTilda0.SetFormat(Format::COEFFICIENT);
-  cTilda1.SetFormat(Format::COEFFICIENT);
+  //cTilda0.SetFormat(Format::COEFFICIENT);
+  //cTilda1.SetFormat(Format::COEFFICIENT);
 
   // Get the plaintext modulus
   const NativeInteger t(cryptoParams->GetPlaintextModulus());
@@ -2560,12 +2580,12 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::EvalFastRotationGHS(
       cryptoParams->GetModqBarrettMu(), cryptoParams->GettInvModp(),
       cryptoParams->GettInvModpPrecon(), t, cryptoParams->GettModqPrecon());
 
-  ct0.SetFormat(Format::EVALUATION);
-  ct1.SetFormat(Format::EVALUATION);
+  //ct0.SetFormat(Format::EVALUATION);
+  //ct1.SetFormat(Format::EVALUATION);
 
   ct0 += psiC0;
 
-  result->SetElements({ct0, ct1});
+  result->SetElements({std::move(ct0), std::move(ct1)});
   result->SetDepth(ciphertext->GetDepth());
   result->SetLevel(ciphertext->GetLevel());
 
@@ -2648,7 +2668,7 @@ LPAlgorithmSHEBGVrns<DCRTPoly>::EvalFastRotationPrecomputeHybrid(
     usint startPartIdx = alpha * part;
     for (uint32_t i = 0, idx = startPartIdx; i < sizePartQl; i++, idx++) {
       auto tmp = c1.GetElementAtIndex(idx).Times(QHatInvModq[idx]);
-      partsCt[part].SetElementAtIndex(i, tmp);
+      partsCt[part].SetElementAtIndex(i, std::move(tmp));
     }
   }
 
@@ -2766,8 +2786,8 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::EvalFastRotationHybrid(
     }
   }
 
-  cTilda0.SetFormat(Format::COEFFICIENT);
-  cTilda1.SetFormat(Format::COEFFICIENT);
+  //cTilda0.SetFormat(Format::COEFFICIENT);
+  //cTilda1.SetFormat(Format::COEFFICIENT);
 
   // Get the plaintext modulus
   const NativeInteger t(cryptoParams->GetPlaintextModulus());
@@ -2786,12 +2806,12 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::EvalFastRotationHybrid(
       cryptoParams->GetModqBarrettMu(), cryptoParams->GettInvModp(),
       cryptoParams->GettInvModpPrecon(), t, cryptoParams->GettModqPrecon());
 
-  ct0.SetFormat(Format::EVALUATION);
-  ct1.SetFormat(Format::EVALUATION);
+  //ct0.SetFormat(Format::EVALUATION);
+  //ct1.SetFormat(Format::EVALUATION);
 
   ct0 += psiC0;
 
-  result->SetElements({ct0, ct1});
+  result->SetElements({std::move(ct0), std::move(ct1)});
 
   result->SetDepth(ciphertext->GetDepth());
   result->SetLevel(ciphertext->GetLevel());
@@ -2901,7 +2921,7 @@ Ciphertext<DCRTPoly> LPLeveledSHEAlgorithmBGVrns<DCRTPoly>::ComposedEvalMult(
 
   Ciphertext<DCRTPoly> ciphertext = algo->EvalMult(ciphertext1, ciphertext2);
 
-  ciphertext = algo->KeySwitch(quadKeySwitchHint, ciphertext);
+  algo->KeySwitchInPlace(quadKeySwitchHint, ciphertext);
 
   return algo->ModReduce(ciphertext);
 }
@@ -2982,10 +3002,10 @@ LPEvalKey<DCRTPoly> LPAlgorithmPREBGVrns<DCRTPoly>::ReKeyGenBV(
         c1 = pNew1 * u + t * e1;
 
         DCRTPoly a(dug, elementParams, Format::EVALUATION);
-        av.push_back(c1);
+        av.push_back(std::move(c1));
 
         DCRTPoly e(dgg, elementParams, Format::EVALUATION);
-        bv.push_back(c0);
+        bv.push_back(std::move(c0));
       }
     } else {
       // Creates an element with all zeroes
@@ -3010,10 +3030,10 @@ LPEvalKey<DCRTPoly> LPAlgorithmPREBGVrns<DCRTPoly>::ReKeyGenBV(
       c1 = pNew1 * u + t * e1;
 
       DCRTPoly a(dug, elementParams, Format::EVALUATION);
-      av.push_back(c1);
+      av.push_back(std::move(c1));
 
       DCRTPoly e(dgg, elementParams, Format::EVALUATION);
-      bv.push_back(c0);
+      bv.push_back(std::move(c0));
     }
   }
 
@@ -3210,14 +3230,61 @@ Ciphertext<DCRTPoly> LPAlgorithmPREBGVrns<DCRTPoly>::ReEncrypt(
     DCRTPoly c0 = b * u + t * e0;
     DCRTPoly c1 = a * u + t * e1;
 
-    zeroCiphertext->SetElements({c0, c1});
+    zeroCiphertext->SetElements({std::move(c0), std::move(c1)});
 
     // Add the encryption of zero for re-randomization purposes
     auto c = ciphertext->GetCryptoContext()->GetEncryptionAlgorithm()->EvalAdd(
         ciphertext, zeroCiphertext);
 
-    return ciphertext->GetCryptoContext()->KeySwitch(ek, c);
+    ciphertext->GetCryptoContext()->KeySwitchInPlace(ek, c);
+    return c;
   }
+}
+
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmMultipartyBGVrns<DCRTPoly>::MultipartyDecryptLead(
+    const LPPrivateKey<DCRTPoly> privateKey,
+    ConstCiphertext<DCRTPoly> ciphertext) const {
+  const auto cryptoParams =
+      std::static_pointer_cast<LPCryptoParametersBGVrns<DCRTPoly>>(
+          privateKey->GetCryptoParameters());
+  const auto t = cryptoParams->GetPlaintextModulus();
+
+  const std::vector<DCRTPoly> &cv = ciphertext->GetElements();
+  const DCRTPoly &s = privateKey->GetPrivateElement();
+
+  DggType dgg(MP_SD);
+  DCRTPoly e(dgg, cv[0].GetParams(), Format::EVALUATION);
+
+  DCRTPoly b = cv[0] + s * cv[1] + t * e;
+
+  Ciphertext<DCRTPoly> result = ciphertext->CloneEmpty();
+  result->SetElements({std::move(b)});
+
+  return result;
+}
+
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmMultipartyBGVrns<DCRTPoly>::MultipartyDecryptMain(
+    const LPPrivateKey<DCRTPoly> privateKey,
+    ConstCiphertext<DCRTPoly> ciphertext) const {
+  const auto cryptoParams =
+      std::static_pointer_cast<LPCryptoParametersBGVrns<DCRTPoly>>(
+          privateKey->GetCryptoParameters());
+  const auto t = cryptoParams->GetPlaintextModulus();
+
+  const std::vector<DCRTPoly> &cv = ciphertext->GetElements();
+  const DCRTPoly &s = privateKey->GetPrivateElement();
+
+  DggType dgg(MP_SD);
+  DCRTPoly e(dgg, cv[0].GetParams(), Format::EVALUATION);
+
+  DCRTPoly b = s * cv[1] + t * e;
+
+  Ciphertext<DCRTPoly> result = ciphertext->CloneEmpty();
+  result->SetElements({std::move(b)});
+
+  return result;
 }
 
 template <>
@@ -3366,10 +3433,10 @@ LPEvalKey<DCRTPoly> LPAlgorithmMultipartyBGVrns<DCRTPoly>::MultiMultEvalKey(
 
     for (usint i = 0; i < a0.size(); i++) {
       DCRTPoly f1(dgg, elementParams, Format::COEFFICIENT);
-      f1.SwitchFormat();
+      f1.SetFormat(Format::EVALUATION);
 
       DCRTPoly f2(dgg, elementParams, Format::COEFFICIENT);
-      f2.SwitchFormat();
+      f2.SetFormat(Format::EVALUATION);
 
       a.push_back(a0[i] * s + p * f1);
       b.push_back(b0[i] * s + p * f2);
@@ -3398,17 +3465,17 @@ LPEvalKey<DCRTPoly> LPAlgorithmMultipartyBGVrns<DCRTPoly>::MultiMultEvalKey(
       NativeInteger rooti = paramsQP->GetParams()[j]->GetRootOfUnity();
       auto sNew0 = s.GetElementAtIndex(0);
       sNew0.SwitchModulus(pj, rooti);
-      sExt.SetElementAtIndex(j, sNew0);
+      sExt.SetElementAtIndex(j, std::move(sNew0));
     }
 
     sExt.SetFormat(Format::EVALUATION);
 
     for (usint i = 0; i < a0.size(); i++) {
       DCRTPoly f1(dgg, paramsQP, Format::COEFFICIENT);
-      f1.SwitchFormat();
+      f1.SetFormat(Format::EVALUATION);
 
       DCRTPoly f2(dgg, paramsQP, Format::COEFFICIENT);
-      f2.SwitchFormat();
+      f2.SetFormat(Format::EVALUATION);
 
       a.push_back(a0[i] * sExt + p * f1);
       b.push_back(b0[i] * sExt + p * f2);

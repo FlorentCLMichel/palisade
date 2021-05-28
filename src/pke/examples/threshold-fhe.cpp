@@ -450,7 +450,7 @@ void RunBFVrns() {
 
 void RunCKKS() {
   usint init_size = 4;
-  usint dcrtBits = 40;
+  usint dcrtBits = 50;
   usint batchSize = 16;
 
   CryptoContext<DCRTPoly> cc =

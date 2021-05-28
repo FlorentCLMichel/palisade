@@ -132,7 +132,7 @@ void rounding_ops(const string& msg) {
 // instantiate various test for rounding_ops()
 TEST(UTPoly, rounding_ops) { RUN_ALL_POLYS(rounding_ops, "Poly rounding_ops"); }
 
-// FIXME DCRTPoly needs an assignment op/ctor
+// TODO DCRTPoly needs an assignment op/ctor
 TEST(UTDCRTPoly, rounding_ops) {
   // std::cerr<<"*** skipping DCRT rounding_ops till MultiplyAndRound is
   // coded"<<std::endl; RUN_BIG_DCRTPOLYS(rounding_ops, "DCRT rounding_ops");
@@ -203,7 +203,7 @@ TEST(UTPoly, set_get_values) {
   RUN_ALL_POLYS(set_get_values, "Poly set_get_values");
 }
 
-// FIXME DCRTPoly needs a set_get_values()
+// TODO DCRTPoly needs a set_get_values()
 TEST(UTDCRTPoly, set_get_values) {
   // std::cerr<<"*** skipping DCRT set_get_values till coded"<<std::endl;
   // RUN_BIG_DCRTPOLYS(set_get_values, "DCRT set_values");
@@ -257,7 +257,7 @@ void at(const string& msg) {
 // instantiate various test for at()
 TEST(UTPoly, at) { RUN_ALL_POLYS(at, "Poly at"); }
 
-// FIXME DCRTPoly needs a at() and []
+// TODO DCRTPoly needs a at() and []
 TEST(UTDCRTPoly, at) {
   // std::cerr<<"*** skipping DCRT at till coded"<<std::endl;
   // RUN_BIG_DCRTPOLYS(at, "DCRT at");
@@ -457,7 +457,7 @@ TEST(UTPoly, poly_other_methods) {
   RUN_ALL_POLYS(poly_other_methods, "poly_other_methods");
 }
 
-// FIXME
+// TODO
 TEST(UTDCRTPoly, poly_other_methods) {
   // std::cerr<<"*** skipping DCRT poly_other_methods till these functions are
   // coded"<<std::endl;
@@ -504,7 +504,7 @@ void signed_mod(const string& msg) {
 // Instantiations of signed_mod()
 TEST(UTPoly, signed_mod) { RUN_ALL_POLYS(signed_mod, "signed_mod"); }
 
-// FIXME
+// TODO
 TEST(UTDCRTPoly, signed_mod) {
   // std::cerr<<"*** skipping DCRT signed_mod till coded"<<std::endl;
   //  RUN_BIG_DCRTPOLYS(signed_mod, "signed_mod");
@@ -547,7 +547,7 @@ TEST(UTPoly, automorphismTransform) {
   RUN_ALL_POLYS(automorphismTransform, "Poly automorphismTransform");
 }
 
-// FIXME
+// TODO
 TEST(UTDCRTPoly, automorphismTransform) {
   // std::cerr<<"*** skipping DCRT automorphismTransform till coded"<<std::endl;
   //  RUN_BIG_DCRTPOLYS(automorphismTransform, "DCRT automorphismTransform");
@@ -594,7 +594,7 @@ void transposition(const string& msg) {
 // Instantiations of transposition()
 TEST(UTPoly, transposition) { RUN_ALL_POLYS(transposition, "transposition"); }
 
-// FIXME
+// TODO
 TEST(UTDCRTPoly, transposition) {
   // std::cerr<<"*** skipping DCRT transposition till coded"<<std::endl;
   //  RUN_BIG_DCRTPOLYS(transposition, "transposition");

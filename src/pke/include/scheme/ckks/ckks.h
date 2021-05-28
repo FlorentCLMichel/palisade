@@ -184,7 +184,9 @@ class LPCryptoParametersCKKS : public LPCryptoParametersRLWE<Element> {
     ar(cereal::make_nvp("rs", m_rsTechnique));
     ar(cereal::make_nvp("dnum", m_numPartQ));
 
-    this->PrecomputeCRTTables(m_ksTechnique, m_rsTechnique, m_numPartQ);
+    if (SERIALIZE_PRECOMPUTE) {
+      this->PrecomputeCRTTables(m_ksTechnique, m_rsTechnique, m_numPartQ);
+    }
   }
 
   std::string SerializedObjectName() const { return "CKKSSchemeParameters"; }
@@ -913,14 +915,15 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
   virtual ~LPAlgorithmSHECKKS() {}
 
   /**
-   * Function for homomorphic addition of ciphertexts.
+   * Function for in-place homomorphic addition of ciphertexts.
    *
-   * @param ciphertext1 first input ciphertext.
+   * @param ciphertext1 first input/output ciphertext.
    * @param ciphertext2 second input ciphertext.
-   * @return result of homomorphic addition of input ciphertexts.
+   * @details \p ciphertext1 stores the result of \p ciphertext1 + \p
+   * ciphertext2
    */
-  Ciphertext<Element> EvalAdd(ConstCiphertext<Element> ciphertext1,
-                              ConstCiphertext<Element> ciphertext2) const;
+  void EvalAddInPlace(Ciphertext<Element> &ciphertext1,
+                      ConstCiphertext<Element> ciphertext2) const override;
 
   /**
    * Function for homomorphic addition of ciphertexts.
@@ -930,9 +933,9 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @param ciphertext2 second input ciphertext.
    * @return result of homomorphic addition of input ciphertexts.
    */
-  virtual Ciphertext<Element> EvalAddMutable(
+  Ciphertext<Element> EvalAddMutable(
       Ciphertext<Element> &ciphertext1,
-      Ciphertext<Element> &ciphertext2) const {
+      Ciphertext<Element> &ciphertext2) const override {
     std::string errMsg =
         "LPAlgorithmSHECKKS::EvalAddMutable is only supported for DCRTPoly.";
     PALISADE_THROW(not_implemented_error, errMsg);
@@ -945,8 +948,8 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @param plaintext input plaintext.
    * @return result of homomorphic addition of input ciphertexts.
    */
-  virtual Ciphertext<Element> EvalAdd(ConstCiphertext<Element> ciphertext,
-                                      ConstPlaintext plaintext) const;
+  Ciphertext<Element> EvalAdd(ConstCiphertext<Element> ciphertext,
+                              ConstPlaintext plaintext) const override;
 
   /**
    * Function for homomorphic addition of ciphertexts.
@@ -956,8 +959,8 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @param plaintext input plaintext.
    * @return result of homomorphic addition of input ciphertexts.
    */
-  virtual Ciphertext<Element> EvalAddMutable(Ciphertext<Element> &ciphertext,
-                                             Plaintext plaintext) const {
+  Ciphertext<Element> EvalAddMutable(Ciphertext<Element> &ciphertext,
+                                     Plaintext plaintext) const override {
     std::string errMsg =
         "LPAlgorithmSHECKKS::EvalAddMutable is only supported for DCRTPoly.";
     PALISADE_THROW(not_implemented_error, errMsg);
@@ -970,8 +973,8 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @param constant input constant.
    * @return encrypted result of addition.
    */
-  virtual Ciphertext<Element> EvalAdd(ConstCiphertext<Element> ciphertext,
-                                      double constant) const;
+  Ciphertext<Element> EvalAdd(ConstCiphertext<Element> ciphertext,
+                              double constant) const override;
 
   /**
    * Function for adding a constant to a ciphertext.
@@ -997,8 +1000,8 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @param constants vector containing double weights.
    * @return A ciphertext containing the linear weighted sum.
    */
-  virtual Ciphertext<Element> EvalLinearWSum(
-      vector<Ciphertext<Element>> ciphertexts, vector<double> constants) const {
+  Ciphertext<Element> EvalLinearWSum(vector<Ciphertext<Element>> ciphertexts,
+                                     vector<double> constants) const override {
     std::string errMsg =
         "LPAlgorithmSHECKKS::EvalLinearWSum is only supported for DCRTPoly.";
     PALISADE_THROW(not_implemented_error, errMsg);
@@ -1013,8 +1016,9 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @param constants vector containing double weights.
    * @return A ciphertext containing the linear weighted sum.
    */
-  virtual Ciphertext<Element> EvalLinearWSumMutable(
-      vector<Ciphertext<Element>> ciphertexts, vector<double> constants) const {
+  Ciphertext<Element> EvalLinearWSumMutable(
+      vector<Ciphertext<Element>> ciphertexts,
+      vector<double> constants) const override {
     std::string errMsg =
         "LPAlgorithmSHECKKS::EvalLinearWSumMutable is only supported for "
         "DCRTPoly.";
@@ -1028,8 +1032,9 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @param ciphertext2 the input ciphertext.
    * @return result of homomorphic subtraction of input ciphertexts.
    */
-  Ciphertext<Element> EvalSub(ConstCiphertext<Element> ciphertext1,
-                              ConstCiphertext<Element> ciphertext2) const;
+  Ciphertext<Element> EvalSub(
+      ConstCiphertext<Element> ciphertext1,
+      ConstCiphertext<Element> ciphertext2) const override;
 
   /**
    * Function for homomorphic subtraction of ciphertexts.
@@ -1039,9 +1044,9 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @param ciphertext2 the input ciphertext.
    * @return result of homomorphic subtraction of input ciphertexts.
    */
-  virtual Ciphertext<Element> EvalSubMutable(
+  Ciphertext<Element> EvalSubMutable(
       Ciphertext<Element> &ciphertext1,
-      Ciphertext<Element> &ciphertext2) const {
+      Ciphertext<Element> &ciphertext2) const override {
     std::string errMsg =
         "LPAlgorithmSHECKKS::EvalSubMutable is only supported for DCRTPoly.";
     PALISADE_THROW(not_implemented_error, errMsg);
@@ -1054,8 +1059,8 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @param plaintext the input plaintext.
    * @return result of homomorphic subtraction of input ciphertexts.
    */
-  virtual Ciphertext<Element> EvalSub(ConstCiphertext<Element> ciphertext1,
-                                      ConstPlaintext plaintext) const;
+  Ciphertext<Element> EvalSub(ConstCiphertext<Element> ciphertext1,
+                              ConstPlaintext plaintext) const override;
 
   /**
    * Function for homomorphic subtraction of ciphertexts.
@@ -1065,8 +1070,8 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @param plaintext the input plaintext.
    * @return result of homomorphic subtraction of input ciphertexts.
    */
-  virtual Ciphertext<Element> EvalSubMutable(Ciphertext<Element> &ciphertext1,
-                                             Plaintext plaintext) const {
+  Ciphertext<Element> EvalSubMutable(Ciphertext<Element> &ciphertext1,
+                                     Plaintext plaintext) const override {
     std::string errMsg =
         "LPAlgorithmSHECKKS::EvalSubMutable is only supported for DCRTPoly.";
     PALISADE_THROW(not_implemented_error, errMsg);
@@ -1079,8 +1084,8 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @param constant input constant.
    * @return encrypted result of substraction.
    */
-  virtual Ciphertext<Element> EvalSub(ConstCiphertext<Element> ciphertext,
-                                      double constant) const;
+  Ciphertext<Element> EvalSub(ConstCiphertext<Element> ciphertext,
+                              double constant) const override;
 
   /**
    * Function for subtracting a constant from a ciphertext.
@@ -1107,8 +1112,9 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @param ciphertext2 second input ciphertext.
    * @return result of homomorphic multiplication of input ciphertexts.
    */
-  Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext1,
-                               ConstCiphertext<Element> ciphertext2) const;
+  Ciphertext<Element> EvalMult(
+      ConstCiphertext<Element> ciphertext1,
+      ConstCiphertext<Element> ciphertext2) const override;
 
   /**
    * Function for homomorphic multiplication of ciphertexts without key
@@ -1119,9 +1125,9 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @param ciphertext2 second input ciphertext.
    * @return result of homomorphic multiplication of input ciphertexts.
    */
-  virtual Ciphertext<Element> EvalMultMutable(
+  Ciphertext<Element> EvalMultMutable(
       Ciphertext<Element> &ciphertext1,
-      Ciphertext<Element> &ciphertext2) const {
+      Ciphertext<Element> &ciphertext2) const override {
     std::string errMsg =
         "LPAlgorithmSHECKKS::EvalMultMutable is only supported for DCRTPoly.";
     PALISADE_THROW(not_implemented_error, errMsg);
@@ -1134,8 +1140,8 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @param plaintext input plaintext embedded in the cryptocontext.
    * @return result of the multiplication.
    */
-  virtual Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext,
-                                       ConstPlaintext plaintext) const;
+  Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext,
+                               ConstPlaintext plaintext) const override;
 
   /**
    * Function for multiplying ciphertext by plaintext.
@@ -1145,8 +1151,8 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @param plaintext input plaintext embedded in the cryptocontext.
    * @return result of the multiplication.
    */
-  virtual Ciphertext<Element> EvalMultMutable(Ciphertext<Element> &ciphertext,
-                                              Plaintext plaintext) const {
+  Ciphertext<Element> EvalMultMutable(Ciphertext<Element> &ciphertext,
+                                      Plaintext plaintext) const override {
     std::string errMsg =
         "LPAlgorithmSHECKKS::EvalMultMutable is only supported for DCRTPoly.";
     PALISADE_THROW(not_implemented_error, errMsg);
@@ -1160,7 +1166,7 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @return encrypted result of multiplication.
    */
   Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext,
-                               double constant) const;
+                               double constant) const override;
 
   /**
    * Function for multiplying a ciphertext by a constant.
@@ -1170,8 +1176,8 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @param constant input constant.
    * @return encrypted result of multiplication.
    */
-  virtual Ciphertext<Element> EvalMultMutable(Ciphertext<Element> &ciphertext,
-                                              double constant) const {
+  Ciphertext<Element> EvalMultMutable(Ciphertext<Element> &ciphertext,
+                                      double constant) const override {
     std::string errMsg =
         "LPAlgorithmSHECKKS::EvalMultMutable is only supported for DCRTPoly.";
     PALISADE_THROW(not_implemented_error, errMsg);
@@ -1191,7 +1197,7 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    */
   Ciphertext<Element> EvalMult(ConstCiphertext<Element> ciphertext1,
                                ConstCiphertext<Element> ciphertext2,
-                               const LPEvalKey<Element> ek) const;
+                               const LPEvalKey<Element> ek) const override;
 
   /**
    * Function for homomorphic multiplication of ciphertexts followed by key
@@ -1204,9 +1210,9 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * the same secret key as that of ciphertext1 and ciphertext2.
    * @return result of homomorphic multiplication of input ciphertexts.
    */
-  Ciphertext<Element> EvalMultMutable(Ciphertext<Element> &ciphertext1,
-                                      Ciphertext<Element> &ciphertext2,
-                                      const LPEvalKey<Element> ek) const;
+  Ciphertext<Element> EvalMultMutable(
+      Ciphertext<Element> &ciphertext1, Ciphertext<Element> &ciphertext2,
+      const LPEvalKey<Element> ek) const override;
 
   /**
    * Unimplemented function to support  a multiplication with depth larger
@@ -1221,7 +1227,7 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
   Ciphertext<Element> EvalMultAndRelinearize(
       ConstCiphertext<Element> ciphertext1,
       ConstCiphertext<Element> ciphertext2,
-      const vector<LPEvalKey<Element>> &ek) const {
+      const vector<LPEvalKey<Element>> &ek) const override {
     std::string errMsg =
         "LPAlgorithmSHECKKS::EvalMultAndRelinearize is not implemented for "
         "the "
@@ -1236,8 +1242,9 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @param ek The evaluation key input.
    * @return the relinearized ciphertext
    */
-  Ciphertext<Element> Relinearize(ConstCiphertext<Element> ciphertext,
-                                  const vector<LPEvalKey<Element>> &ek) const {
+  Ciphertext<Element> Relinearize(
+      ConstCiphertext<Element> ciphertext,
+      const vector<LPEvalKey<Element>> &ek) const override {
     std::string errMsg =
         "LPAlgorithmSHECKKS::Relinearize is not implemented for the non "
         "Double-CRT variant of the CKKS Scheme.";
@@ -1250,7 +1257,7 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @param ct first input ciphertext.
    * @return new ciphertext.
    */
-  Ciphertext<Element> EvalNegate(ConstCiphertext<Element> ct) const;
+  Ciphertext<Element> EvalNegate(ConstCiphertext<Element> ct) const override;
 
   /**
    * Method for generating a key switch matrix for HYBRID key switching.
@@ -1272,21 +1279,18 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
     PALISADE_THROW(not_implemented_error, errMsg);
   }
 
-  /*
-   * Method for generating a key switch matrix for HYBRID key switching.
-   * HYBRID key switching is described in Section 3 of Han, et. al.,
-   * "Better bootstrapping for approximate homomorphic encryption".
-   *
+  /**
+   * Method for in-place key switching using the HYBRID method. HYBRID key
+   * switching is described in Section 3 of Han, et. al., "Better bootstrapping
+   * for approximate homomorphic encryption".
    * @param keySwitchHint Hint required to perform the ciphertext switching.
-   * @param ciphertext Original ciphertext to perform switching on.
-   * @return ciphertext decryptable by new private key.
+   * @param ciphertext Original ciphertext to perform in-place key switching on.
    */
-  Ciphertext<Element> KeySwitchHybrid(
-      const LPEvalKey<Element> keySwitchHint,
-      ConstCiphertext<Element> ciphertext) const {
+  void KeySwitchHybridInPlace(const LPEvalKey<Element> keySwitchHint,
+                              Ciphertext<Element> &ciphertext) const {
     std::string errMsg =
-        "LPAlgorithmSHECKKS::KeySwitchGHS is not implemented for the non "
-        "Double-CRT variant of the CKKS Scheme.";
+        "LPAlgorithmSHECKKS::KeySwitchHybridInPlace is not implemented for the "
+        "non Double-CRT variant of the CKKS Scheme.";
     PALISADE_THROW(not_implemented_error, errMsg);
   }
 
@@ -1307,18 +1311,17 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
       const LPEvalKey<DCRTPoly> ek = nullptr) const;
 
   /**
-   * Method for key switching using the GHS method introduced in Gentry,
-   * et. al., "Homomorphic evaluation of the AES circuit (Updated
+   * Method for in-place key switching using the GHS method introduced in
+   * Gentry, et. al., "Homomorphic evaluation of the AES circuit (Updated
    * implementation)". Here, we follow the notation of Section 3.2 of
    * "A full RNS variant of approximate homomorphic encryption" (RNS
    * CKKS paper).
    *
    * @param keySwitchHint Hint required to perform the ciphertext switching.
    * @param ciphertext Original ciphertext to perform switching on.
-   * @return ciphertext decryptable by new private key.
    */
-  Ciphertext<Element> KeySwitchGHS(const LPEvalKey<Element> keySwitchHint,
-                                   ConstCiphertext<Element> ciphertext) const;
+  void KeySwitchGHSInPlace(const LPEvalKey<Element> keySwitchHint,
+                           Ciphertext<Element> &ciphertext) const;
 
   /**
    * Method for generating a key switch matrix for BV key switching.
@@ -1337,17 +1340,16 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
       const LPEvalKey<DCRTPoly> ek = nullptr) const;
 
   /**
-   * Method for key switching using the BV method introduced in Brakerski,
-   * et. al., "Efficient full homomorphic encryption from (standard) LWE".
-   * Here, we follow Section 3.2 of "(Leveled) fully homomorphic encryption
-   * without bootstrapping" (BGV paper).
+   * Method for in-place key switching using the BV method introduced in
+   * Brakerski, et. al., "Efficient full homomorphic encryption from (standard)
+   * LWE". Here, we follow Section 3.2 of "(Leveled) fully homomorphic
+   * encryption without bootstrapping" (BGV paper).
    *
    * @param keySwitchHint Hint required to perform the ciphertext switching.
-   * @param ciphertext Original ciphertext to perform switching on.
-   * @return ciphertext decryptable by new private key.
+   * @param ciphertext Original ciphertext to perform in-place key switching on.
    */
-  Ciphertext<Element> KeySwitchBV(const LPEvalKey<Element> keySwitchHint,
-                                  ConstCiphertext<Element> ciphertext) const;
+  void KeySwitchBVInPlace(const LPEvalKey<Element> keySwitchHint,
+                          Ciphertext<Element> &ciphertext) const;
 
   /**
    * Method for generating a KeySwitchHint using RLWE relinearization
@@ -1356,9 +1358,9 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @param newKey New private key to generate the keyswitch hint.
    * @return resulting keySwitchHint.
    */
-  virtual LPEvalKey<Element> KeySwitchGen(
+  LPEvalKey<Element> KeySwitchGen(
       const LPPrivateKey<Element> oldKey,
-      const LPPrivateKey<Element> newKey) const;
+      const LPPrivateKey<Element> newKey) const override;
 
   /**
    * Method for KeySwitching based on a KeySwitchHint - uses the RLWE
@@ -1366,46 +1368,9 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    *
    * @param keySwitchHint Hint required to perform the ciphertext switching.
    * @param ciphertext Original ciphertext to perform switching on.
-   * @return ciphertext decryptable by new private key.
    */
-  Ciphertext<Element> KeySwitch(const LPEvalKey<Element> keySwitchHint,
-                                ConstCiphertext<Element> ciphertext) const;
-
-  /**
-   * Method for KeySwitching based on NTRU key generation and RLWE
-   * relinearization. Not used for CKKS. Function to generate 1..log(q)
-   * encryptions for each bit of the original private key
-   *
-   * @param newPk encryption key for the new ciphertext.
-   * @param oldSk original private key used for decryption.
-   */
-  LPEvalKey<Element> KeySwitchRelinGen(
-      const LPPublicKey<Element> newPk,
-      const LPPrivateKey<Element> oldSk) const {
-    std::string errMsg =
-        "LPAlgorithmSHECKKS:KeySwitchRelinGen is not implemented for CKKS as "
-        "relinearization is the default technique and no NTRU key generation "
-        "is used in CKKS.";
-    PALISADE_THROW(not_implemented_error, errMsg);
-  }
-
-  /**
-   * Method for KeySwitching based on NTRU key generation and RLWE
-   * relinearization. Not used for CKKS.
-   *
-   * @param evalKey the evaluation key.
-   * @param ciphertext the input ciphertext.
-   * @return the resulting Ciphertext
-   */
-  Ciphertext<Element> KeySwitchRelin(
-      const LPEvalKey<Element> evalKey,
-      ConstCiphertext<Element> ciphertext) const {
-    std::string errMsg =
-        "LPAlgorithmSHECKKS:KeySwitchRelin is not implemented for CKKS as "
-        "relinearization is the default technique and no NTRU key generation "
-        "is used in CKKS.";
-    PALISADE_THROW(not_implemented_error, errMsg);
-  }
+  void KeySwitchInPlace(const LPEvalKey<Element> keySwitchHint,
+                        Ciphertext<Element> &ciphertext) const override;
 
   /**
    * Function to generate key switch hint on a ciphertext for depth 2.
@@ -1415,7 +1380,7 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @return keySwitchHint generated to switch the ciphertext.
    */
   LPEvalKey<Element> EvalMultKeyGen(
-      const LPPrivateKey<Element> privateKey) const;
+      const LPPrivateKey<Element> privateKey) const override;
 
   /**
    * Function to generate key switch hint on a ciphertext for depth more
@@ -1426,7 +1391,7 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @return keySwitchHint generated to switch the ciphertext.
    */
   vector<LPEvalKey<Element>> EvalMultKeysGen(
-      const LPPrivateKey<Element> privateKey) const;
+      const LPPrivateKey<Element> privateKey) const override;
 
   /**
    * Function for evaluating automorphism of ciphertext at index i
@@ -1440,7 +1405,7 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
   Ciphertext<Element> EvalAutomorphism(
       ConstCiphertext<Element> ciphertext, usint i,
       const std::map<usint, LPEvalKey<Element>> &evalKeys,
-      CALLER_INFO_ARGS_HDR) const;
+      CALLER_INFO_ARGS_HDR) const override;
 
   /**
    * Generate automophism keys for a given private key; Uses the private key
@@ -1452,7 +1417,7 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    */
   shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAutomorphismKeyGen(
       const LPPrivateKey<Element> privateKey,
-      const std::vector<usint> &indexList) const;
+      const std::vector<usint> &indexList) const override;
 
   /**
    * Generate automophism keys for a given private key; Uses the public key
@@ -1466,7 +1431,7 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
   shared_ptr<std::map<usint, LPEvalKey<Element>>> EvalAutomorphismKeyGen(
       const LPPublicKey<Element> publicKey,
       const LPPrivateKey<Element> privateKey,
-      const std::vector<usint> &indexList) const {
+      const std::vector<usint> &indexList) const override {
     std::string errMsg =
         "LPAlgorithmSHECKKS::EvalAutomorphismKeyGen is not implemented for "
         "CKKS SHE Scheme.";
@@ -1481,7 +1446,7 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * (digit decomposition)
    */
   shared_ptr<vector<Element>> EvalFastRotationPrecompute(
-      ConstCiphertext<Element> ciphertext) const;
+      ConstCiphertext<Element> ciphertext) const override;
 
   /**
    * EvalFastRotation is a wrapper for hoisted automorphism.
@@ -1496,9 +1461,9 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * 		  EvalFastRotationPrecomputeBV. In GHS, this is the expanded
    * part of the ciphertext.
    */
-  virtual Ciphertext<Element> EvalFastRotation(
+  Ciphertext<Element> EvalFastRotation(
       ConstCiphertext<Element> ciphertext, const usint index, const usint m,
-      const shared_ptr<vector<Element>> precomp) const;
+      const shared_ptr<vector<Element>> precomp) const override;
 
   /**
    * Function used in EXACTRESCALE to change the level of a ciphertext, while
@@ -1565,8 +1530,8 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    * @return A ciphertext containing the same value as c1, but at level
    * targetLevel.
    */
-  Ciphertext<Element> AdjustLevelWithRescale(Ciphertext<Element> &ciphertext,
-                                             uint32_t targetLevel) const {
+  Ciphertext<Element> AdjustLevelWithRescale(
+      Ciphertext<Element> &ciphertext, uint32_t targetLevel) const override {
     std::string errMsg =
         "LPAlgorithmSHECKKS::AdjustLevelWithoutRescale is not implemented "
         "for "
@@ -1656,7 +1621,6 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
   std::pair<shared_ptr<ConstCiphertext<Element>>, Element> AutomaticLevelReduce(
       ConstCiphertext<Element> ciphertext, ConstPlaintext plaintext) const;
 
- protected:
   /**
    * EvalFastRotationPrecomputeBV implements the precomputation step of
    * hoisted automorphisms for the BV key switching scheme.
@@ -1826,6 +1790,19 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
                                   ConstCiphertext<Element> ciphertext2) const;
 
   /**
+   * Internal function for in-place homomorphic addition of ciphertexts.
+   * This method does not check whether input ciphertexts are
+   * at the same level.
+   *
+   * @param ciphertext1 first input/output ciphertext.
+   * @param ciphertext2 second input ciphertext.
+   * @return \p ciphertext1 contains the result of the homomorphic addition of
+   * input ciphertexts.
+   */
+  void EvalAddCoreInPlace(Ciphertext<Element> &ciphertext1,
+                          ConstCiphertext<Element> ciphertext2) const;
+
+  /**
    * Internal function for homomorphic addition of ciphertexts
    * in the APPROXRESCALE variant.
    *
@@ -1838,6 +1815,23 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
       ConstCiphertext<Element> ciphertext2) const {
     std::string errMsg =
         "LPAlgorithmSHECKKS::EvalAddApprox is only supported for DCRTPoly.";
+    PALISADE_THROW(not_implemented_error, errMsg);
+  }
+
+  /**
+   * Internal function for in-place homomorphic addition of ciphertexts
+   * in the APPROXRESCALE variant.
+   *
+   * @param ciphertext1 first input ciphertext.
+   * @param ciphertext2 second input ciphertext.
+   * @return result of homomorphic addition of input ciphertexts.
+   */
+  virtual void EvalAddApproxInPlace(
+      Ciphertext<Element> &ciphertext1,
+      ConstCiphertext<Element> ciphertext2) const {
+    std::string errMsg =
+        "LPAlgorithmSHECKKS::EvalAddApproxInPlace is only supported for "
+        "DCRTPoly.";
     PALISADE_THROW(not_implemented_error, errMsg);
   }
 
@@ -1915,6 +1909,17 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
       ConstCiphertext<Element> ciphertext2) const;
 
   /**
+   * Internal function to automatically level-reduce a ciphertext in-place.
+   *
+   * @param ciphertext1 first input/output ciphertext.
+   * @param ciphertext2 second input ciphertext.
+   * @details \p ciphertext1 will have level less than or equal to that of \p
+   * ciphertext2
+   */
+  void AutomaticLevelReduceInPlace(Ciphertext<Element> &ciphertext1,
+                                   ConstCiphertext<Element> ciphertext2) const;
+
+  /**
    * Internal function used in computing the linear weighted sum of a
    * vector of ciphertexts. This is a mutable method, meaning that the
    * level/depth of input ciphertexts may change.
@@ -1925,6 +1930,16 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
    */
   Ciphertext<DCRTPoly> EvalLinearWSumInternalMutable(
       vector<Ciphertext<DCRTPoly>> ciphertexts, vector<double> constants) const;
+
+  /**
+   * Internal function used in adding/substracting a constant.
+   *
+   * @param ciphertext input ciphertext.
+   * @param constant a double-precision constant.
+   * @return A ciphertext corresponding to the addition/subtraction.
+   */
+  std::vector<DCRTPoly::Integer> GetElementForEvalAddOrSub(
+      ConstCiphertext<DCRTPoly> ciphertext, double constant) const;
 
  public:
   template <class Archive>
@@ -2316,19 +2331,19 @@ class LPLeveledSHEAlgorithmCKKS : public LPLeveledSHEAlgorithm<Element> {
 
   /**
    * Wrapper method for rescaling. If APPROXRESCALE is used, then it
-   * directly calls the ModReduceInternal method, that corresponds to
+   * directly calls the ModReduceInternalInPlace method, that corresponds to
    * the original rescaling operation in the CKKS scheme.
    *
    * If EXACTRESCALE is used, rescaling is done automatically, and
-   * therefore calling ModReduce does nothing and returns the original
+   * therefore calling ModReduceInPlace does nothing and returns the original
    * ciphertext. This behavior was chosen to allow running applications
    * written for APPROXRESCALE in the exact scheme.
    *
    * @param ciphertext is the ciphertext to perform modreduce on.
    * @return ciphertext after the modulus reduction performed.
    */
-  virtual Ciphertext<Element> ModReduce(ConstCiphertext<Element> ciphertext,
-                                        size_t levels = 1) const;
+  void ModReduceInPlace(Ciphertext<Element> &ciphertext,
+                        size_t levels = 1) const override;
 
   /**
    * Method for rescaling.
@@ -2336,8 +2351,11 @@ class LPLeveledSHEAlgorithmCKKS : public LPLeveledSHEAlgorithm<Element> {
    * @param ciphertext is the ciphertext to perform modreduce on.
    * @return ciphertext after the modulus reduction performed.
    */
-  virtual Ciphertext<Element> ModReduceInternal(
-      ConstCiphertext<Element> ciphertext, size_t levels = 1) const;
+  Ciphertext<Element> ModReduceInternal(ConstCiphertext<Element> ciphertext,
+                                        size_t levels = 1) const override;
+
+  void ModReduceInternalInPlace(Ciphertext<Element> &ciphertext,
+                                size_t levels = 1) const override;
 
   /**
    * Method for compressing the ciphertext before decryption.
@@ -2346,8 +2364,8 @@ class LPLeveledSHEAlgorithmCKKS : public LPLeveledSHEAlgorithm<Element> {
    * @param towersLeft is the number of towers after compression
    * @return ciphertext after the compression performed.
    */
-  virtual Ciphertext<Element> Compress(ConstCiphertext<Element> ciphertext,
-                                       size_t towersLeft = 1) const;
+  Ciphertext<Element> Compress(ConstCiphertext<Element> ciphertext,
+                               size_t towersLeft = 1) const override;
 
   /**
    * Method for Composed EvalMult, which includes homomorphic multiplication,
@@ -2361,10 +2379,10 @@ class LPLeveledSHEAlgorithmCKKS : public LPLeveledSHEAlgorithm<Element> {
    * @param quadKeySwitchHint is used for EvalMult operation.
    * @return resulting ciphertext.
    */
-  virtual Ciphertext<Element> ComposedEvalMult(
+  Ciphertext<Element> ComposedEvalMult(
       ConstCiphertext<Element> cipherText1,
       ConstCiphertext<Element> cipherText2,
-      const LPEvalKey<Element> quadKeySwitchHint) const {
+      const LPEvalKey<Element> quadKeySwitchHint) const override {
     std::string errMsg =
         "LPLeveledSHEAlgorithmCKKS::ComposedEvalMult is not currently "
         "implemented "
@@ -2384,9 +2402,9 @@ class LPLeveledSHEAlgorithmCKKS : public LPLeveledSHEAlgorithm<Element> {
    * @param levels the number of towers to drop.
    * @return resulting ciphertext.
    */
-  virtual Ciphertext<Element> LevelReduce(
-      ConstCiphertext<Element> ciphertext,
-      const LPEvalKey<Element> linearKeySwitchHint, size_t levels) const;
+  Ciphertext<Element> LevelReduce(ConstCiphertext<Element> ciphertext,
+                                  const LPEvalKey<Element> linearKeySwitchHint,
+                                  size_t levels) const override;
 
   /**
    * Method for Level Reduction in the CKKS scheme. It just drops "levels"
@@ -2398,9 +2416,24 @@ class LPLeveledSHEAlgorithmCKKS : public LPLeveledSHEAlgorithm<Element> {
    * @param levels the number of towers to drop.
    * @return resulting ciphertext.
    */
-  virtual Ciphertext<Element> LevelReduceInternal(
+  Ciphertext<Element> LevelReduceInternal(
       ConstCiphertext<Element> ciphertext,
-      const LPEvalKey<Element> linearKeySwitchHint, size_t levels) const;
+      const LPEvalKey<Element> linearKeySwitchHint,
+      size_t levels) const override;
+
+  /**
+   * Method for In-place Level Reduction in the CKKS scheme. It just drops
+   * "levels" number of the towers of the ciphertext without changing the
+   * underlying plaintext.
+   *
+   * @param ciphertext is the original ciphertext to be level reduced.
+   * @param linearKeySwitchHint not used in the CKKS scheme.
+   * @param levels the number of towers to drop.
+   * @return \p ciphertext Contains the level-reduced cipheretext
+   */
+  void LevelReduceInternalInPlace(Ciphertext<Element> &ciphertext,
+                                  const LPEvalKey<Element> linearKeySwitchHint,
+                                  size_t levels) const override;
 
   /**
    * Method for polynomial evaluation for polynomials represented as power
@@ -2411,9 +2444,9 @@ class LPLeveledSHEAlgorithmCKKS : public LPLeveledSHEAlgorithm<Element> {
    * size of the vector is the degree of the polynomial + 1
    * @return the result of polynomial evaluation.
    */
-  virtual Ciphertext<Element> EvalPoly(
+  Ciphertext<Element> EvalPoly(
       ConstCiphertext<Element> cipherText,
-      const std::vector<double> &coefficients) const {
+      const std::vector<double> &coefficients) const override {
     std::string errMsg =
         "LPLeveledSHEAlgorithmCKKS::EvalPoly is only supported for DCRTPoly.";
     PALISADE_THROW(not_implemented_error, errMsg);

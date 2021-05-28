@@ -440,7 +440,7 @@ ubint<limb_t> ubint<limb_t>::Mul(const ubint &b) const {
   return ans;
 }
 
-// FIXME reconsider the method
+// TODO reconsider the method
 template <typename limb_t>
 const ubint<limb_t> &ubint<limb_t>::MulEq(const ubint &b) {
   return *this = this->Mul(b);
@@ -580,7 +580,7 @@ ubint<limb_t> ubint<limb_t>::DivideAndRound(const ubint &q) const {
   return ans;
 }
 
-// FIXME reconsider the method
+// TODO reconsider the method
 template <typename limb_t>
 const ubint<limb_t> &ubint<limb_t>::DivideAndRoundEq(const ubint &q) {
   return *this = this->DivideAndRound(q);
@@ -709,7 +709,7 @@ const ubint<limb_t> &ubint<limb_t>::ModEq(const ubint &modulus) {
     }
   }
 #ifndef UBINT_64
-  // FIXME do this in place!
+  // TODO do this in place!
   ubint ans(0);
   int f;
 #ifndef OLD_DIV
@@ -1057,7 +1057,7 @@ ubint<limb_t> ubint<limb_t>::ModMul(const ubint &b,
   return ans;
 }
 
-// FIXME reconsider the method
+// TODO reconsider the method
 template <typename limb_t>
 const ubint<limb_t> &ubint<limb_t>::ModMulEq(const ubint &b,
                                              const ubint &modulus) {
@@ -1105,14 +1105,14 @@ const ubint<limb_t> &ubint<limb_t>::ModMulEq(const ubint &b,
 #endif
 }
 
-// FIXME make this skip the mod
+// TODO make this skip the mod
 template <typename limb_t>
 ubint<limb_t> ubint<limb_t>::ModMulFast(const ubint &b,
                                         const ubint &modulus) const {
   return this->ModMul(b, modulus);
 }
 
-// FIXME reconsider the method
+// TODO reconsider the method
 template <typename limb_t>
 const ubint<limb_t> &ubint<limb_t>::ModMulFastEq(const ubint &b,
                                                  const ubint &modulus) {
@@ -1247,7 +1247,7 @@ ubint<limb_t> ubint<limb_t>::ModExp(const ubint &b,
   return product;
 }
 
-// FIXME reconsider method
+// TODO reconsider method
 template <typename limb_t>
 const ubint<limb_t> &ubint<limb_t>::ModExpEq(const ubint &b,
                                              const ubint &modulus) {

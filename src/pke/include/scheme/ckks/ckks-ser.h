@@ -1,4 +1,4 @@
-// @file bgv-ser.h -- serialize ckks; include this in any app that needs to
+// @file ckks-ser.h -- serialize ckks; include this in any app that needs to
 // serialize this scheme
 // @author TPOC: contact@palisade-crypto.org
 //

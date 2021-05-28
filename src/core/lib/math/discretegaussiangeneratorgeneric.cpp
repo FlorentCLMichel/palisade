@@ -241,12 +241,11 @@ usint BaseSampler::FindInVector(const std::vector<double>& S,
                                 double search) const {
   // STL binary search implementation
   auto lower = std::lower_bound(S.begin(), S.end(), search);
-  if (lower != S.end())
-    return lower - S.begin();
-  else
-    PALISADE_THROW(not_available_error,
-                   "DGG Inversion Sampling. FindInVector value not found: " +
-                       std::to_string(search));
+  if (lower != S.end()) return lower - S.begin();
+
+  PALISADE_THROW(not_available_error,
+                 "DGG Inversion Sampling. FindInVector value not found: " +
+                     std::to_string(search));
 }
 
 DiscreteGaussianGeneratorGeneric::DiscreteGaussianGeneratorGeneric(

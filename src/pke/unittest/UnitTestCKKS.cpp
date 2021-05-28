@@ -50,6 +50,27 @@ class UTCKKS : public ::testing::Test {
   }
 };
 
+#if NATIVEINT == 128
+#define GENERATE_TEST_CASES_FUNC_BV(x, y, ORD, SCALE, NUMPRIME, RELIN, BATCH) \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN,  \
+                          BATCH, BV, APPROXRESCALE)                           \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN,  \
+                          BATCH, BV, APPROXAUTO)
+
+#define GENERATE_TEST_CASES_FUNC_GHS(x, y, ORD, SCALE, NUMPRIME, RELIN, BATCH) \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN,   \
+                          BATCH, GHS, APPROXRESCALE)                           \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN,   \
+                          BATCH, GHS, APPROXAUTO)
+
+#define GENERATE_TEST_CASES_FUNC_HYBRID(x, y, ORD, SCALE, NUMPRIME, RELIN,   \
+                                        BATCH)                               \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
+                          BATCH, HYBRID, APPROXRESCALE)                      \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
+                          BATCH, HYBRID, APPROXAUTO)
+
+#else
 #define GENERATE_TEST_CASES_FUNC_BV(x, y, ORD, SCALE, NUMPRIME, RELIN, BATCH) \
   GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN,  \
                           BATCH, BV, APPROXRESCALE)                           \
@@ -74,6 +95,7 @@ class UTCKKS : public ::testing::Test {
                           BATCH, HYBRID, APPROXAUTO)                         \
   GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
                           BATCH, HYBRID, EXACTRESCALE)
+#endif
 
 /* *
  * ORDER: Cyclotomic order. Must be a power of 2 for CKKS.
@@ -84,7 +106,11 @@ class UTCKKS : public ::testing::Test {
  * BATCH: The length of the packed vectors to be used with CKKS.
  */
 static const usint ORDER = 1024;  // 16384;
+#if NATIVEINT == 128
+static const usint SCALE = 90;
+#else
 static const usint SCALE = 50;
+#endif
 static const usint NUMPRIME = 8;
 static const usint RELIN = 20;
 static const usint BATCH = 8;
@@ -165,6 +191,8 @@ static void UnitTest_Add_Packed(const CryptoContext<Element> cc,
 
   // Encrypt plaintexts
   Ciphertext<Element> ciphertext1 = cc->Encrypt(kp.publicKey, plaintext1);
+  Ciphertext<Element> ciphertext1_mutable =
+      cc->Encrypt(kp.publicKey, plaintext1);
   Ciphertext<Element> ciphertext2 = cc->Encrypt(kp.publicKey, plaintext2);
   Ciphertext<Element> cResult;
   Plaintext results;
@@ -178,6 +206,16 @@ static void UnitTest_Add_Packed(const CryptoContext<Element> cc,
   auto tmp_b = results->GetCKKSPackedValue();
   checkApproximateEquality(tmp_a, tmp_b, vecSize, eps,
                            failmsg + " EvalAdd fails");
+
+  /* Testing EvalAddInPlace
+   */
+  cc->EvalAddInPlace(ciphertext1_mutable, ciphertext2);
+  cc->Decrypt(kp.secretKey, ciphertext1_mutable, &results);
+  results->SetLength(plaintextAdd->GetLength());
+  tmp_a = plaintextAdd->GetCKKSPackedValue();
+  tmp_b = results->GetCKKSPackedValue();
+  checkApproximateEquality(tmp_a, tmp_b, vecSize, eps,
+                           failmsg + " EvalAddInPlace fails");
 
   /* Testing operator+
    */
@@ -727,6 +765,8 @@ static void UnitTest_AutoLevelReduce(const CryptoContext<Element> cc,
 
   auto ctMul = cc->EvalMult(ct, ct2);
   auto ctRed = cc->ModReduce(ctMul);
+  auto ctRedClone = ctRed->Clone();
+  Ciphertext<Element> ctClone = ct->Clone();
 
   auto ct3 = cc->EvalAdd(ctRed, ct);  // Addition with tower diff = 1
   cc->Decrypt(kp.secretKey, ct3, &results);
@@ -735,6 +775,16 @@ static void UnitTest_AutoLevelReduce(const CryptoContext<Element> cc,
   auto tmp_b = results->GetCKKSPackedValue();
   checkApproximateEquality(tmp_a, tmp_b, vecSize, eps,
                            failmsg + " addition with tower diff = 1 fails");
+
+  // in-place addition with tower diff = 1
+  cc->EvalAddInPlace(ctRedClone, ctClone);
+  cc->Decrypt(kp.secretKey, ctRedClone, &results);
+  results->SetLength(plaintextCt3->GetLength());
+  tmp_a = plaintextCt3->GetCKKSPackedValue();
+  tmp_b = results->GetCKKSPackedValue();
+  checkApproximateEquality(
+      tmp_a, tmp_b, vecSize, eps,
+      failmsg + " in-place addition with tower diff = 1 fails");
 
   auto ct4 = cc->EvalSub(ctRed, ct);  // Subtraction with tower diff = 1
   cc->Decrypt(kp.secretKey, ct4, &results);
@@ -763,6 +813,17 @@ static void UnitTest_AutoLevelReduce(const CryptoContext<Element> cc,
       tmp_a, tmp_b, vecSize, eps,
       failmsg + " addition (reverse) with tower diff = 1 fails");
 
+  // in-place addition with tower diff = 1 (inputs reversed)
+  ctClone = ct->Clone();
+  cc->EvalAddInPlace(ctClone, ctRed);
+  cc->Decrypt(kp.secretKey, ctClone, &results);
+  results->SetLength(plaintextCt6->GetLength());
+  tmp_a = plaintextCt6->GetCKKSPackedValue();
+  tmp_b = results->GetCKKSPackedValue();
+  checkApproximateEquality(
+      tmp_a, tmp_b, vecSize, eps,
+      failmsg + " in-place addition (reverse) with tower diff = 1 fails");
+
   auto ct7 = cc->EvalSub(
       ct, ctRed);  // Subtraction with tower diff = 1 (inputs reversed)
   cc->Decrypt(kp.secretKey, ct7, &results);
@@ -787,6 +848,7 @@ static void UnitTest_AutoLevelReduce(const CryptoContext<Element> cc,
   auto ctRed2 = cc->ModReduce(ctMul2);
   auto ctMul3 = cc->EvalMult(ctRed2, ct);
   auto ctRed3 = cc->ModReduce(ctMul3);
+  auto ctRed3Clone = ctRed3->Clone();
 
   auto ct9 =
       cc->EvalAdd(ctRed3, ct);  // Addition with more than 1 level difference
@@ -796,6 +858,16 @@ static void UnitTest_AutoLevelReduce(const CryptoContext<Element> cc,
   tmp_b = results->GetCKKSPackedValue();
   checkApproximateEquality(tmp_a, tmp_b, vecSize, eps,
                            failmsg + " addition with tower diff > 1 fails");
+
+  // In-place addition with more than 1 level difference
+  cc->EvalAddInPlace(ctRed3Clone, ct);
+  cc->Decrypt(kp.secretKey, ctRed3Clone, &results);
+  results->SetLength(plaintextCt9->GetLength());
+  tmp_a = plaintextCt9->GetCKKSPackedValue();
+  tmp_b = results->GetCKKSPackedValue();
+  checkApproximateEquality(
+      tmp_a, tmp_b, vecSize, eps,
+      failmsg + " in-place addition with tower diff > 1 fails");
 
   auto ct10 =
       cc->EvalSub(ctRed3, ct);  // Subtraction with more than 1 level difference
@@ -826,6 +898,17 @@ static void UnitTest_AutoLevelReduce(const CryptoContext<Element> cc,
   checkApproximateEquality(
       tmp_a, tmp_b, vecSize, eps,
       failmsg + " addition (reverse) with tower diff > 1 fails");
+
+  // In-place addition with more than 1 level difference (inputs reversed)
+  ctClone = ct->Clone();
+  cc->EvalAddInPlace(ctClone, ctRed3);
+  cc->Decrypt(kp.secretKey, ctClone, &results);
+  results->SetLength(plaintextCt12->GetLength());
+  tmp_a = plaintextCt12->GetCKKSPackedValue();
+  tmp_b = results->GetCKKSPackedValue();
+  checkApproximateEquality(
+      tmp_a, tmp_b, vecSize, eps,
+      failmsg + " in-place addition (reverse) with tower diff > 1 fails");
 
   auto ct13 = cc->EvalSub(ct, ctRed3);  // Subtraction with more than 1 level
                                         // difference (inputs reversed)
@@ -922,18 +1005,18 @@ static void UnitTest_Compress(const CryptoContext<Element> cc,
   Ciphertext<Element> cResult;
   Plaintext result;
   Plaintext resultCompressed;
-  auto algo = cc->GetEncryptionAlgorithm();
-  auto ctCompressed = algo->Compress(ct, targetTowers);
+  auto ctCompressed = cc->Compress(ct, targetTowers);
 
   size_t towersLeft = ctCompressed->GetElements()[0].GetNumOfElements();
-  EXPECT_TRUE(towersLeft == targetTowers) << " compress fails";
+  EXPECT_TRUE(towersLeft == targetTowers)
+      << " compress fails - towers mismatch";
 
   cc->Decrypt(kp.secretKey, ct, &result);
   cc->Decrypt(kp.secretKey, ctCompressed, &resultCompressed);
   auto tmp_a = result->GetCKKSPackedValue();
   auto tmp_b = resultCompressed->GetCKKSPackedValue();
   checkApproximateEquality(tmp_a, tmp_b, vecSize, eps,
-                           failmsg + " compress fails");
+                           failmsg + " compress fails - result is incorrect");
 }
 
 GENERATE_TEST_CASES_FUNC_BV(UTCKKS, UnitTest_Compress, ORDER, SCALE, NUMPRIME,
@@ -1534,6 +1617,14 @@ static void UnitTest_Metadata(const CryptoContext<Element> cc,
   EXPECT_EQ(val1->GetMetadata(), addCCValTest->GetMetadata())
       << "Ciphertext metadata mismatch in EvalAdd(ctx,ctx)";
 
+  // Checking if metadata is carried over in EvalAdd(ctx,ctx)
+  Ciphertext<Element> ciphertext1Clone = ciphertext1->Clone();
+  cc->EvalAddInPlace(ciphertext1, ciphertext2);
+  auto addCCInPlaceValTest =
+      MetadataTest::GetMetadata<Element>(ciphertext1Clone);
+  EXPECT_EQ(val1->GetMetadata(), addCCInPlaceValTest->GetMetadata())
+      << "Ciphertext metadata mismatch in EvalAddInPlace(ctx,ctx)";
+
   // Checking if metadata is carried over in EvalAdd(ctx,ptx)
   Ciphertext<Element> cAddCP = cc->EvalAdd(ciphertext1, plaintext1);
   auto addCPValTest = MetadataTest::GetMetadata<Element>(cAddCP);
@@ -1568,19 +1659,19 @@ static void UnitTest_Metadata(const CryptoContext<Element> cc,
   Ciphertext<Element> cMultCC = cc->EvalMult(ciphertext1, ciphertext2);
   auto multCCValTest = MetadataTest::GetMetadata<Element>(cMultCC);
   EXPECT_EQ(val1->GetMetadata(), multCCValTest->GetMetadata())
-      << "Ciphertext metadata mismatch in EvalAdd(ctx,ctx)";
+      << "Ciphertext metadata mismatch in EvalMult(ctx,ctx)";
 
   // Checking if metadata is carried over in EvalMult(ctx,ptx)
   Ciphertext<Element> cMultCP = cc->EvalMult(ciphertext1, plaintext1);
   auto multCPValTest = MetadataTest::GetMetadata<Element>(cMultCP);
   EXPECT_EQ(val1->GetMetadata(), multCPValTest->GetMetadata())
-      << "Ciphertext metadata mismatch in EvalAdd(ctx,ptx)";
+      << "Ciphertext metadata mismatch in EvalMult(ctx,ptx)";
 
   // Checking if metadata is carried over in EvalMult(ctx,double)
   Ciphertext<Element> cMultCD = cc->EvalMult(ciphertext1, 2.0);
   auto multCDValTest = MetadataTest::GetMetadata<Element>(cMultCD);
   EXPECT_EQ(val1->GetMetadata(), multCDValTest->GetMetadata())
-      << "Ciphertext metadata mismatch in EvalAdd(ctx,double)";
+      << "Ciphertext metadata mismatch in EvalMult(ctx,double)";
 
   // Checking if metadata is carried over in EvalAtIndex +2 (left rotate)
   auto cAtIndex2 = cc->EvalAtIndex(ciphertext1, 2);

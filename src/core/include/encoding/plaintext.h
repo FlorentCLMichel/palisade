@@ -41,12 +41,9 @@ namespace lbcrypto {
 
 enum PlaintextEncodings {
   Unknown = 0,
-  Scalar,
-  Integer,
   CoefPacked,
   Packed,
   String,
-  Fractional,
   CKKSPacked,
 };
 
@@ -54,12 +51,6 @@ inline std::ostream& operator<<(std::ostream& out, const PlaintextEncodings p) {
   switch (p) {
     case Unknown:
       out << "Unknown";
-      break;
-    case Scalar:
-      out << "Scalar";
-      break;
-    case Integer:
-      out << "Integer";
       break;
     case CoefPacked:
       out << "CoefPacked";
@@ -69,9 +60,6 @@ inline std::ostream& operator<<(std::ostream& out, const PlaintextEncodings p) {
       break;
     case String:
       out << "String";
-      break;
-    case Fractional:
-      out << "Fractional";
       break;
     case CKKSPacked:
       out << "CKKSPacked";
@@ -146,6 +134,26 @@ class PlaintextImpl {
         scalingFactor(1),
         level(0),
         depth(1) {}
+
+  PlaintextImpl(const PlaintextImpl& rhs)
+      : isEncoded(rhs.isEncoded),
+        typeFlag(rhs.typeFlag),
+        encodingParams(rhs.encodingParams),
+        encodedVector(rhs.encodedVector),
+        encodedVectorDCRT(rhs.encodedVectorDCRT),
+        scalingFactor(rhs.scalingFactor),
+        level(rhs.level),
+        depth(rhs.depth) {}
+
+  PlaintextImpl(const PlaintextImpl&& rhs)
+      : isEncoded(rhs.isEncoded),
+        typeFlag(rhs.typeFlag),
+        encodingParams(std::move(rhs.encodingParams)),
+        encodedVector(std::move(rhs.encodedVector)),
+        encodedVectorDCRT(std::move(rhs.encodedVectorDCRT)),
+        scalingFactor(rhs.scalingFactor),
+        level(rhs.level),
+        depth(rhs.depth) {}
 
   virtual ~PlaintextImpl() {}
 
@@ -311,12 +319,6 @@ class PlaintextImpl {
   virtual const std::string& GetStringValue() const {
     PALISADE_THROW(type_error, "not a string");
   }
-  virtual int64_t GetIntegerValue() const {
-    PALISADE_THROW(type_error, "not an integer");
-  }
-  virtual int64_t GetScalarValue() const {
-    PALISADE_THROW(type_error, "not a scalar");
-  }
   virtual const vector<int64_t>& GetCoefPackedValue() const {
     PALISADE_THROW(type_error, "not a packed coefficient vector");
   }
@@ -332,14 +334,8 @@ class PlaintextImpl {
   virtual void SetStringValue(const std::string&) {
     PALISADE_THROW(type_error, "does not support a string");
   }
-  virtual void SetIntegerValue(const int64_t) {
-    PALISADE_THROW(type_error, "does not support an integer");
-  }
   virtual void SetIntVectorValue(const vector<int64_t>&) {
     PALISADE_THROW(type_error, "does not support an int vector");
-  }
-  virtual void SetFractionalValues(int64_t scalar, size_t divisorBits = 0) {
-    PALISADE_THROW(type_error, "does not support a fractional value");
   }
 
   /**

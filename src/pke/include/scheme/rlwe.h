@@ -34,6 +34,11 @@
 
 namespace lbcrypto {
 
+// noise flooding distribution parameter
+// for distributed decryption in
+// threshold FHE
+const double MP_SD = 1048576;
+
 /**
  * @brief Template for crypto parameters.
  * @tparam Element a ring element.

@@ -1,5 +1,5 @@
-// @file matrix-impl.cpp - matrix class implementations and type specific
-// implementations
+// @file matrix-lattice-impl.cpp - matrix class implementations and type
+// specific implementations
 // @author TPOC: contact@palisade-crypto.org
 //
 // @copyright Copyright (c) 2019, New Jersey Institute of Technology (NJIT)

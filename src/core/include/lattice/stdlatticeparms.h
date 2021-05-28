@@ -121,13 +121,11 @@ class StdLatticeParm {
 
   static usint FindMaxQ(DistributionType distType, SecurityLevel minSecLev,
                         usint ringDim) {
+    int distTypeIdx = static_cast<int>(distType);
+    int minSecLevIdx = static_cast<int>(minSecLev);
     if (!initialized) initializeLookups();
-    auto it =
-        byRing[static_cast<int>(distType)][static_cast<int>(minSecLev)].find(
-            ringDim);
-    if (it ==
-        byRing[static_cast<int>(distType)][static_cast<int>(minSecLev)].end())
-      return 0;
+    auto it = byRing[distTypeIdx][minSecLevIdx].find(ringDim);
+    if (it == byRing[distTypeIdx][minSecLevIdx].end()) return 0;
     return it->second->getMaxLogQ();
   }
 
@@ -135,15 +133,14 @@ class StdLatticeParm {
                            usint curLogQ) {
     if (!initialized) initializeLookups();
     usint prev = 0;
-    map<usint, StdLatticeParm*>::iterator it;
-    for (it = byLogQ[static_cast<int>(distType)][static_cast<int>(minSecLev)]
-                  .begin();
-         it !=
-         byLogQ[static_cast<int>(distType)][static_cast<int>(minSecLev)].end();
-         it++) {
-      if ((curLogQ <= it->second->getMaxLogQ()) && (curLogQ > prev))
-        return it->second->getRingDim();
-      prev = it->second->getMaxLogQ();
+
+    int distTypeIdx = static_cast<int>(distType);
+    int minSecLevIdx = static_cast<int>(minSecLev);
+    for (std::pair<const unsigned int, StdLatticeParm*>& it :
+         byLogQ[distTypeIdx][minSecLevIdx]) {
+      if ((curLogQ <= it.second->getMaxLogQ()) && (curLogQ > prev))
+        return it.second->getRingDim();
+      prev = it.second->getMaxLogQ();
     }
     return 65536;
   }
@@ -153,8 +150,6 @@ class StdLatticeParm {
   SecurityLevel getMinSecLev() const { return minSecLev; }
   usint getMaxLogQ() const { return maxLogQ; }
 };
-
-// map<StdLatticeParm&,StdLatticeParm&>
 
 } /* namespace lbcrypto */
 

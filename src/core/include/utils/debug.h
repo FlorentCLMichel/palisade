@@ -68,8 +68,8 @@
 #define DEBUGWHERE(x)                                               \
   do {                                                              \
     if (dbg_flag) {                                                 \
-      std::cerr << #x << ":" << x << " at " << __FILE__ << " line " \
-                << __LINE__ << std::endl;                           \
+      std::cerr << __FILE__ << ":" << __LINE__ << ": "              \
+                << #x << ":" << x << std::endl;                     \
     }                                                               \
   } while (0)
 

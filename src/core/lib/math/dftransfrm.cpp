@@ -220,6 +220,8 @@ void DiscreteFourierTransform::FFTSpecialInvLazy(
 
 void DiscreteFourierTransform::FFTSpecialInv(
     std::vector<std::complex<double>> &vals) {
+  // if the precomputed tables do not exist
+  if (vals.size() != m_Nh) Initialize(vals.size() * 4, vals.size());
   FFTSpecialInvLazy(vals);
   uint32_t size = vals.size();
   for (size_t i = 0; i < size; ++i) {
@@ -229,6 +231,8 @@ void DiscreteFourierTransform::FFTSpecialInv(
 
 void DiscreteFourierTransform::FFTSpecial(
     std::vector<std::complex<double>> &vals) {
+  // if the precomputed tables do not exist
+  if (vals.size() != m_Nh) Initialize(vals.size() * 4, vals.size());
   BitReverse(vals);
   uint32_t size = vals.size();
   for (size_t len = 2; len <= size; len <<= 1) {

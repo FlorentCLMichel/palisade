@@ -382,18 +382,17 @@ LPKeyPair<Element> LPAlgorithmBFV<Element>::KeyGen(CryptoContext<Element> cc,
   // (OPTIMIZED) cases
   if (cryptoParams->GetMode() == RLWE) {
     s = Element(dgg, elementParams, Format::COEFFICIENT);
-    s.SwitchFormat();
   } else {
     s = Element(tug, elementParams, Format::COEFFICIENT);
-    s.SwitchFormat();
   }
+  s.SetFormat(Format::EVALUATION);
 
   kp.secretKey->SetPrivateElement(s);
 
   // Done in two steps not to use a discrete Gaussian polynomial from a
   // pre-computed pool
   Element e(dgg, elementParams, Format::COEFFICIENT);
-  e.SwitchFormat();
+  e.SetFormat(Format::EVALUATION);
 
   Element b(elementParams, Format::EVALUATION, true);
   b -= e;
@@ -446,7 +445,7 @@ Ciphertext<Element> LPAlgorithmBFV<Element>::Encrypt(
 
   c1 = p1 * u + e2;
 
-  ciphertext->SetElements({c0, c1});
+  ciphertext->SetElements({std::move(c0), std::move(c1)});
 
   return ciphertext;
 }
@@ -477,7 +476,7 @@ Ciphertext<Element> LPAlgorithmBFV<Element>::Encrypt(
   Element c1(elementParams, Format::EVALUATION, true);
   c1 -= a;
 
-  ciphertext->SetElements({c0, c1});
+  ciphertext->SetElements({std::move(c0), std::move(c1)});
 
   return ciphertext;
 }
@@ -497,12 +496,12 @@ DecryptResult LPAlgorithmBFV<Element>::Decrypt(
   Element sPower = s;
 
   Element b = c[0];
-  if (b.GetFormat() == Format::COEFFICIENT) b.SwitchFormat();
+  b.SetFormat(Format::EVALUATION);
 
   Element cTemp;
   for (size_t i = 1; i <= ciphertext->GetDepth(); i++) {
     cTemp = c[i];
-    if (cTemp.GetFormat() == Format::COEFFICIENT) cTemp.SwitchFormat();
+    cTemp.SetFormat(Format::EVALUATION);
 
     b += sPower * cTemp;
     sPower *= s;
@@ -521,53 +520,36 @@ DecryptResult LPAlgorithmBFV<Element>::Decrypt(
 }
 
 template <class Element>
-Ciphertext<Element> LPAlgorithmSHEBFV<Element>::EvalAdd(
-    ConstCiphertext<Element> ciphertext1,
+void LPAlgorithmSHEBFV<Element>::EvalAddInPlace(
+    Ciphertext<Element> &ciphertext1,
     ConstCiphertext<Element> ciphertext2) const {
   if (!(ciphertext1->GetCryptoParameters() ==
         ciphertext2->GetCryptoParameters())) {
     std::string errMsg =
-        "LPAlgorithmSHEBFV::EvalAdd crypto parameters are not the same";
+        "LPAlgorithmSHEBFV::EvalAddInPlace crypto parameters are not the same";
     PALISADE_THROW(config_error, errMsg);
   }
 
-  Ciphertext<Element> newCiphertext = ciphertext1->CloneEmpty();
+  std::vector<Element> &cv1 = ciphertext1->GetElements();
+  const std::vector<Element> &cv2 = ciphertext2->GetElements();
 
-  const std::vector<Element> &cipherText1Elements = ciphertext1->GetElements();
-  const std::vector<Element> &cipherText2Elements = ciphertext2->GetElements();
+  size_t c1Size = cv1.size();
+  size_t c2Size = cv2.size();
+  size_t cSmallSize = std::min(c1Size, c2Size);
 
-  size_t cipherTextRElementsSize;
-  size_t cipherTextSmallElementsSize;
-
-  bool isCipherText1Small;
-  if (cipherText1Elements.size() > cipherText2Elements.size()) {
-    isCipherText1Small = false;
-    cipherTextRElementsSize = cipherText1Elements.size();
-    cipherTextSmallElementsSize = cipherText2Elements.size();
-    newCiphertext->SetDepth(ciphertext1->GetDepth());
-  } else {
-    isCipherText1Small = true;
-    cipherTextRElementsSize = cipherText2Elements.size();
-    cipherTextSmallElementsSize = cipherText1Elements.size();
-    newCiphertext->SetDepth(ciphertext2->GetDepth());
+  if (c1Size < c2Size) {
+    ciphertext1->SetDepth(ciphertext2->GetDepth());
   }
 
-  std::vector<Element> c(cipherTextRElementsSize);
-
-  for (size_t i = 0; i < cipherTextSmallElementsSize; i++)
-    c[i] = cipherText1Elements[i] + cipherText2Elements[i];
-
-  for (size_t i = cipherTextSmallElementsSize; i < cipherTextRElementsSize;
-       i++) {
-    if (isCipherText1Small == true)
-      c[i] = cipherText2Elements[i];
-    else
-      c[i] = cipherText1Elements[i];
+  for (size_t i = 0; i < cSmallSize; i++) {
+    cv1[i] += cv2[i];
   }
-
-  newCiphertext->SetElements(std::move(c));
-
-  return newCiphertext;
+  if (c1Size < c2Size) {
+    cv1.reserve(c2Size);
+    for (size_t i = c1Size; i < c2Size; i++) {
+      cv1.emplace_back(cv2[i]);
+    }
+  }
 }
 
 template <class Element>
@@ -691,7 +673,7 @@ Ciphertext<Element> LPAlgorithmSHEBFV<Element>::EvalNegate(
   Element c0 = cipherTextElements[0].Negate();
   Element c1 = cipherTextElements[1].Negate();
 
-  newCiphertext->SetElements({c0, c1});
+  newCiphertext->SetElements({std::move(c0), std::move(c1)});
   return newCiphertext;
 }
 
@@ -746,12 +728,12 @@ Ciphertext<Element> LPAlgorithmSHEBFV<Element>::EvalMult(
 
   if (isCiphertext1FormatCoeff != true) {
     for (size_t i = 0; i < cipherText1ElementsSize; i++)
-      cipherText1Elements[i].SwitchFormat();
+      cipherText1Elements[i].SetFormat(Format::COEFFICIENT);
   }
 
   if (isCiphertext2FormatCoeff != true) {
     for (size_t i = 0; i < cipherText2ElementsSize; i++)
-      cipherText2Elements[i].SwitchFormat();
+      cipherText2Elements[i].SetFormat(Format::COEFFICIENT);
   }
 
   // switches the modulus to a larger value so that polynomial multiplication
@@ -766,10 +748,10 @@ Ciphertext<Element> LPAlgorithmSHEBFV<Element>::EvalMult(
 
   // converts the ciphertext elements back to Format::EVALUATION representation
   for (size_t i = 0; i < cipherText1ElementsSize; i++)
-    cipherText1Elements[i].SwitchFormat();
+    cipherText1Elements[i].SetFormat(Format::EVALUATION);
 
   for (size_t i = 0; i < cipherText2ElementsSize; i++)
-    cipherText2Elements[i].SwitchFormat();
+    cipherText2Elements[i].SetFormat(Format::EVALUATION);
 
   bool *isFirstAdd = new bool[cipherTextRElementsSize];
   std::fill_n(isFirstAdd, cipherTextRElementsSize, true);
@@ -788,7 +770,8 @@ Ciphertext<Element> LPAlgorithmSHEBFV<Element>::EvalMult(
   delete[] isFirstAdd;
 
   // converts to coefficient representation before rounding
-  for (size_t i = 0; i < cipherTextRElementsSize; i++) c[i].SwitchFormat();
+  for (size_t i = 0; i < cipherTextRElementsSize; i++)
+    c[i].SetFormat(Format::COEFFICIENT);
 
   for (size_t i = 0; i < cipherTextRElementsSize; i++)
     c[i] = c[i].MultiplyAndRound(p, q);
@@ -824,7 +807,7 @@ Ciphertext<Element> LPAlgorithmSHEBFV<Element>::EvalMult(
   Element c0 = cipherTextElements[0] * ptElement;
   Element c1 = cipherTextElements[1] * ptElement;
 
-  newCiphertext->SetElements({c0, c1});
+  newCiphertext->SetElements({std::move(c0), std::move(c1)});
 
   return newCiphertext;
 }
@@ -851,9 +834,8 @@ Ciphertext<Element> LPAlgorithmSHEBFV<Element>::EvalMultMany(
 }
 
 template <class Element>
-Ciphertext<Element> LPAlgorithmSHEBFV<Element>::KeySwitch(
-    const LPEvalKey<Element> ek, ConstCiphertext<Element> cipherText) const {
-  Ciphertext<Element> newCiphertext = cipherText->CloneEmpty();
+void LPAlgorithmSHEBFV<Element>::KeySwitchInPlace(
+    const LPEvalKey<Element> ek, Ciphertext<Element>& cipherText) const {
 
   const auto cryptoParamsLWE =
       std::static_pointer_cast<LPCryptoParametersBFV<Element>>(
@@ -863,41 +845,39 @@ Ciphertext<Element> LPAlgorithmSHEBFV<Element>::KeySwitch(
   LPEvalKeyRelin<Element> evalKey =
       std::static_pointer_cast<LPEvalKeyRelinImpl<Element>>(ek);
 
-  const std::vector<Element> &c = cipherText->GetElements();
+  std::vector<Element> &c = cipherText->GetElements();
 
   const std::vector<Element> &b = evalKey->GetAVector();
   const std::vector<Element> &a = evalKey->GetBVector();
 
   std::vector<Element> digitsC2;
 
-  Element ct0(c[0]);
 
   // in the case of EvalMult, c[0] is initially in coefficient format and needs
   // to be switched to Format::EVALUATION format
-  if (c.size() > 2) ct0.SwitchFormat();
+  if (c.size() > 2) c[0].SetFormat(Format::EVALUATION);
 
-  Element ct1;
 
   if (c.size() == 2) {  // case of automorphism
     digitsC2 = c[1].BaseDecompose(relinWindow);
-    ct1 = digitsC2[0] * a[0];
+    c[1] = digitsC2[0] * a[0];
   } else {  // case of EvalMult
     digitsC2 = c[2].BaseDecompose(relinWindow);
-    ct1 = c[1];
     // Convert ct1 to Format::EVALUATION representation
-    ct1.SwitchFormat();
-    ct1 += digitsC2[0] * a[0];
+    c[1].SetFormat(Format::EVALUATION);
+    c[1] += digitsC2[0] * a[0];
   }
 
-  ct0 += digitsC2[0] * b[0];
+  c[0] += digitsC2[0] * b[0];
 
   for (usint i = 1; i < digitsC2.size(); ++i) {
-    ct0 += digitsC2[i] * b[i];
-    ct1 += digitsC2[i] * a[i];
+    c[0] += digitsC2[i] * b[i];
+    c[1] += digitsC2[i] * a[i];
   }
 
-  newCiphertext->SetElements({ct0, ct1});
-  return newCiphertext;
+  Ciphertext<Element> newCiphertext = cipherText->CloneEmpty();
+  newCiphertext->SetElements({std::move(c[0]), std::move(c[1])});
+  cipherText = std::move(newCiphertext);
 }
 
 template <class Element>
@@ -906,14 +886,15 @@ Ciphertext<Element> LPAlgorithmSHEBFV<Element>::EvalMult(
     const LPEvalKey<Element> ek) const {
   Ciphertext<Element> newCiphertext = this->EvalMult(ciphertext1, ciphertext2);
 
-  return this->KeySwitch(ek, newCiphertext);
+  KeySwitchInPlace(ek, newCiphertext);
+  return newCiphertext;
 }
 
 template <class Element>
 Ciphertext<Element> LPAlgorithmSHEBFV<Element>::EvalMultAndRelinearize(
     ConstCiphertext<Element> ciphertext1, ConstCiphertext<Element> ciphertext2,
     const vector<LPEvalKey<Element>> &ek) const {
-  // FIXME add a plaintext method for this
+  // TODO add a plaintext method for this
   //  if(!ciphertext2->GetIsEncrypted()) {
   //    return EvalMultPlain(ciphertext1, ciphertext2);
   //  }
@@ -955,7 +936,7 @@ Ciphertext<Element> LPAlgorithmSHEBFV<Element>::EvalMultAndRelinearize(
     }
   }
 
-  newCiphertext->SetElements({ct0, ct1});
+  newCiphertext->SetElements({std::move(ct0), std::move(ct1)});
 
   return newCiphertext;
 }
@@ -1095,7 +1076,8 @@ Ciphertext<Element> LPAlgorithmSHEBFV<Element>::EvalAutomorphism(
   permutedCiphertext->SetElements({std::move(c[0].AutomorphismTransform(i)),
                                    std::move(c[1].AutomorphismTransform(i))});
 
-  return this->KeySwitch(fk, permutedCiphertext);
+  KeySwitchInPlace(fk, permutedCiphertext);
+  return permutedCiphertext;
 }
 
 template <class Element>
@@ -1260,14 +1242,15 @@ Ciphertext<Element> LPAlgorithmPREBFV<Element>::ReEncrypt(
     Element c0 = p0 * u + e1;
     Element c1 = p1 * u + e2;
 
-    zeroCiphertext->SetElements({c0, c1});
+    zeroCiphertext->SetElements({std::move(c0), std::move(c1)});
 
     // Add the encryption of zero for re-randomization purposes
     auto c = ciphertext->GetCryptoContext()->GetEncryptionAlgorithm()->EvalAdd(
         ciphertext, zeroCiphertext);
 
-    return ciphertext->GetCryptoContext()->GetEncryptionAlgorithm()->KeySwitch(
+    ciphertext->GetCryptoContext()->GetEncryptionAlgorithm()->KeySwitchInPlace(
         EK, c);
+    return c;
   }
 }
 
@@ -1310,7 +1293,7 @@ LPKeyPair<Element> LPAlgorithmMultipartyBFV<Element>::MultipartyKeyGen(
   // Done in two steps not to use a discrete Gaussian polynomial from a
   // pre-computed pool
   Element e(dgg, elementParams, Format::COEFFICIENT);
-  e.SwitchFormat();
+  e.SetFormat(Format::EVALUATION);
 
   Element b(elementParams, Format::EVALUATION, true);
   b -= e;
@@ -1351,18 +1334,17 @@ LPKeyPair<Element> LPAlgorithmMultipartyBFV<Element>::MultipartyKeyGen(
   // (OPTIMIZED) cases
   if (cryptoParams->GetMode() == RLWE) {
     s = Element(dgg, elementParams, Format::COEFFICIENT);
-    s.SwitchFormat();
   } else {
     // PALISADE_THROW(palisade_error, "FusedKeyGen operation has not been
     // enabled for OPTIMIZED cases");
     s = Element(tug, elementParams, Format::COEFFICIENT);
-    s.SwitchFormat();
   }
+  s.SetFormat(Format::EVALUATION);
 
   kp.secretKey->SetPrivateElement(s);
 
   Element e(dgg, elementParams, Format::COEFFICIENT);
-  e.SwitchFormat();
+  e.SetFormat(Format::EVALUATION);
 
   Element b(elementParams, Format::EVALUATION, true);
   b -= e;
@@ -1388,14 +1370,14 @@ Ciphertext<Element> LPAlgorithmMultipartyBFV<Element>::MultipartyDecryptMain(
 
   const Element &s = privateKey->GetPrivateElement();
 
-  const DggType &dgg = cryptoParams->GetDiscreteGaussianGenerator();
+  DggType dgg(MP_SD);
   Element e(dgg, elementParams, Format::EVALUATION);
 
   Element b = s * c[1] + e;
   b.SwitchFormat();
 
   Ciphertext<Element> newCiphertext = ciphertext->CloneEmpty();
-  newCiphertext->SetElements({b});
+  newCiphertext->SetElements({std::move(b)});
 
   return newCiphertext;
 }
@@ -1412,14 +1394,14 @@ Ciphertext<Element> LPAlgorithmMultipartyBFV<Element>::MultipartyDecryptLead(
 
   const Element &s = privateKey->GetPrivateElement();
 
-  const DggType &dgg = cryptoParams->GetDiscreteGaussianGenerator();
+  DggType dgg(MP_SD);
   Element e(dgg, elementParams, Format::EVALUATION);
 
   Element b = c[0] + s * c[1] + e;
   b.SwitchFormat();
 
   Ciphertext<Element> newCiphertext = ciphertext->CloneEmpty();
-  newCiphertext->SetElements({b});
+  newCiphertext->SetElements({std::move(b)});
 
   return newCiphertext;
 }
@@ -1585,10 +1567,10 @@ LPEvalKey<Element> LPAlgorithmMultipartyBFV<Element>::MultiMultEvalKey(
 
   for (usint i = 0; i < a0.size(); i++) {
     Element f1(dgg, elementParams, Format::COEFFICIENT);
-    f1.SwitchFormat();
+    f1.SetFormat(Format::EVALUATION);
 
     Element f2(dgg, elementParams, Format::COEFFICIENT);
-    f2.SwitchFormat();
+    f2.SetFormat(Format::EVALUATION);
 
     a.push_back(a0[i] * s + f1);
     b.push_back(b0[i] * s + f2);

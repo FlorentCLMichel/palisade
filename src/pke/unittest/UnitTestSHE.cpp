@@ -52,14 +52,12 @@ class UTSHE : public ::testing::Test {
 // This file unit tests the SHE capabilities for all schemes, using all known
 // elements
 
-// FIXME NativePoly SHE tests no bueno on Mult
+// TODO NativePoly SHE tests no bueno on Mult
 // GENERATE_PKE_TEST_CASE(x, y, NativePoly, BFV_rlwe, ORD, PTM)
 // GENERATE_PKE_TEST_CASE(x, y, NativePoly, BFV_opt, ORD, PTM)
 
 #define GENERATE_TEST_CASES_FUNC(x, y, ORD, PTM)                   \
   GENERATE_PKE_TEST_CASE(x, y, Poly, Null, ORD, PTM)               \
-  GENERATE_PKE_TEST_CASE(x, y, Poly, BGV_rlwe, ORD, PTM)           \
-  GENERATE_PKE_TEST_CASE(x, y, Poly, BGV_opt, ORD, PTM)            \
   GENERATE_PKE_TEST_CASE(x, y, Poly, BGVrns_rlwe, ORD, PTM)        \
   GENERATE_PKE_TEST_CASE(x, y, Poly, BGVrns_opt, ORD, PTM)         \
   GENERATE_PKE_TEST_CASE(x, y, Poly, BFV_rlwe, ORD, PTM)           \
@@ -68,7 +66,6 @@ class UTSHE : public ::testing::Test {
   GENERATE_PKE_TEST_CASE(x, y, Poly, BFVrnsB_rlwe, ORD, PTM)       \
   GENERATE_PKE_TEST_CASE(x, y, Poly, BFVrnsB_opt, ORD, PTM)        \
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, Null, ORD, PTM)         \
-  GENERATE_PKE_TEST_CASE(x, y, NativePoly, BGV_rlwe, ORD, PTM)     \
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, BGVrns_rlwe, ORD, PTM)  \
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, BGVrns_opt, ORD, PTM)   \
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, BFVrns_rlwe, ORD, PTM)  \
@@ -76,22 +73,17 @@ class UTSHE : public ::testing::Test {
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, BFVrnsB_rlwe, ORD, PTM) \
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, BFVrnsB_opt, ORD, PTM)  \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, Null, ORD, PTM)           \
-  GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGV_rlwe, ORD, PTM)       \
-  GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGV_opt, ORD, PTM)        \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGVrns_rlwe, ORD, PTM)    \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGVrns_opt, ORD, PTM)     \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrns_rlwe, ORD, PTM)    \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrns_opt, ORD, PTM)     \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrnsB_rlwe, ORD, PTM)   \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrnsB_opt, ORD, PTM)    \
-  GENERATE_PKE_TEST_CASE(x, y, Poly, BFV_opt, ORD, PTM)            \
-  GENERATE_PKE_TEST_CASE(x, y, NativePoly, BGV_opt, ORD, PTM)
+  GENERATE_PKE_TEST_CASE(x, y, Poly, BFV_opt, ORD, PTM)
 
 // For EvalAtIndex
 #define GENERATE_TEST_CASES_FUNC_EVALATINDEX(x, y, ORD, PTM)       \
   GENERATE_PKE_TEST_CASE(x, y, Poly, Null, ORD, PTM)               \
-  GENERATE_PKE_TEST_CASE(x, y, Poly, BGV_rlwe, ORD, PTM)           \
-  GENERATE_PKE_TEST_CASE(x, y, Poly, BGV_opt, ORD, PTM)            \
   GENERATE_PKE_TEST_CASE(x, y, Poly, BGVrns_rlwe, ORD, PTM)        \
   GENERATE_PKE_TEST_CASE(x, y, Poly, BGVrns_opt, ORD, PTM)         \
   GENERATE_PKE_TEST_CASE(x, y, Poly, BFV_rlwe, ORD, PTM)           \
@@ -100,7 +92,6 @@ class UTSHE : public ::testing::Test {
   GENERATE_PKE_TEST_CASE(x, y, Poly, BFVrnsB_rlwe, ORD, PTM)       \
   GENERATE_PKE_TEST_CASE(x, y, Poly, BFVrnsB_opt, ORD, PTM)        \
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, Null, ORD, PTM)         \
-  GENERATE_PKE_TEST_CASE(x, y, NativePoly, BGV_rlwe, ORD, PTM)     \
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, BGVrns_rlwe, ORD, PTM)  \
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, BGVrns_opt, ORD, PTM)   \
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, BFVrns_rlwe, ORD, PTM)  \
@@ -108,16 +99,13 @@ class UTSHE : public ::testing::Test {
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, BFVrnsB_rlwe, ORD, PTM) \
   GENERATE_PKE_TEST_CASE(x, y, NativePoly, BFVrnsB_opt, ORD, PTM)  \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, Null, ORD, PTM)           \
-  GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGV_rlwe, ORD, PTM)       \
-  GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGV_opt, ORD, PTM)        \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGVrns_rlwe, ORD, PTM)    \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGVrns_opt, ORD, PTM)     \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrns_rlwe, ORD, PTM)    \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrns_opt, ORD, PTM)     \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrnsB_rlwe, ORD, PTM)   \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrnsB_opt, ORD, PTM)    \
-  GENERATE_PKE_TEST_CASE(x, y, Poly, BFV_opt, ORD, PTM)            \
-  GENERATE_PKE_TEST_CASE(x, y, NativePoly, BGV_opt, ORD, PTM)
+  GENERATE_PKE_TEST_CASE(x, y, Poly, BFV_opt, ORD, PTM)
 
 // For EvalSum
 #define GENERATE_TEST_CASES_FUNC_EVALSUM(x, y, ORD, PTM)         \
@@ -132,12 +120,10 @@ class UTSHE : public ::testing::Test {
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrns_opt, ORD, PTM)   \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrnsB_rlwe, ORD, PTM) \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BFVrnsB_opt, ORD, PTM)  \
-  GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGV_rlwe, ORD, PTM)     \
-  GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGV_opt, ORD, PTM)      \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGVrns_rlwe, ORD, PTM)  \
   GENERATE_PKE_TEST_CASE(x, y, DCRTPoly, BGVrns_opt, ORD, PTM)
 
-static vector<string> AllSchemes({"Null", "BGV", "BFV", /*"BFVrns"*/});
+static vector<string> AllSchemes({"Null", "BFV", /*"BFVrns"*/});
 typedef ::testing::Types<Poly, DCRTPoly, NativePoly> EncryptElementTypes;
 
 // NOTE the SHE tests are all based on these
@@ -172,13 +158,20 @@ static void UnitTest_Add_Packed(const CryptoContext<Element> cc,
   EXPECT_EQ(plaintextAdd->GetCoefPackedValue(), results->GetCoefPackedValue())
       << failmsg << " EvalAdd fails";
 
+  auto ct1_clone = ciphertext1->Clone();
+  cc->EvalAddInPlace(ct1_clone, ciphertext2);
+  cc->Decrypt(kp.secretKey, ct1_clone, &results);
+  results->SetLength(plaintextAdd->GetLength());
+  EXPECT_EQ(plaintextAdd->GetCoefPackedValue(), results->GetCoefPackedValue())
+      << failmsg << " EvalAddInPlace fails";
+
   cResult = ciphertext1 + ciphertext2;
   cc->Decrypt(kp.secretKey, cResult, &results);
   results->SetLength(plaintextAdd->GetLength());
   EXPECT_EQ(plaintextAdd->GetCoefPackedValue(), results->GetCoefPackedValue())
       << failmsg << " operator+ fails";
 
-  Ciphertext<Element> caddInplace(ciphertext1);
+  Ciphertext<Element> caddInplace = ciphertext1->Clone();
   caddInplace += ciphertext2;
   cc->Decrypt(kp.secretKey, caddInplace, &results);
   results->SetLength(plaintextAdd->GetLength());
@@ -197,7 +190,7 @@ static void UnitTest_Add_Packed(const CryptoContext<Element> cc,
   EXPECT_EQ(plaintextSub->GetCoefPackedValue(), results->GetCoefPackedValue())
       << failmsg << " operator- fails";
 
-  Ciphertext<Element> csubInplace(ciphertext1);
+  Ciphertext<Element> csubInplace = ciphertext1->Clone();
   csubInplace -= ciphertext2;
   cc->Decrypt(kp.secretKey, csubInplace, &results);
   results->SetLength(plaintextSub->GetLength());
@@ -218,132 +211,6 @@ static void UnitTest_Add_Packed(const CryptoContext<Element> cc,
 }
 
 GENERATE_TEST_CASES_FUNC(UTSHE, UnitTest_Add_Packed, ORDER, PTMOD)
-
-template <class Element>
-static void UnitTest_Add_Scalar(const CryptoContext<Element> cc,
-                                const string& failmsg) {
-  Plaintext plaintext1 = cc->MakeScalarPlaintext(1);
-
-  Plaintext plaintext2 = cc->MakeScalarPlaintext(2);
-
-  Plaintext plaintextAdd = cc->MakeScalarPlaintext(3);
-
-  Plaintext plaintextSub = cc->MakeScalarPlaintext(-1);
-
-  LPKeyPair<Element> kp = cc->KeyGen();
-  Ciphertext<Element> ciphertext1 = cc->Encrypt(kp.publicKey, plaintext1);
-  Ciphertext<Element> ciphertext2 = cc->Encrypt(kp.publicKey, plaintext2);
-
-  Ciphertext<Element> cResult;
-  Plaintext results;
-
-  cResult = cc->EvalAdd(ciphertext1, ciphertext2);
-  cc->Decrypt(kp.secretKey, cResult, &results);
-  EXPECT_EQ(plaintextAdd->GetScalarValue(), results->GetScalarValue())
-      << failmsg << " EvalAdd fails";
-
-  cResult = ciphertext1 + ciphertext2;
-  cc->Decrypt(kp.secretKey, cResult, &results);
-  EXPECT_EQ(plaintextAdd->GetScalarValue(), results->GetScalarValue())
-      << failmsg << " operator+ fails";
-
-  Ciphertext<Element> caddInplace(ciphertext1);
-  caddInplace += ciphertext2;
-  cc->Decrypt(kp.secretKey, caddInplace, &results);
-  EXPECT_EQ(plaintextAdd->GetScalarValue(), results->GetScalarValue())
-      << failmsg << " operator+= fails";
-
-  cResult = cc->EvalSub(ciphertext1, ciphertext2);
-  cc->Decrypt(kp.secretKey, cResult, &results);
-  EXPECT_EQ(plaintextSub->GetScalarValue(), results->GetScalarValue())
-      << failmsg << " EvalSub fails";
-
-  cResult = ciphertext1 - ciphertext2;
-  cc->Decrypt(kp.secretKey, cResult, &results);
-  EXPECT_EQ(plaintextSub->GetScalarValue(), results->GetScalarValue())
-      << failmsg << " operator- fails";
-
-  Ciphertext<Element> csubInplace(ciphertext1);
-  csubInplace -= ciphertext2;
-  cc->Decrypt(kp.secretKey, csubInplace, &results);
-  EXPECT_EQ(plaintextSub->GetScalarValue(), results->GetScalarValue())
-      << failmsg << " operator-= fails";
-
-  cResult = cc->EvalAdd(ciphertext1, plaintext2);
-  cc->Decrypt(kp.secretKey, cResult, &results);
-  EXPECT_EQ(plaintextAdd->GetScalarValue(), results->GetScalarValue())
-      << failmsg << " EvalAdd Ct and Pt fails";
-
-  cResult = cc->EvalSub(ciphertext1, plaintext2);
-  cc->Decrypt(kp.secretKey, cResult, &results);
-  EXPECT_EQ(plaintextSub->GetScalarValue(), results->GetScalarValue())
-      << failmsg << " EvalSub Ct and Pt fails";
-}
-
-GENERATE_TEST_CASES_FUNC(UTSHE, UnitTest_Add_Scalar, ORDER, PTMOD)
-
-template <class Element>
-static void UnitTest_Add_Integer(const CryptoContext<Element> cc,
-                                 const string& failmsg) {
-  Plaintext plaintext1 = cc->MakeIntegerPlaintext(4);
-
-  Plaintext plaintext2 = cc->MakeIntegerPlaintext(7);
-
-  Plaintext plaintextAdd = cc->MakeIntegerPlaintext(11);
-
-  Plaintext plaintextSub = cc->MakeIntegerPlaintext(-3);
-
-  LPKeyPair<Element> kp = cc->KeyGen();
-  Ciphertext<Element> ciphertext1 = cc->Encrypt(kp.publicKey, plaintext1);
-  Ciphertext<Element> ciphertext2 = cc->Encrypt(kp.publicKey, plaintext2);
-
-  Ciphertext<Element> cResult;
-  Plaintext results;
-
-  cResult = cc->EvalAdd(ciphertext1, ciphertext2);
-  cc->Decrypt(kp.secretKey, cResult, &results);
-  EXPECT_EQ(plaintextAdd->GetIntegerValue(), results->GetIntegerValue())
-      << failmsg << " EvalAdd fails";
-
-  cResult = ciphertext1 + ciphertext2;
-  cc->Decrypt(kp.secretKey, cResult, &results);
-  EXPECT_EQ(plaintextAdd->GetIntegerValue(), results->GetIntegerValue())
-      << failmsg << " operator+ fails";
-
-  Ciphertext<Element> caddInplace(ciphertext1);
-  caddInplace += ciphertext2;
-  cc->Decrypt(kp.secretKey, caddInplace, &results);
-  EXPECT_EQ(plaintextAdd->GetIntegerValue(), results->GetIntegerValue())
-      << failmsg << " operator+= fails";
-
-  cResult = cc->EvalSub(ciphertext1, ciphertext2);
-  cc->Decrypt(kp.secretKey, cResult, &results);
-  EXPECT_EQ(plaintextSub->GetIntegerValue(), results->GetIntegerValue())
-      << failmsg << " EvalSub fails";
-
-  cResult = ciphertext1 - ciphertext2;
-  cc->Decrypt(kp.secretKey, cResult, &results);
-  EXPECT_EQ(plaintextSub->GetIntegerValue(), results->GetIntegerValue())
-      << failmsg << " operator- fails";
-
-  Ciphertext<Element> csubInplace(ciphertext1);
-  csubInplace -= ciphertext2;
-  cc->Decrypt(kp.secretKey, csubInplace, &results);
-  EXPECT_EQ(plaintextSub->GetIntegerValue(), results->GetIntegerValue())
-      << failmsg << " operator-= fails";
-
-  cResult = cc->EvalAdd(ciphertext1, plaintext2);
-  cc->Decrypt(kp.secretKey, cResult, &results);
-  EXPECT_EQ(plaintextAdd->GetIntegerValue(), results->GetIntegerValue())
-      << failmsg << " EvalAdd Ct and Pt fails";
-
-  cResult = cc->EvalSub(ciphertext1, plaintext2);
-  cc->Decrypt(kp.secretKey, cResult, &results);
-  EXPECT_EQ(plaintextSub->GetIntegerValue(), results->GetIntegerValue())
-      << failmsg << " EvalSub Ct and Pt fails";
-}
-
-GENERATE_TEST_CASES_FUNC(UTSHE, UnitTest_Add_Integer, ORDER, PTMOD)
 
 template <class Element>
 static void UnitTest_Mult_CoefPacked(const CryptoContext<Element> cc,
@@ -393,7 +260,7 @@ static void UnitTest_Mult_CoefPacked(const CryptoContext<Element> cc,
             results->GetCoefPackedValue())
       << failmsg << " operator* fails";
 
-  Ciphertext<Element> cmulInplace(ciphertext1);
+  Ciphertext<Element> cmulInplace = ciphertext1->Clone();
   cmulInplace *= ciphertext2;
   cc->Decrypt(kp.secretKey, cmulInplace, &results);
   results->SetLength(intArrayExpected->GetLength());
@@ -454,7 +321,7 @@ static void UnitTest_Mult_Packed(const CryptoContext<Element> cc,
   EXPECT_EQ(intArrayExpected->GetPackedValue(), results->GetPackedValue())
       << failmsg << " operator* fails";
 
-  Ciphertext<Element> cmulInplace(ciphertext1);
+  Ciphertext<Element> cmulInplace = ciphertext1->Clone();
   cmulInplace *= ciphertext2;
   cc->Decrypt(kp.secretKey, cmulInplace, &results);
   results->SetLength(intArrayExpected->GetLength());
@@ -672,6 +539,13 @@ static void UnitTest_Metadata(const CryptoContext<Element> cc,
   EXPECT_EQ(val1->GetMetadata(), addCCValTest->GetMetadata())
       << "Ciphertext metadata mismatch in EvalAdd(ctx,ctx)";
 
+  // Checking if metadata is carried over in EvalAddInPlace(ctx,ctx)
+  Ciphertext<Element> ciphertext1_clone = ciphertext1->Clone();
+  cc->EvalAddInPlace(ciphertext1_clone, ciphertext2);
+  auto addCCInPlaceValTest = MetadataTest::GetMetadata<Element>(ciphertext1_clone);
+  EXPECT_EQ(val1->GetMetadata(), addCCInPlaceValTest->GetMetadata())
+      << "Ciphertext metadata mismatch in EvalAddInPlace(ctx,ctx)";
+
   // Checking if metadata is carried over in EvalAdd(ctx,ptx)
   Ciphertext<Element> cAddCP = cc->EvalAdd(ciphertext1, plaintext1);
   auto addCPValTest = MetadataTest::GetMetadata<Element>(cAddCP);
@@ -694,13 +568,13 @@ static void UnitTest_Metadata(const CryptoContext<Element> cc,
   Ciphertext<Element> cMultCC = cc->EvalMult(ciphertext1, ciphertext2);
   auto multCCValTest = MetadataTest::GetMetadata<Element>(cMultCC);
   EXPECT_EQ(val1->GetMetadata(), multCCValTest->GetMetadata())
-      << "Ciphertext metadata mismatch in EvalAdd(ctx,ctx)";
+      << "Ciphertext metadata mismatch in EvalMult(ctx,ctx)";
 
   // Checking if metadata is carried over in EvalMult(ctx,ptx)
   Ciphertext<Element> cMultCP = cc->EvalMult(ciphertext1, plaintext1);
   auto multCPValTest = MetadataTest::GetMetadata<Element>(cMultCP);
   EXPECT_EQ(val1->GetMetadata(), multCPValTest->GetMetadata())
-      << "Ciphertext metadata mismatch in EvalAdd(ctx,ptx)";
+      << "Ciphertext metadata mismatch in EvalMult(ctx,ptx)";
 
   // Checking if metadata is carried over in EvalAtIndex +2 (left rotate)
   auto cAtIndex2 = cc->EvalAtIndex(ciphertext1, 2);
@@ -776,27 +650,27 @@ TEST_F(UTSHE, keyswitch_SingleCRT) {
 
   float stdDev = 4;
 
-  shared_ptr<Poly::Params> params =
-      ElemParamFactory::GenElemParams<Poly::Params>(m, 50);
+  shared_ptr<DCRTPoly::Params> params =
+      ElemParamFactory::GenElemParams<DCRTPoly::Params>(m, 50);
 
-  CryptoContext<Poly> cc =
-      CryptoContextFactory<Poly>::genCryptoContextBGV(params, 256, 1, stdDev);
+  CryptoContext<DCRTPoly> cc =
+      CryptoContextFactory<DCRTPoly>::genCryptoContextBGVrns(params, 256, 1, stdDev);
   cc->Enable(ENCRYPTION);
   cc->Enable(SHE);
 
   Plaintext plaintext =
       cc->MakeStringPlaintext("I am good, what are you?! 32 ch");
 
-  LPKeyPair<Poly> kp = cc->KeyGen();
+  LPKeyPair<DCRTPoly> kp = cc->KeyGen();
 
-  Ciphertext<Poly> ciphertext = cc->Encrypt(kp.publicKey, plaintext);
+  Ciphertext<DCRTPoly> ciphertext = cc->Encrypt(kp.publicKey, plaintext);
 
-  LPKeyPair<Poly> kp2 = cc->KeyGen();
+  LPKeyPair<DCRTPoly> kp2 = cc->KeyGen();
 
-  LPEvalKey<Poly> keySwitchHint;
+  LPEvalKey<DCRTPoly> keySwitchHint;
   keySwitchHint = cc->KeySwitchGen(kp.secretKey, kp2.secretKey);
 
-  Ciphertext<Poly> newCt = cc->KeySwitch(keySwitchHint, ciphertext);
+  Ciphertext<DCRTPoly> newCt = cc->KeySwitch(keySwitchHint, ciphertext);
 
   Plaintext plaintextNew;
 
@@ -817,7 +691,7 @@ TEST_F(UTSHE, keyswitch_ModReduce_DCRT) {
       GenerateDCRTParams<BigInteger>(m, size, 30);
 
   CryptoContext<DCRTPoly> cc =
-      CryptoContextFactory<DCRTPoly>::genCryptoContextBGV(
+      CryptoContextFactory<DCRTPoly>::genCryptoContextBGVrns(
           params, plaintextmodulus, relinWindow, stdDev);
 
   Plaintext plaintext =
@@ -849,7 +723,7 @@ TEST_F(UTSHE, keyswitch_ModReduce_DCRT) {
   /**************************KEYSWITCH TEST END******************************/
   /**************************MODREDUCE TEST BEGIN******************************/
 
-  newCt = cc->ModReduce(newCt);
+  cc->ModReduceInPlace(newCt);
   DCRTPoly sk2PrivateElement(kp2.secretKey->GetPrivateElement());
   sk2PrivateElement.DropLastElement();
   kp2.secretKey->SetPrivateElement(sk2PrivateElement);

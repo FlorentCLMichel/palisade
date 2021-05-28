@@ -237,9 +237,9 @@ class RLWETrapdoorUtility {
     TIC(t1);
 
     // Switch the ring elements (Polynomials) to coefficient representation
-    va.SwitchFormat();
-    vb.SwitchFormat();
-    vd.SwitchFormat();
+    va.SetFormat(Format::COEFFICIENT);
+    vb.SetFormat(Format::COEFFICIENT);
+    vd.SetFormat(Format::COEFFICIENT);
 
     DEBUG("z1c: " << TOC(t1));  // 5
     TIC(t1);
@@ -259,9 +259,9 @@ class RLWETrapdoorUtility {
     TIC(t1);
 
     // converts the field elements to DFT representation
-    a.SwitchFormat();
-    b.SwitchFormat();
-    d.SwitchFormat();
+    a.SetFormat(Format::EVALUATION);
+    b.SetFormat(Format::EVALUATION);
+    d.SetFormat(Format::EVALUATION);
     DEBUG("z1e: " << TOC(t1));  // 0
     TIC(t1);
 
@@ -295,7 +295,7 @@ class RLWETrapdoorUtility {
     TIC(t1);
 
     // now converting to Format::EVALUATION representation before multiplication
-    p2.SwitchFormat();
+    p2.SetFormat(Format::EVALUATION);
 
     DEBUG("z1g: " << TOC(t1));  // 17
 
@@ -310,7 +310,7 @@ class RLWETrapdoorUtility {
     DEBUG("z1h2: " << TOC(t1));
     TIC(t1);
     // change to coefficient representation before converting to field elements
-    Tp2.SwitchFormat();
+    Tp2.SetFormat(Format::COEFFICIENT);
     DEBUG("z1h3: " << TOC(t1));
     TIC(t1);
 
@@ -336,8 +336,7 @@ class RLWETrapdoorUtility {
     DEBUG("z1j2: " << TOC(t1));
     TIC(t1);
 
-    // Converts p1 to Format::EVALUATION representation
-    p1.SwitchFormat();
+    p1.SetFormat(Format::EVALUATION);
     DEBUG("z1j3: " << TOC(t1));
     TIC(t1);
 
@@ -407,7 +406,7 @@ class RLWETrapdoorUtility {
     }
 
     // now converting to Format::EVALUATION representation before multiplication
-    p2.SwitchFormat();
+    p2.SetFormat(Format::EVALUATION);
 
     auto zero_alloc = Element::Allocator(params, Format::EVALUATION);
 
@@ -416,9 +415,9 @@ class RLWETrapdoorUtility {
     Matrix<Element> D = E * (E.Transpose());  // d x d
 
     // Switch the ring elements (Polynomials) to coefficient representation
-    A.SwitchFormat();
-    B.SwitchFormat();
-    D.SwitchFormat();
+    A.SetFormat(Format::COEFFICIENT);
+    B.SetFormat(Format::COEFFICIENT);
+    D.SetFormat(Format::COEFFICIENT);
 
     Matrix<Field2n> AF([&]() { return Field2n(n, Format::EVALUATION, true); },
                        d, d);
@@ -445,15 +444,15 @@ class RLWETrapdoorUtility {
     }
 
     // converts the field elements to DFT representation
-    AF.SwitchFormat();
-    BF.SwitchFormat();
-    DF.SwitchFormat();
+    AF.SetFormat(Format::EVALUATION);
+    BF.SetFormat(Format::EVALUATION);
+    DF.SetFormat(Format::EVALUATION);
 
     // the dimension is 2d x d
     Matrix<Element> Tp2 = (R.VStack(E)) * p2;
 
     // change to coefficient representation before converting to field elements
-    Tp2.SwitchFormat();
+    Tp2.SetFormat(Format::COEFFICIENT);
 
     Matrix<Element> p1(zero_alloc, 1, 1);
 
@@ -480,12 +479,11 @@ class RLWETrapdoorUtility {
         p1.HStack(SplitInt64IntoElements<Element>(*p1ZVector, n, params));
     }
 
-    // Converts p1 to Format::EVALUATION representation
-    p1.SwitchFormat();
+    p1.SetFormat(Format::EVALUATION);
 
     *perturbationVector = p1.VStack(p2);
 
-    p1.SwitchFormat();
+    p1.SetFormat(Format::COEFFICIENT);
   }
 };
 

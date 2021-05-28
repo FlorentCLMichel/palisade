@@ -34,8 +34,6 @@
 #include "cryptocontext-ser.h"
 #include "pubkeylp-ser.h"
 #include "scheme/ckks/ckks-ser.h"
-#include "utils/serialize-binary.h"
-#include "utils/serialize-json.h"
 
 using namespace std;
 using namespace lbcrypto;
@@ -51,6 +49,22 @@ class UTCKKSSer : public ::testing::Test {
   void TearDown() { CryptoContextFactory<DCRTPoly>::ReleaseAllContexts(); }
 };
 
+#if NATIVEINT == 128
+// This file unit tests the SHE capabilities for the CKKS scheme
+#define GENERATE_TEST_CASES_FUNC(x, y, ORD, SCALE, NUMPRIME, RELIN, BATCH)   \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
+                          BATCH, BV, APPROXRESCALE)                          \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
+                          BATCH, GHS, APPROXRESCALE)                         \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
+                          BATCH, HYBRID, APPROXRESCALE)                      \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
+                          BATCH, BV, APPROXAUTO)                             \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
+                          BATCH, GHS, APPROXAUTO)                            \
+  GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
+                          BATCH, HYBRID, APPROXAUTO)
+#else
 // This file unit tests the SHE capabilities for the CKKS scheme
 #define GENERATE_TEST_CASES_FUNC(x, y, ORD, SCALE, NUMPRIME, RELIN, BATCH)   \
   GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
@@ -71,6 +85,7 @@ class UTCKKSSer : public ::testing::Test {
                           BATCH, GHS, EXACTRESCALE)                          \
   GENERATE_CKKS_TEST_CASE(x, y, DCRTPoly, CKKS, ORD, SCALE, NUMPRIME, RELIN, \
                           BATCH, HYBRID, EXACTRESCALE)
+#endif
 
 /* *
  * ORDER: Cyclotomic order. Must be a power of 2 for CKKS.
@@ -377,6 +392,54 @@ static void TestKeysAndCiphertexts(CryptoContext<T> cc, const ST& sertype,
   CryptoContextFactory<DCRTPoly>::ReleaseAllContexts();
 }
 
+template <typename T, typename ST>
+static void TestDecryptionSerNoCRTTables(CryptoContext<T> cc, const ST& sertype,
+                                         string msg) {
+  LPKeyPair<T> kp = cc->KeyGen();
+
+  vector<std::complex<double>> vals = {1.0, 3.0, 5.0, 7.0, 9.0,
+                                       2.0, 4.0, 6.0, 8.0, 11.0};
+  Plaintext plaintextShort = cc->MakeCKKSPackedPlaintext(vals);
+  Ciphertext<DCRTPoly> ciphertext = cc->Encrypt(kp.publicKey, plaintextShort);
+  double eps = 0.000000001;
+
+  stringstream s;
+  Serial::Serialize(cc, s, sertype);
+
+  CryptoContextFactory<T>::ReleaseAllContexts();
+  SERIALIZE_PRECOMPUTE = false;
+
+  CryptoContext<T> newcc;
+
+  Serial::Deserialize(newcc, s, sertype);
+
+  ASSERT_TRUE(newcc) << msg << " Deserialize failed";
+
+  s.str("");
+  s.clear();
+  Serial::Serialize(kp.publicKey, s, sertype);
+
+  LPPublicKey<T> newPub;
+  Serial::Deserialize(newPub, s, sertype);
+  ASSERT_TRUE(newPub) << msg << " Key deserialize failed";
+
+  s.str("");
+  s.clear();
+  Serial::Serialize(ciphertext, s, sertype);
+
+  Ciphertext<DCRTPoly> newC;
+  Serial::Deserialize(newC, s, sertype);
+  ASSERT_TRUE(newC) << msg << " ciphertext deserialize failed";
+
+  Plaintext result;
+  cc->Decrypt(kp.secretKey, newC, &result);
+  result->SetLength(plaintextShort->GetLength());
+  auto tmp_a = plaintextShort->GetCKKSPackedValue();
+  auto tmp_b = result->GetCKKSPackedValue();
+  checkApproximateEquality(tmp_a, tmp_b, uint64_t(vals.size()), eps,
+                           msg + " Decryption Failed");
+}
+
 template <typename T>
 static void UnitTestKeysAndCiphertextsRelin0JSON(CryptoContext<T> cc,
                                                  const string& failmsg) {
@@ -401,6 +464,18 @@ static void UnitTestKeysAndCiphertextsRelin20BINARY(CryptoContext<T> cc,
   TestKeysAndCiphertexts(cc, SerType::BINARY, "binary");
 }
 
+template <typename T>
+static void UnitTestDecryptionSerNoCRTTablesJSON(CryptoContext<T> cc,
+                                                 const string& failmsg) {
+  TestDecryptionSerNoCRTTables(cc, SerType::JSON, "json");
+}
+
+template <typename T>
+static void UnitTestDecryptionSerNoCRTTablesBINARY(CryptoContext<T> cc,
+                                                   const string& failmsg) {
+  TestDecryptionSerNoCRTTables(cc, SerType::BINARY, "binary");
+}
+
 GENERATE_TEST_CASES_FUNC(UTCKKSSer, UnitTestKeysAndCiphertextsRelin0JSON, ORDER,
                          SCALE, NUMPRIME, 0, BATCH)
 GENERATE_TEST_CASES_FUNC(UTCKKSSer, UnitTestKeysAndCiphertextsRelin0BINARY,
@@ -410,3 +485,8 @@ GENERATE_TEST_CASES_FUNC(UTCKKSSer, UnitTestKeysAndCiphertextsRelin20JSON,
                          ORDER, SCALE, NUMPRIME, 20, BATCH)
 GENERATE_TEST_CASES_FUNC(UTCKKSSer, UnitTestKeysAndCiphertextsRelin20BINARY,
                          ORDER, SCALE, NUMPRIME, 20, BATCH)
+
+GENERATE_TEST_CASES_FUNC(UTCKKSSer, UnitTestDecryptionSerNoCRTTablesJSON, ORDER,
+                         SCALE, NUMPRIME, 0, BATCH)
+GENERATE_TEST_CASES_FUNC(UTCKKSSer, UnitTestDecryptionSerNoCRTTablesBINARY,
+                         ORDER, SCALE, NUMPRIME, 0, BATCH)

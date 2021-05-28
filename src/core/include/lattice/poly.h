@@ -217,13 +217,13 @@ class PolyImpl : public ILElement<PolyImpl<VecType>, VecType> {
    * @brief Clone the object by making a copy of it and returning the copy
    * @return new Element
    */
-  PolyType Clone() const { return std::move(PolyImpl(*this)); }
+  PolyType Clone() const { return PolyImpl(*this); }
 
   /**
    * @brief Clone the object, but have it contain nothing
    * @return new Element
    */
-  PolyType CloneEmpty() const { return std::move(PolyImpl()); }
+  PolyType CloneEmpty() const { return PolyImpl(); }
 
   /**
    * @brief Clone method that creates a new PolyImpl and clones only the params.
@@ -350,9 +350,7 @@ class PolyImpl : public ILElement<PolyImpl<VecType>, VecType> {
    *
    * @return order
    */
-  usint GetCyclotomicOrder() const {
-    return m_params->GetCyclotomicOrder();
-  }
+  usint GetCyclotomicOrder() const { return m_params->GetCyclotomicOrder(); }
 
   /**
    * @brief Get the ring dimension.
@@ -397,7 +395,7 @@ class PolyImpl : public ILElement<PolyImpl<VecType>, VecType> {
    * @brief Set method of the values.
    *
    * @param values is the set of values of the vector.
-   * @param format is the format, either COEFFICIENT or Format::EVALUATION.
+   * @param format is the format, either COEFFICIENT or EVALUATION.
    */
   void SetValues(const VecType &values, Format format);
 
@@ -405,7 +403,7 @@ class PolyImpl : public ILElement<PolyImpl<VecType>, VecType> {
    * @brief Set method of the values.
    *
    * @param values is the set of values of the vector.
-   * @param format is the format, either COEFFICIENT or Format::EVALUATION.
+   * @param format is the format, either COEFFICIENT or EVALUATION.
    */
   void SetValues(VecType &&values, Format format);
 
@@ -615,6 +613,16 @@ class PolyImpl : public ILElement<PolyImpl<VecType>, VecType> {
    * @return is the result of the automorphism transform.
    */
   PolyImpl AutomorphismTransform(const usint &k) const;
+
+  /**
+   * @brief Performs an automorphism transform operation using precomputed bit
+   * reversal indices.
+   *
+   * @param &i is the element to perform the automorphism transform with.
+   * @param &map a vector with precomputed indices
+   * @return is the result of the automorphism transform.
+   */
+  PolyImpl AutomorphismTransform(usint i, const std::vector<usint> &map) const;
 
   /**
    * @brief Interpolates based on the Chinese Remainder Transform Interpolation.

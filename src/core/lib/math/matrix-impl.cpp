@@ -221,6 +221,25 @@ Matrix<int32_t> ConvertToInt32(const Matrix<BigVector> &input,
 }
 
 template <>
+void Matrix<Field2n>::SetFormat(Format f) {
+  if (rows == 1) {
+    for (size_t row = 0; row < rows; ++row) {
+#pragma omp parallel for
+      for (size_t col = 0; col < cols; ++col) {
+        data[row][col].SetFormat(f);
+      }
+    }
+  } else {
+    for (size_t col = 0; col < cols; ++col) {
+#pragma omp parallel for
+      for (size_t row = 0; row < rows; ++row) {
+        data[row][col].SetFormat(f);
+      }
+    }
+  }
+}
+
+template <>
 void Matrix<Field2n>::SwitchFormat() {
   if (rows == 1) {
     for (size_t row = 0; row < rows; ++row) {

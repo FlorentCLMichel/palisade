@@ -30,7 +30,7 @@
 
 #include "encoding/encodings.h"
 
-// FIXME: when the parms are polymorphic, reduce the tuple of methods to a
+// TODO: when the parms are polymorphic, reduce the tuple of methods to a
 // single one
 
 namespace lbcrypto {
@@ -49,12 +49,6 @@ class PlaintextFactory {
         PALISADE_THROW(type_error,
                        "Unknown plaintext encoding type in MakePlaintext");
         break;
-      case Scalar:
-        pt = std::make_shared<ScalarEncoding>(vp, ep);
-        break;
-      case Integer:
-        pt = std::make_shared<IntegerEncoding>(vp, ep);
-        break;
       case CoefPacked:
         pt = std::make_shared<CoefPackedEncoding>(vp, ep);
         break;
@@ -63,9 +57,6 @@ class PlaintextFactory {
         break;
       case String:
         pt = std::make_shared<StringEncoding>(vp, ep);
-        break;
-      case Fractional:
-        pt = std::make_shared<FractionalEncoding>(vp, ep);
         break;
       case CKKSPacked:
         pt = std::make_shared<CKKSPackedEncoding>(vp, ep);
@@ -85,12 +76,6 @@ class PlaintextFactory {
         PALISADE_THROW(type_error,
                        "Unknown plaintext encoding type in MakePlaintext");
         break;
-      case Scalar:
-        pt = std::make_shared<ScalarEncoding>(vp, ep);
-        break;
-      case Integer:
-        pt = std::make_shared<IntegerEncoding>(vp, ep);
-        break;
       case CoefPacked:
         pt = std::make_shared<CoefPackedEncoding>(vp, ep);
         break;
@@ -99,9 +84,6 @@ class PlaintextFactory {
         break;
       case String:
         pt = std::make_shared<StringEncoding>(vp, ep);
-        break;
-      case Fractional:
-        pt = std::make_shared<FractionalEncoding>(vp, ep);
         break;
       case CKKSPacked:
         pt = std::make_shared<CKKSPackedEncoding>(vp, ep);
@@ -121,12 +103,6 @@ class PlaintextFactory {
         PALISADE_THROW(type_error,
                        "Unknown plaintext encoding type in MakePlaintext");
         break;
-      case Scalar:
-        pt = std::make_shared<ScalarEncoding>(vp, ep);
-        break;
-      case Integer:
-        pt = std::make_shared<IntegerEncoding>(vp, ep);
-        break;
       case CoefPacked:
         pt = std::make_shared<CoefPackedEncoding>(vp, ep);
         break;
@@ -136,41 +112,11 @@ class PlaintextFactory {
       case String:
         pt = std::make_shared<StringEncoding>(vp, ep);
         break;
-      case Fractional:
-        pt = std::make_shared<FractionalEncoding>(vp, ep);
-        break;
       case CKKSPacked:
         pt = std::make_shared<CKKSPackedEncoding>(vp, ep);
         break;
     }
 
-    return pt;
-  }
-
-  static Plaintext MakePlaintext(PlaintextEncodings encoding,
-                                 shared_ptr<Poly::Params> vp, EncodingParams ep,
-                                 int64_t value) {
-    Plaintext pt = MakePlaintext(encoding, vp, ep);
-    pt->SetIntegerValue(value);
-    pt->Encode();
-    return pt;
-  }
-
-  static Plaintext MakePlaintext(PlaintextEncodings encoding,
-                                 shared_ptr<NativePoly::Params> vp,
-                                 EncodingParams ep, int64_t value) {
-    Plaintext pt = MakePlaintext(encoding, vp, ep);
-    pt->SetIntegerValue(value);
-    pt->Encode();
-    return pt;
-  }
-
-  static Plaintext MakePlaintext(PlaintextEncodings encoding,
-                                 shared_ptr<DCRTPoly::Params> vp,
-                                 EncodingParams ep, int64_t value) {
-    Plaintext pt = MakePlaintext(encoding, vp, ep);
-    pt->SetIntegerValue(value);
-    pt->Encode();
     return pt;
   }
 
@@ -230,34 +176,6 @@ class PlaintextFactory {
     return pt;
   }
 
-  static Plaintext MakePlaintext(PlaintextEncodings encoding,
-                                 shared_ptr<Poly::Params> vp, EncodingParams ep,
-                                 int64_t scalar, size_t divisorBits) {
-    Plaintext pt = MakePlaintext(encoding, vp, ep);
-    pt->SetFractionalValues(scalar, divisorBits);
-    pt->Encode();
-    return pt;
-  }
-
-  static Plaintext MakePlaintext(PlaintextEncodings encoding,
-                                 shared_ptr<NativePoly::Params> vp,
-                                 EncodingParams ep, int64_t scalar,
-                                 size_t divisorBits) {
-    Plaintext pt = MakePlaintext(encoding, vp, ep);
-    pt->SetFractionalValues(scalar, divisorBits);
-    pt->Encode();
-    return pt;
-  }
-
-  static Plaintext MakePlaintext(PlaintextEncodings encoding,
-                                 shared_ptr<DCRTPoly::Params> vp,
-                                 EncodingParams ep, int64_t scalar,
-                                 size_t divisorBits) {
-    Plaintext pt = MakePlaintext(encoding, vp, ep);
-    pt->SetFractionalValues(scalar, divisorBits);
-    pt->Encode();
-    return pt;
-  }
 };
 
 } /* namespace lbcrypto */

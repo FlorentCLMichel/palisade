@@ -33,9 +33,9 @@ MatrixStrassen<Element>::MatrixStrassen(alloc_func allocZero, size_t rows,
                                         size_t cols, alloc_func allocGen)
     : data(), rows(rows), cols(cols), allocZero(allocZero) {
   data.resize(rows);
-  for (auto row = data.begin(); row != data.end(); ++row) {
+  for (auto& row : data) {
     for (size_t col = 0; col < cols; ++col) {
-      row->push_back(allocGen());
+      row.push_back(allocGen());
     }
   }
 }
@@ -283,8 +283,7 @@ MatrixStrassen<Element>& MatrixStrassen<Element>::VStack(
   }
   for (size_t row = 0; row < other.rows; ++row) {
     vector<unique_ptr<Element>> rowElems;
-    for (auto elem = other.data[row].begin(); elem != other.data[row].end();
-         ++elem) {
+    for (auto elem : other.data[row]) {
       rowElems.push_back(Element(*elem));
     }
     data.push_back(std::move(rowElems));

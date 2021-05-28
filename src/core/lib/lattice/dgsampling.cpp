@@ -277,8 +277,7 @@ void LatticeGaussSampUtility<Element>::ZSampleSigma2x2(
   size_t n = a.Size();
 
   Field2n dCoeff = d;
-  // Converts to Format::COEFFICIENT representation
-  dCoeff.SwitchFormat();
+  dCoeff.SetFormat(Format::COEFFICIENT);
 
   shared_ptr<Matrix<int64_t>> q2Int = ZSampleF(dCoeff, c(1, 0), dgg, n);
   Field2n q2(*q2Int);
@@ -288,15 +287,13 @@ void LatticeGaussSampUtility<Element>::ZSampleSigma2x2(
   q2Minusc2.SwitchFormat();
 
   Field2n product = b * d.Inverse() * q2Minusc2;
-  // Convert the product to Format::COEFFICIENT representation
-  product.SwitchFormat();
+  product.SetFormat(Format::COEFFICIENT);
 
   // Computes c1 in Format::COEFFICIENT format
   Field2n c1 = c(0, 0) + product;
 
   Field2n f = a - b * d.Inverse() * b.Transpose();
-  // Convert to Format::COEFFICIENT representation
-  f.SwitchFormat();
+  f.SetFormat(Format::COEFFICIENT);
 
   shared_ptr<Matrix<int64_t>> q1Int = ZSampleF(f, c1, dgg, n);
 
@@ -339,8 +336,7 @@ void LatticeGaussSampUtility<Element>::SampleMat(
 
   if (dimD == 1) {
     Field2n dEval = D(0, 0);
-    // convert to Format::COEFFICIENT representation
-    dEval.SwitchFormat();
+    dEval.SetFormat(Format::COEFFICIENT);
     c1(0, 0) = C(d - 1, 0);
     c0 = C.ExtractRows(0, d - 2);
 
@@ -407,14 +403,12 @@ void LatticeGaussSampUtility<Element>::SampleMat(
   Matrix<Field2n> sigma = A - B * Dinverse * (B.Transpose());
 
   Matrix<Field2n> diff = qF1 - c1;
-  // Switch to evaluation representation
-  diff.SwitchFormat();
-  c0.SwitchFormat();
+  diff.SetFormat(Format::EVALUATION);
+  c0.SetFormat(Format::EVALUATION);
 
   Matrix<Field2n> cNew = c0 + B * Dinverse * diff;
 
-  // Switch to Format::COEFFICIENT representation
-  cNew.SwitchFormat();
+  cNew.SetFormat(Format::COEFFICIENT);
 
   size_t newDimA =
       static_cast<size_t>(std::ceil(static_cast<double>(dimA) / 2));
@@ -465,9 +459,8 @@ shared_ptr<Matrix<int64_t>> LatticeGaussSampUtility<Element>::ZSampleF(
   Field2n f0 = f.ExtractEven();
   Field2n f1 = f.ExtractOdd();
 
-  // converts to evaluation representation
-  f0.SwitchFormat();
-  f1.SwitchFormat();
+  f0.SetFormat(Format::EVALUATION);
+  f1.SetFormat(Format::EVALUATION);
 
   usint f0_size = f0.Size();
 

@@ -399,44 +399,16 @@ CryptoContext<T> CryptoContextFactory<T>::genCryptoContextBFVrnsB(
 }
 
 template <typename T>
-CryptoContext<T> CryptoContextFactory<T>::genCryptoContextBGV(
-    shared_ptr<ParmType> ep, const PlaintextModulus plaintextmodulus,
-    usint relinWindow, float stDev, MODE mode, int depth) {
-  auto params = std::make_shared<LPCryptoParametersBGV<T>>(
-      ep, plaintextmodulus, stDev,
-      36,           // assuranceMeasure,
-      1.006,        // securityLevel,
-      relinWindow,  // Relinearization Window
-      mode,         // Mode of noise generation
-      depth);
-
-  auto scheme = std::make_shared<LPPublicKeyEncryptionSchemeBGV<T>>();
-
-  return CryptoContextFactory<T>::GetContext(params, scheme);
-}
-
-template <typename T>
-CryptoContext<T> CryptoContextFactory<T>::genCryptoContextBGV(
-    shared_ptr<ParmType> ep, EncodingParams encodingParams, usint relinWindow,
-    float stDev, MODE mode, int depth) {
-  auto params = std::make_shared<LPCryptoParametersBGV<T>>(
-      ep, encodingParams, stDev,
-      36,           // assuranceMeasure,
-      1.006,        // securityLevel,
-      relinWindow,  // Relinearization Window
-      mode,         // Mode of noise generation
-      depth);
-
-  auto scheme = std::make_shared<LPPublicKeyEncryptionSchemeBGV<T>>();
-
-  return CryptoContextFactory<T>::GetContext(params, scheme);
-}
-
-template <typename T>
 CryptoContext<T> CryptoContextFactory<T>::genCryptoContextCKKS(
     shared_ptr<ParmType> ep, const PlaintextModulus plaintextmodulus,
     usint relinWindow, float stDev, MODE mode, int depth, int maxDepth,
     KeySwitchTechnique ksTech, RescalingTechnique rsTech) {
+#if NATIVEINT == 128
+  if (rsTech == EXACTRESCALE)
+    PALISADE_THROW(
+        config_error,
+        "128-bit CKKS is not supported for the EXACTRESCALE method.");
+#endif
   auto params = std::make_shared<LPCryptoParametersCKKS<T>>(
       ep, plaintextmodulus, stDev,
       9,            // assuranceMeasure,
@@ -460,6 +432,12 @@ CryptoContext<T> CryptoContextFactory<T>::genCryptoContextCKKS(
     shared_ptr<ParmType> ep, EncodingParams encodingParams, usint relinWindow,
     float stDev, MODE mode, int depth, int maxDepth, KeySwitchTechnique ksTech,
     RescalingTechnique rsTech) {
+#if NATIVEINT == 128
+  if (rsTech == EXACTRESCALE)
+    PALISADE_THROW(
+        config_error,
+        "128-bit CKKS is not supported for the EXACTRESCALE method.");
+#endif
   auto params = std::make_shared<LPCryptoParametersCKKS<T>>(
       ep, encodingParams, stDev,
       9,            // assuranceMeasure,
@@ -606,6 +584,13 @@ CryptoContext<T> CryptoContextFactory<T>::genCryptoContextCKKSWithParamsGen(
     usint batchSize, MODE mode, int depth, int maxDepth, usint firstModSize,
     KeySwitchTechnique ksTech, RescalingTechnique rsTech,
     uint32_t numLargeDigits) {
+#if NATIVEINT == 128
+  if (rsTech == EXACTRESCALE)
+    PALISADE_THROW(
+        config_error,
+        "128-bit CKKS is not supported for the EXACTRESCALE method.");
+#endif
+
   uint64_t p = scaleExp;
   float stdDev = 3.19;
 
@@ -638,6 +623,13 @@ CryptoContext<T> CryptoContextFactory<T>::genCryptoContextCKKS(
     SecurityLevel stdLevel, usint ringDim, RescalingTechnique rsTech,
     KeySwitchTechnique ksTech, uint32_t numLargeDigits, int maxDepth,
     usint firstModSize, usint relinWindow, MODE mode) {
+#if NATIVEINT == 128
+  if (rsTech == EXACTRESCALE)
+    PALISADE_THROW(
+        config_error,
+        "128-bit CKKS is not supported for the EXACTRESCALE method.");
+#endif
+
   float stdDev = 3.19;
 
   auto ep = std::make_shared<ParmType>(0, IntType(0), IntType(0));
@@ -679,35 +671,6 @@ CryptoContext<T> CryptoContextFactory<T>::genCryptoContextCKKS(
   cc->setSchemeId("CKKS");
 
   return cc;
-}
-
-template <typename T>
-CryptoContext<T> CryptoContextFactory<T>::genCryptoContextStehleSteinfeld(
-    shared_ptr<ParmType> ep, const PlaintextModulus plaintextmodulus,
-    usint relinWindow, float stDev, float stDevStSt, int depth,
-    int assuranceMeasure, float securityLevel) {
-  auto params = std::make_shared<LPCryptoParametersStehleSteinfeld<T>>(
-      ep, plaintextmodulus, stDev, assuranceMeasure, securityLevel, relinWindow,
-      stDevStSt, depth);
-
-  auto scheme =
-      std::make_shared<LPPublicKeyEncryptionSchemeStehleSteinfeld<T>>();
-
-  return CryptoContextFactory<T>::GetContext(params, scheme);
-}
-
-template <typename T>
-CryptoContext<T> CryptoContextFactory<T>::genCryptoContextStehleSteinfeld(
-    shared_ptr<ParmType> ep, EncodingParams encodingParams, usint relinWindow,
-    float stDev, float stDevStSt, int depth, int assuranceMeasure,
-    float securityLevel) {
-  auto params = std::make_shared<LPCryptoParametersStehleSteinfeld<T>>(
-      ep, encodingParams, stDev, assuranceMeasure, securityLevel, relinWindow,
-      stDevStSt, depth);
-  auto scheme =
-      std::make_shared<LPPublicKeyEncryptionSchemeStehleSteinfeld<T>>();
-
-  return CryptoContextFactory<T>::GetContext(params, scheme);
 }
 
 template <>

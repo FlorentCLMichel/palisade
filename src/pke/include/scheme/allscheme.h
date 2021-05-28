@@ -26,10 +26,6 @@
 
 #include "scheme/rlwe.h"
 
-#include "scheme/stst/stst.h"
-
-#include "scheme/bgv/bgv.h"
-
 #include "scheme/bgvrns/bgvrns.h"
 
 #include "scheme/bfv/bfv.h"

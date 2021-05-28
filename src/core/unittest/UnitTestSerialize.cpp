@@ -39,8 +39,7 @@
 #include "utils/utilities.h"
 
 #include "testdefs.h"
-#include "utils/serialize-binary.h"
-#include "utils/serialize-json.h"
+#include "utils/serial.h"
 
 using namespace std;
 using namespace lbcrypto;

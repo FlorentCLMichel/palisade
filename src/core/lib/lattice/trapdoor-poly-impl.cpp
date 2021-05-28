@@ -70,8 +70,8 @@ RLWETrapdoorUtility<Poly>::TrapdoorGen(shared_ptr<typename Poly::Params> params,
   Matrix<Poly> e(zero_alloc, 1, k, gaussian_alloc);
 
   // Converts discrete gaussians to Evaluation representation
-  r.SwitchFormat();
-  e.SwitchFormat();
+  r.SetFormat(Format::EVALUATION);
+  e.SetFormat(Format::EVALUATION);
 
   Matrix<Poly> g = Matrix<Poly>(zero_alloc, 1, k).GadgetVector(base);
 
@@ -115,8 +115,8 @@ RLWETrapdoorUtility<NativePoly>::TrapdoorGen(
   Matrix<NativePoly> e(zero_alloc, 1, k, gaussian_alloc);
 
   // Converts discrete gaussians to Evaluation representation
-  r.SwitchFormat();
-  e.SwitchFormat();
+  r.SetFormat(Format::EVALUATION);
+  e.SetFormat(Format::EVALUATION);
 
   Matrix<NativePoly> g =
       Matrix<NativePoly>(zero_alloc, 1, k).GadgetVector(base);
@@ -160,8 +160,8 @@ RLWETrapdoorUtility<Poly>::TrapdoorGenSquareMat(
   Matrix<Poly> Abar(zero_alloc, d, d, uniform_alloc);
 
   // Converts discrete gaussians to Evaluation representation
-  R.SwitchFormat();
-  E.SwitchFormat();
+  R.SetFormat(Format::EVALUATION);
+  E.SetFormat(Format::EVALUATION);
 
   Matrix<Poly> G = Matrix<Poly>(zero_alloc, d, d * k).GadgetVector(base);
 
@@ -213,8 +213,8 @@ RLWETrapdoorUtility<NativePoly>::TrapdoorGenSquareMat(
   Matrix<NativePoly> Abar(zero_alloc, d, d, uniform_alloc);
 
   // Converts discrete gaussians to Evaluation representation
-  R.SwitchFormat();
-  E.SwitchFormat();
+  R.SetFormat(Format::EVALUATION);
+  E.SetFormat(Format::EVALUATION);
 
   Matrix<NativePoly> G =
       Matrix<NativePoly>(zero_alloc, d, d * k).GadgetVector(base);
@@ -281,8 +281,7 @@ Matrix<Poly> RLWETrapdoorUtility<Poly>::GaussSamp(
   DEBUG("t1: " << TOC(t1_tot));  // takes 64
   TIC(t2);
   TIC(t2_tot);
-  // converting perturbed syndrome to coefficient representation
-  perturbedSyndrome.SwitchFormat();
+  perturbedSyndrome.SetFormat(Format::COEFFICIENT);
   DEBUG("t2a: " << TOC(t2));  // takes 1
   TIC(t2);
   LatticeGaussSampUtility<Poly>::GaussSampGqArbBase(
@@ -295,7 +294,7 @@ Matrix<Poly> RLWETrapdoorUtility<Poly>::GaussSamp(
 
   DEBUG("t2c: " << TOC(t2));  // takes 0
   // Now converting it to the evaluation representation before multiplication
-  zHat.SwitchFormat();
+  zHat.SetFormat(Format::EVALUATION);
   DEBUG("t2d: " << TOC(t2));  // takes 17
   DEBUG("t2: " << TOC(t2_tot));
   // TIC(t3); seems trivial
@@ -353,8 +352,7 @@ Matrix<NativePoly> RLWETrapdoorUtility<NativePoly>::GaussSamp(
   DEBUG("t1: " << TOC(t1_tot));  // takes 64
   TIC(t2);
   TIC(t2_tot);
-  // converting perturbed syndrome to coefficient representation
-  perturbedSyndrome.SwitchFormat();
+  perturbedSyndrome.SetFormat(Format::COEFFICIENT);
   DEBUG("t2a: " << TOC(t2));  // takes 1
   TIC(t2);
   LatticeGaussSampUtility<NativePoly>::GaussSampGqArbBase(
@@ -368,7 +366,7 @@ Matrix<NativePoly> RLWETrapdoorUtility<NativePoly>::GaussSamp(
 
   DEBUG("t2c: " << TOC(t2));  // takes 0
   // Now converting it to the evaluation representation before multiplication
-  zHat.SwitchFormat();
+  zHat.SetFormat(Format::EVALUATION);
   DEBUG("t2d: " << TOC(t2));  // takes 17
   DEBUG("t2: " << TOC(t2_tot));
   // TIC(t3); seems trivial
@@ -412,8 +410,7 @@ Matrix<Poly> RLWETrapdoorUtility<Poly>::GaussSampSquareMat(
   // of d*(k + 2) x d perturbedSyndrome is in the evaluation representation
   Matrix<Poly> perturbedSyndrome = U - (A.Mult(*pHat));
 
-  // converting perturbed syndrome to coefficient representation
-  perturbedSyndrome.SwitchFormat();
+  perturbedSyndrome.SetFormat(Format::COEFFICIENT);
 
   Matrix<Poly> zHatMat(zero_alloc, d * k, d);
 
@@ -430,7 +427,7 @@ Matrix<Poly> RLWETrapdoorUtility<Poly>::GaussSampSquareMat(
 
       // Now converting it to the evaluation representation before
       // multiplication
-      zHat.SwitchFormat();
+      zHat.SetFormat(Format::EVALUATION);
 
       for (size_t p = 0; p < k; p++) zHatMat(i * k + p, j) = zHat(p, 0);
     }
@@ -483,8 +480,7 @@ Matrix<NativePoly> RLWETrapdoorUtility<NativePoly>::GaussSampSquareMat(
   // of d*(k + 2) x d perturbedSyndrome is in the evaluation representation
   Matrix<NativePoly> perturbedSyndrome = U - (A.Mult(*pHat));
 
-  // converting perturbed syndrome to coefficient representation
-  perturbedSyndrome.SwitchFormat();
+  perturbedSyndrome.SetFormat(Format::COEFFICIENT);
 
   Matrix<NativePoly> zHatMat(zero_alloc, d * k, d);
 
@@ -502,7 +498,7 @@ Matrix<NativePoly> RLWETrapdoorUtility<NativePoly>::GaussSampSquareMat(
 
       // Now converting it to the evaluation representation before
       // multiplication
-      zHat.SwitchFormat();
+      zHat.SetFormat(Format::EVALUATION);
 
       for (size_t p = 0; p < k; p++) zHatMat(i * k + p, j) = zHat(p, 0);
     }

@@ -63,22 +63,20 @@ names, contact info, and date of first inclusion into the team.
   members of the Crypto Team.  Recommendations are then passed on to
   the Steering Team for an immediate vote for adoption.  Areas of
   responsibility of the Crypto Team are outlined as follows:
+  
+  * Decide whether a particular scheme/capability should be added or 
+    removed from an upcoming PALISADE release.
 
-    * Decide whether a particular scheme/capability should be added
-  	or removed from an upcoming PALISADE release.
+  * Identify/recommend various hardening techniques, such as PRNG, 
+    Gaussian sampling, constant-time samplers, etc.
 
-	* Identify/recommend various hardening techniques, such as PRNG,
-	Gaussian sampling, constant-time samplers, etc.
+  * Discuss/recommend the choice and inclusion of new lattice 
+    parameter settings, e.g., non-power-of-two cyclotomics.
+    
+  * Develop/recommend any patches/fixes related to newly discovered vulnerabilities or attacks, and draft public 
+    announcements regarding those attacks and PALISADE'S corresponding response. Note, all resulting draft announcements must
+    then be approved by the Steering Team, which is then responsible for publishing the announcement accordingly. 
 
-	* Discuss/recommend the choice and inclusion of non-standard lattice
-	parameters, e.g., for use with non-power-of-two cyclotomics.
-
-	* Develop/recommend any patches/fixes related to newly discovered
-	vulnerabilities or attacks, and draft public announcements
-	regarding those attacks and PALISADES corresponding
-	response. Note, all resulting draft announcements must then be
-	approved by the Steering Team, which is then responsible for
-	publishing the announcement accordingly.
 	
 * **Advisory Board:** The Advisory Board is a group of technologists
   and thought leaders expert in the HE field or associated application

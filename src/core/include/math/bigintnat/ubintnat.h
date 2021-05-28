@@ -2203,14 +2203,14 @@ class NativeIntegerT
    * @param &x result of multiplication
    */
   static inline void MultD(U64BITS a, U64BITS b, typeD &res) {
-#ifdef __x86_64__
+#if defined(__x86_64__)
     // clang-format off
     __asm__("mulq %[b]"
             : [ lo ] "=a"(res.lo), [ hi ] "=d"(res.hi)
             : [ a ] "%[lo]"(a), [ b ] "rm"(b)
             : "cc");
     // clang-format on
-#elif __aarch64__
+#elif defined(__aarch64__)
     typeD x;
     x.hi = 0;
     x.lo = a;
@@ -2218,17 +2218,40 @@ class NativeIntegerT
     res.lo = x.lo * y;
     asm("umulh %0, %1, %2\n\t" : "=r"(res.hi) : "r"(x.lo), "r"(y));
     res.hi += x.hi * y;
-#elif __arm__  // 32 bit processor only
+#elif defined(__arm__) // 32 bit processor
     uint64_t wres(0), wa(a), wb(b);
 
     wres = wa * wb;  // should give us the lower 64 bits of 32*32
     res.hi = wres >> 32;
     res.lo = (uint32_t)wres && 0xFFFFFFFF;
+#elif defined(__EMSCRIPTEN__)  // web assembly
+    U64BITS a1 = a >> 32;
+    U64BITS a2 = (uint32_t)a;
+    U64BITS b1 = b >> 32;
+    U64BITS b2 = (uint32_t)b;
+
+    // use schoolbook multiplication
+    res.hi = a1 * b1;
+    res.lo = a2 * b2;
+    U64BITS lowBefore = res.lo;
+
+    U64BITS p1 = a2 * b1;
+    U64BITS p2 = a1 * b2;
+    U64BITS temp = p1 + p2;
+    res.hi += temp >> 32;
+    res.lo += U64BITS((uint32_t)temp) << 32;
+
+    // adds the carry to the high word
+    if (lowBefore > res.lo) res.hi++;
+
+    // if there is an overflow in temp, add 2^32
+    if ((temp < p1) || (temp < p2)) res.hi += (U64BITS)1 << 32;
 #else
 #error Architecture not supported for MultD()
 #endif
   }
 
+#if defined(HAVE_INT128)
   static inline void MultD(U128BITS a, U128BITS b, typeD &res) {
     // TODO: The performance of this function can be improved
     // Instead of 128-bit multiplication, we can use MultD from bigintnat
@@ -2255,6 +2278,7 @@ class NativeIntegerT
     // if there is an overflow in temp, add 2^64
     if ((temp < p1) || (temp < p2)) res.hi += (U128BITS)1 << 64;
   }
+#endif
 
   static inline void MultD(U32BITS a, U32BITS b, typeD &res) {
     DNativeInt prod = DNativeInt(a) * DNativeInt(b);

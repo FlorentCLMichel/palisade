@@ -22,13 +22,10 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "binfhecontext.h"
 #include "gtest/gtest.h"
 
 // these header files are needed for serialization
 #include "binfhecontext-ser.h"
-#include "utils/serialize-binary.h"
-#include "utils/serialize-json.h"
 
 using namespace lbcrypto;
 
