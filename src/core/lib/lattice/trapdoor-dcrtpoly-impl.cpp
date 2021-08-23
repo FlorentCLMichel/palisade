@@ -274,8 +274,8 @@ Matrix<DCRTPoly> RLWETrapdoorUtility<DCRTPoly>::GaussSampSquareMat(
             dgg, &digits);
 
         for (size_t p = 0; p < kRes; p++) {
-          for (size_t j = 0; j < n; j++) {
-            zHatBBI(p + u * kRes, j) = digits(p, j);
+          for (size_t jj = 0; jj < n; jj++) {
+            zHatBBI(p + u * kRes, jj) = digits(p, jj);
           }
         }
       }

@@ -169,7 +169,6 @@ void BM_encoding_PackedCKKSPlaintext(benchmark::State &state) {
   usint m = 1024;
   usint numPrimes = 1;
   uint64_t p = 50;
-  usint dcrtBits = p;
   usint relinWin = 0;
   usint batch = 8;
 
@@ -179,7 +178,6 @@ void BM_encoding_PackedCKKSPlaintext(benchmark::State &state) {
   ep = cc->GetEncodingParams();
   auto scalingFactor = cc->GetEncodingParams()->GetPlaintextModulus();
 
-  int i = 0;
   while (state.KeepRunning()) {
     plaintext.reset(
         new CKKSPackedEncoding(lp, ep, vectorOfComplex, 1, 0, scalingFactor));

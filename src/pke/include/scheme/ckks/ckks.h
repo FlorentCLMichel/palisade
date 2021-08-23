@@ -1251,6 +1251,22 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
     PALISADE_THROW(not_implemented_error, errMsg);
   }
 
+  /*
+   * Relinearize a ciphertext in place.
+   *
+   * @param ciphertext input ciphertext to be relinearized
+   * @param ek The evaluation key input.
+   * @return the relinearized ciphertext
+   */
+  void RelinearizeInPlace(
+      Ciphertext<Element> &ciphertext,
+      const vector<LPEvalKey<Element>> &ek) const override {
+    std::string errMsg =
+        "LPAlgorithmSHECKKS::RelinearizeInPlace is not implemented for the non "
+        "Double-CRT variant of the CKKS Scheme.";
+    PALISADE_THROW(not_implemented_error, errMsg);
+  }
+
   /**
    * Function for homomorphic negation of ciphertexts.
    *

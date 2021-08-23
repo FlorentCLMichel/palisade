@@ -110,10 +110,10 @@ std::vector<int> GetCyclotomicPolynomialRecursive(usint m) {
     result = {1, 1};
     return result;
   }
-  auto IsPrime = [](usint m) {
+  auto IsPrime = [](usint val) {
     bool flag = true;
-    for (usint i = 2; i < m; i++) {
-      if (m % i == 0) {
+    for (usint i = 2; i < val; i++) {
+      if (val % i == 0) {
         flag = false;
         return flag;
       }
@@ -125,10 +125,10 @@ std::vector<int> GetCyclotomicPolynomialRecursive(usint m) {
     return result;
   }
 
-  auto GetDivisibleNumbers = [](usint m) {
+  auto GetDivisibleNumbers = [](usint val) {
     std::vector<usint> div;
-    for (usint i = 1; i < m; i++) {
-      if (m % i == 0) {
+    for (usint i = 1; i < val; i++) {
+      if (val % i == 0) {
         div.push_back(i);
       }
     }
@@ -141,17 +141,17 @@ std::vector<int> GetCyclotomicPolynomialRecursive(usint m) {
 
     usint degreeResultant = degreeA + degreeB;
 
-    std::vector<int> result(degreeResultant + 1, 0);
+    std::vector<int> product(degreeResultant + 1, 0);
 
     for (usint i = 0; i < a.size(); i++) {
       for (usint j = 0; j < b.size(); j++) {
-        const auto &valResult = result.at(i + j);
+        const auto &valResult = product.at(i + j);
         const auto &valMult = a.at(i) * b.at(j);
-        result.at(i + j) = valMult + valResult;
+        product.at(i + j) = valMult + valResult;
       }
     }
 
-    return result;
+    return product;
   };
 
   auto PolyQuotient = [](const std::vector<int> &dividend,
@@ -160,11 +160,11 @@ std::vector<int> GetCyclotomicPolynomialRecursive(usint m) {
     usint dividendLength = dividend.size();
 
     usint runs = dividendLength - divisorLength + 1;  // no. of iterations
-    std::vector<int> result(runs + 1);
+    std::vector<int> quotient(runs + 1);
 
     auto mat = [](const int x, const int y, const int z) {
-      int result = z - (x * y);
-      return result;
+      int ret = z - (x * y);
+      return ret;
     };
 
     std::vector<int> runningDividend(dividend);
@@ -184,13 +184,13 @@ std::vector<int> GetCyclotomicPolynomialRecursive(usint m) {
               runningDividend.at(dividendLength - 2 - j);
         }
       }
-      result.at(i + 1) = runningDividend.at(dividendLength - 1);
+      quotient.at(i + 1) = runningDividend.at(dividendLength - 1);
     }
     // under the assumption that both dividend and divisor are monic
-    result.at(0) = 1;
-    result.pop_back();
+    quotient.at(0) = 1;
+    quotient.pop_back();
 
-    return result;
+    return quotient;
   };
   auto divisibleNumbers = GetDivisibleNumbers(m);
 
@@ -258,7 +258,7 @@ uint32_t FindAutomorphismIndexCyclic(int32_t i, uint32_t m, uint32_t g) {
 
   uint32_t i_unsigned = (uint32_t)i_signed;
   uint32_t k = g;
-  for (size_t i = 2; i < i_unsigned; i++) {
+  for (size_t ii = 2; ii < i_unsigned; ii++) {
     k = (k * g) % m;
   }
   return k;

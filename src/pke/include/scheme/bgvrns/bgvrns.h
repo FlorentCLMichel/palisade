@@ -1262,6 +1262,20 @@ class LPAlgorithmSHEBGVrns : public LPSHEAlgorithm<Element> {
   Ciphertext<Element> Relinearize(ConstCiphertext<Element> ciphertext,
                                   const vector<LPEvalKey<Element>>& ek) const override;
 
+  /*
+   * Relinearize a ciphertext in place.
+   *
+   * @param ciphertext input ciphertext to be relinearized
+   * @param ek The evaluation key input.
+   */
+  void RelinearizeInPlace(Ciphertext<Element> &ciphertext,
+                                  const vector<LPEvalKey<Element>>& ek) const override {
+    std::string errMsg =
+        "LPAlgorithmSHEBGVrns::RelinearizeInPlace is not implemented for the non "
+        "Double-CRT variant of the BGV Scheme.";
+    PALISADE_THROW(not_implemented_error, errMsg);
+  }
+
   /**
    * Function for homomorphic negation of ciphertexts.
    *

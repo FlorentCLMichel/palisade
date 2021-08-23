@@ -41,6 +41,13 @@ DiscreteGaussianGeneratorImpl<VecType>::DiscreteGaussianGeneratorImpl(
 template <typename VecType>
 void DiscreteGaussianGeneratorImpl<VecType>::SetStd(double std) {
   m_std = std;
+  if (log2(m_std) > 59) {
+    std::string errorMsg(
+          std::string(
+              "Standard deviation cannot exceed 59 bits"));
+      PALISADE_THROW(config_error, errorMsg);
+  }
+  
   if (m_std < KARNEY_THRESHOLD)
     peikert = true;
   else
@@ -111,10 +118,10 @@ int32_t DiscreteGaussianGeneratorImpl<VecType>::GenerateInt() const {
 }
 
 template <typename VecType>
-std::shared_ptr<int32_t>
+std::shared_ptr<int64_t>
 DiscreteGaussianGeneratorImpl<VecType>::GenerateIntVector(usint size) const {
-  std::shared_ptr<int32_t> ans(new int32_t[size], std::default_delete<int[]>());
-  usint val = 0;
+  std::shared_ptr<int64_t> ans(new int64_t[size], std::default_delete<int64_t[]>());
+  int64_t val = 0;
   double seed;
   if (peikert) {
     std::uniform_real_distribution<double> distribution(0.0, 1.0);
@@ -128,7 +135,7 @@ DiscreteGaussianGeneratorImpl<VecType>::GenerateIntVector(usint size) const {
         if (seed > 0) {
           val = FindInVector(m_vals, (std::abs(seed) - m_a / 2));
         } else {
-          val = -static_cast<int>(
+          val = -static_cast<int64_t>(
               FindInVector(m_vals, (std::abs(seed) - m_a / 2)));
         }
       }
@@ -187,7 +194,7 @@ DiscreteGaussianGeneratorImpl<VecType>::GenerateInteger(
 template <typename VecType>
 VecType DiscreteGaussianGeneratorImpl<VecType>::GenerateVector(
     const usint size, const typename VecType::Integer &modulus) const {
-  std::shared_ptr<int32_t> result = GenerateIntVector(size);
+  std::shared_ptr<int64_t> result = GenerateIntVector(size);
 
   VecType ans(size);
   ans.SetModulus(modulus);

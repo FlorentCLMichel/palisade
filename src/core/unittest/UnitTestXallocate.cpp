@@ -37,6 +37,7 @@
 #include "math/backend.h"
 #include "utils/blockAllocator/xallocator.h"
 #include "utils/debug.h"
+#include "utils/defines.h"
 #include "utils/inttypes.h"
 #include "utils/utilities.h"
 
@@ -146,6 +147,7 @@ void Benchmark(const char* name, AllocFunc allocFunc, DeallocFunc deallocFunc) {
   TotalElapsedMicroseconds += ElapsedMicroseconds;
 
   PROFILELOG(name << "           TOTAL TIME: " << TotalElapsedMicroseconds);
+  PALISADE_UNUSED(TotalElapsedMicroseconds);
 }
 
 TEST(UTBlockAllocate, xalloc_test) {

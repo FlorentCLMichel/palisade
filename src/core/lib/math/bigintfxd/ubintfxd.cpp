@@ -1444,8 +1444,8 @@ const BigInteger<uint_type, BITLENGTH>
     for (; i < m_nSize; i++) {
       this->m_value[i - shiftByUint] = this->m_value[i];
     }
-    for (usint i = 0; i < shiftByUint; i++) {
-      this->m_value[m_nSize - 1 - i] = 0;
+    for (usint ii = 0; ii < shiftByUint; ii++) {
+      this->m_value[m_nSize - 1 - ii] = 0;
     }
   }
   this->m_MSB += shiftByUint * m_uintBitLength;

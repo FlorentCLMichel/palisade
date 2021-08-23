@@ -1887,6 +1887,7 @@ class CryptoContextImpl : public Serializable {
     if (!ct) PALISADE_THROW(type_error, "Input ciphertext is nullptr");
 
     const auto ek = GetEvalMultKeyVector(ct->GetKeyTag());
+
     if (ek.size() < (ct->GetElements().size() - 2)) {
       PALISADE_THROW(type_error,
                      "Insufficient value was used for maxDepth to generate "
@@ -1896,6 +1897,28 @@ class CryptoContextImpl : public Serializable {
     auto rv = GetEncryptionAlgorithm()->Relinearize(ct, ek);
     return rv;
   }
+
+  /**
+   * Function for relinearization of a ciphertext.
+   *
+   * @param ct input ciphertext.
+   *
+   * @return relinearized ciphertext
+   */
+   void RelinearizeInPlace(Ciphertext<Element> &ct) const {
+    // input parameter check
+    if (!ct)
+      PALISADE_THROW(type_error, "Input ciphertext is nullptr");
+
+    const auto ek = GetEvalMultKeyVector(ct->GetKeyTag());
+    if (ek.size() < (ct->GetElements().size() - 2)) {
+      PALISADE_THROW(type_error,
+                     "Insufficient value was used for maxDepth to generate "
+                     "keys for EvalMult");
+    }
+
+    GetEncryptionAlgorithm()->RelinearizeInPlace(ct, ek);
+   }
 
   /**
    * EvalMult - PALISADE EvalMult method for plaintext * ciphertext

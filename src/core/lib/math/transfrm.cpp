@@ -23,6 +23,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "math/transfrm.h"
+#include "utils/defines.h"
 
 #ifdef WITH_INTEL_HEXL
 #include "hexl/hexl.hpp"
@@ -578,7 +579,7 @@ void ChineseRemainderTransformFTT<VecType>::ForwardTransformToBitReverseInPlace(
   IntType modulus = element->GetModulus();
 
   bool reCompute = false;
-  (void)reCompute;  // Avoid unused variable
+  PALISADE_UNUSED(reCompute); // Used only when WITH_INTEL_HEXL=ON
   auto mapSearch = m_rootOfUnityReverseTableByModulus.find(modulus);
   if (mapSearch == m_rootOfUnityReverseTableByModulus.end() ||
       mapSearch->second.GetLength() != CycloOrderHf) {
@@ -644,7 +645,7 @@ void ChineseRemainderTransformFTT<VecType>::ForwardTransformToBitReverse(
   IntType modulus = element.GetModulus();
 
   bool reCompute = false;
-  (void)reCompute;  // Avoid unused variable
+  PALISADE_UNUSED(reCompute); // Used only when WITH_INTEL_HEXL=ON
   auto mapSearch = m_rootOfUnityReverseTableByModulus.find(modulus);
   if (mapSearch == m_rootOfUnityReverseTableByModulus.end() ||
       mapSearch->second.GetLength() != CycloOrderHf) {
@@ -715,7 +716,7 @@ void ChineseRemainderTransformFTT<
   IntType modulus = element->GetModulus();
 
   bool reCompute = false;
-  (void)reCompute;  // Avoid unused variable
+  PALISADE_UNUSED(reCompute); // Used only when WITH_INTEL_HEXL=ON
   auto mapSearch = m_rootOfUnityReverseTableByModulus.find(modulus);
   if (mapSearch == m_rootOfUnityReverseTableByModulus.end() ||
       mapSearch->second.GetLength() != CycloOrderHf) {

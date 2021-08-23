@@ -318,7 +318,7 @@ TEST(UTTrapdoor, TrapDoorGaussGqSampTest) {
 
 // this test does not work correctly in the web assembly configuration
 // it is not needed for the functionality exposed through the web assembly
-#if !defined(__EMSCRIPTEN__)
+#if !defined(__EMSCRIPTEN__) && !defined(__CYGWIN__)
 TEST(UTTrapdoor, TrapDoorGaussSampTestDCRT) {
   usint n = 16;  // cyclotomic order
   size_t kRes = 51;
@@ -602,7 +602,7 @@ TEST(UTTrapdoor, TrapDoorGaussSampTestSquareMatrices) {
 
 // this test does not work correctly in the web assembly configuration
 // it is not needed for the functionality exposed through the web assembly
-#if !defined(__EMSCRIPTEN__)
+#if !defined(__EMSCRIPTEN__) && !defined(__CYGWIN__)
 // Test of Gaussian Sampling for matrices from 2x2 to 5x5
 TEST(UTTrapdoor, TrapDoorGaussSampTestSquareMatricesDCRT) {
   usint m = 16;

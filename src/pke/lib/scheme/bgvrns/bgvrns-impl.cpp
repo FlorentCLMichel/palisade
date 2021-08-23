@@ -2219,18 +2219,14 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::EvalMultAndRelinearize(
   DCRTPoly zero = ciphertext->GetElements()[0].CloneParametersOnly();
   zero.SetValuesToZero();
 
-  for (size_t j = 0; j < depth; j++) {
-    size_t index = depth - 1 - j;
+  for (size_t j = 0, index = (depth - 1); j < depth; j++, --index) {
 
     LPEvalKeyRelin<DCRTPoly> evalKey =
         std::static_pointer_cast<LPEvalKeyRelinImpl<DCRTPoly>>(ek[index]);
 
     // Create a ciphertext with 3 components (0, 0, c[index+2])
     // so KeySwitch returns only the switched parts of c[index+2]
-    vector<DCRTPoly> tmp(3);
-    tmp[0] = zero;
-    tmp[1] = zero;
-    tmp[2] = cv[index + 2];
+    vector<DCRTPoly> tmp = {zero, zero, cv[index + 2]};
     Ciphertext<DCRTPoly> cTmp = ciphertext->CloneEmpty();
     cTmp->SetElements(std::move(tmp));
     cTmp->SetDepth(ciphertext->GetDepth());
@@ -2267,57 +2263,122 @@ template <>
 Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::Relinearize(
     ConstCiphertext<DCRTPoly> ciphertext,
     const vector<LPEvalKey<DCRTPoly>> &ek) const {
-  const auto cryptoParams =
-      std::static_pointer_cast<LPCryptoParametersBGVrns<DCRTPoly>>(
-          ek[0]->GetCryptoParameters());
 
-  Ciphertext<DCRTPoly> result = ciphertext->CloneEmpty();
-  result->SetDepth(ciphertext->GetDepth());
+  if (ciphertext->GetElements().size() == 3) {
 
-  std::vector<DCRTPoly> cv = ciphertext->GetElements();
+      LPEvalKeyRelin<DCRTPoly> evalKey =
+          std::static_pointer_cast<LPEvalKeyRelinImpl<DCRTPoly>>(ek[0]);
 
-  DCRTPoly ct0(cv[0]);
-  DCRTPoly ct1(cv[1]);
+      Ciphertext<DCRTPoly> result = ciphertext->Clone();
 
-  ct0.SetFormat(Format::EVALUATION);
-  ct1.SetFormat(Format::EVALUATION);
+      KeySwitchInPlace(evalKey, result);
 
-  // Perform a keyswitching operation to result of the multiplication. It does
-  // it until it reaches to 2 elements.
-  // TODO: Maybe we can change the number of keyswitching and terminate early.
-  // For instance; perform keyswitching until 4 elements left.
-  usint depth = ciphertext->GetElements().size() - 2;
+      return result;
 
-  DCRTPoly zero = ciphertext->GetElements()[0].CloneParametersOnly();
-  zero.SetValuesToZero();
+  } else {
 
-  for (size_t j = 0; j < depth; j++) {
-    size_t index = depth - 1 - j;
+    const auto cryptoParams =
+	std::static_pointer_cast<LPCryptoParametersBGVrns<DCRTPoly>>(
+	    ek[0]->GetCryptoParameters());
 
-    LPEvalKeyRelin<DCRTPoly> evalKey =
-        std::static_pointer_cast<LPEvalKeyRelinImpl<DCRTPoly>>(ek[index]);
+    Ciphertext<DCRTPoly> result = ciphertext->CloneEmpty();
+    result->SetDepth(ciphertext->GetDepth());
 
-    // Create a ciphertext with 3 components (0, 0, c[index+2])
-    // so KeySwitch returns only the switched parts of c[index+2]
-    vector<DCRTPoly> tmp(3);
-    tmp[0] = zero;
-    tmp[1] = zero;
-    tmp[2] = cv[index + 2];
-    Ciphertext<DCRTPoly> cTmp = ciphertext->CloneEmpty();
-    cTmp->SetElements(std::move(tmp));
-    cTmp->SetDepth(ciphertext->GetDepth());
-    cTmp->SetLevel(ciphertext->GetLevel());
+    const std::vector<DCRTPoly> &cv = ciphertext->GetElements();
 
-    KeySwitchInPlace(evalKey, cTmp);
+    DCRTPoly ct0(cv[0]);
+    DCRTPoly ct1(cv[1]);
 
-    ct0 += cTmp->GetElements()[0];
-    ct1 += cTmp->GetElements()[1];
+    // Perform a keyswitching operation to result of the multiplication. It does
+    // it until it reaches to 2 elements.
+    // TODO: Maybe we can change the number of keyswitching and terminate early.
+    // For instance; perform keyswitching until 4 elements left.
+    usint depth = ciphertext->GetElements().size() - 2;
+
+    DCRTPoly zero = ciphertext->GetElements()[0].CloneParametersOnly();
+    zero.SetValuesToZero();
+
+    for (size_t j = 0, index = (depth - 1); j < depth; j++, --index) {
+
+      LPEvalKeyRelin<DCRTPoly> evalKey =
+	  std::static_pointer_cast<LPEvalKeyRelinImpl<DCRTPoly>>(ek[index]);
+
+      // Create a ciphertext with 3 components (0, 0, c[index+2])
+      // so KeySwitch returns only the switched parts of c[index+2]
+      vector<DCRTPoly> tmp = {zero, zero, cv[index + 2]};
+      Ciphertext<DCRTPoly> cTmp = ciphertext->CloneEmpty();
+      cTmp->SetElements(std::move(tmp));
+      cTmp->SetDepth(ciphertext->GetDepth());
+      cTmp->SetLevel(ciphertext->GetLevel());
+
+      KeySwitchInPlace(evalKey, cTmp);
+
+      ct0 += cTmp->GetElements()[0];
+      ct1 += cTmp->GetElements()[1];
+    }
+
+    result->SetElements({std::move(ct0), std::move(ct1)});
+    result->SetLevel(ciphertext->GetLevel());
+
+    return result;
+
   }
+}
 
-  result->SetElements({std::move(ct0), std::move(ct1)});
-  result->SetLevel(ciphertext->GetLevel());
+template <>
+void LPAlgorithmSHEBGVrns<DCRTPoly>::RelinearizeInPlace(
+    Ciphertext<DCRTPoly> &ciphertext,
+    const vector<LPEvalKey<DCRTPoly>> &ek) const {
 
-  return result;
+  if (ciphertext->GetElements().size() == 3) {
+
+      LPEvalKeyRelin<DCRTPoly> evalKey =
+          std::static_pointer_cast<LPEvalKeyRelinImpl<DCRTPoly>>(ek[0]);
+
+      KeySwitchInPlace(evalKey, ciphertext);
+
+  } else {
+
+    const auto cryptoParams =
+	std::static_pointer_cast<LPCryptoParametersBGVrns<DCRTPoly>>(
+	    ek[0]->GetCryptoParameters());
+
+    const std::vector<DCRTPoly> &cv = ciphertext->GetElements();
+
+    DCRTPoly ct0(cv[0]);
+    DCRTPoly ct1(cv[1]);
+
+    // Perform a keyswitching operation to result of the multiplication. It does
+    // it until it reaches to 2 elements.
+    // TODO: Maybe we can change the number of keyswitching and terminate early.
+    // For instance; perform keyswitching until 4 elements left.
+    usint depth = ciphertext->GetElements().size() - 2;
+
+    DCRTPoly zero = ciphertext->GetElements()[0].CloneParametersOnly();
+    zero.SetValuesToZero();
+
+    for (size_t j = 0, index = (depth - 1); j < depth; j++, --index) {
+
+      LPEvalKeyRelin<DCRTPoly> evalKey =
+	  std::static_pointer_cast<LPEvalKeyRelinImpl<DCRTPoly>>(ek[index]);
+
+      // Create a ciphertext with 3 components (0, 0, c[index+2])
+      // so KeySwitch returns only the switched parts of c[index+2]
+      vector<DCRTPoly> tmp = {zero, zero, cv[index + 2]};
+      Ciphertext<DCRTPoly> cTmp = ciphertext->CloneEmpty();
+      cTmp->SetElements(std::move(tmp));
+      cTmp->SetDepth(ciphertext->GetDepth());
+      cTmp->SetLevel(ciphertext->GetLevel());
+
+      KeySwitchInPlace(evalKey, cTmp);
+
+      ct0 += cTmp->GetElements()[0];
+      ct1 += cTmp->GetElements()[1];
+    }
+
+    ciphertext->SetElements({std::move(ct0), std::move(ct1)});
+
+  }
 }
 
 template <>

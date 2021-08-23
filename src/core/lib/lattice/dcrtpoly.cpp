@@ -215,7 +215,7 @@ DCRTPolyImpl<VecType>::DCRTPolyImpl(
   m_vectors.reserve(vecSize);
 
   // dgg generating random values
-  std::shared_ptr<int32_t> dggValues =
+  std::shared_ptr<int64_t> dggValues =
       dgg.GenerateIntVector(dcrtParams->GetRingDimension());
 
   for (usint i = 0; i < vecSize; i++) {
@@ -228,6 +228,16 @@ DCRTPolyImpl<VecType>::DCRTPolyImpl(
       // (-1) and subtract the modulus of the current tower to set the
       // coefficient
       NativeInteger::SignedNativeInt k = (dggValues.get())[j];
+      auto dcrt_qmodulus = (NativeInteger::SignedNativeInt)dcrtParams->GetParams()[i]
+                    ->GetModulus()
+                    .ConvertToInt();
+      auto dgg_stddev = dgg.GetStd();
+ 
+      if (dgg_stddev > dcrt_qmodulus) {
+        //rescale k to dcrt_qmodulus
+        auto mk = k % dcrt_qmodulus;
+        k = (NativeInteger::Integer)mk;
+      }
       if (k < 0) {
         k *= (-1);
         entry = (NativeInteger::Integer)dcrtParams->GetParams()[i]
@@ -1373,8 +1383,8 @@ DCRTPolyImpl<VecType>::CRTInterpolateIndex(usint i) const {
   const std::vector<PolyType> *vecs = &m_vectors;
   std::vector<PolyType> coeffVecs;
   if (m_format == Format::EVALUATION) {
-    for (usint i = 0; i < m_vectors.size(); i++) {
-      PolyType vecCopy(m_vectors[i]);
+    for (usint ii = 0; ii < m_vectors.size(); ii++) {
+      PolyType vecCopy(m_vectors[ii]);
       vecCopy.SetFormat(Format::COEFFICIENT);
       coeffVecs.push_back(std::move(vecCopy));
     }

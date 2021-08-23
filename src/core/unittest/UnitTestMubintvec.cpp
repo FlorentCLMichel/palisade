@@ -72,18 +72,17 @@ using namespace lbcrypto;
  ************************************************/
 TEST(UTmubintvec, ctor_access_eq_neq) {
   DEBUG_FLAG(false);
-  bigintdyn::xubint q("1234567");  // a bigger number
+  // a bigger number
+  bigintdyn::xubint q("1234567");  
 
+  // calling constructor to create a vector of length 5
   bigintdyn::xmubintvec m(
-      5);  // calling constructor to create a vector of length 5
+      5);  
   // note all values are zero.
 
   m.SetModulus(q);
 
   bigintdyn::xmubintvec n(5, q);  // calling contructor with modulus
-
-  usint i;
-  usint j;
 
   EXPECT_EQ(5U, m.GetLength()) << "Failure in GetLength()";
   EXPECT_EQ(5U, n.GetLength()) << "Failure in GetLength()";
@@ -145,8 +144,8 @@ TEST(UTmubintvec, ctor_access_eq_neq) {
 
   usint expectedResult[5] = {9872, 5888, 4620, 2376, 4631};
 
-  for (i = 0, j = 0; j < 5; i++, j++) {
-    EXPECT_EQ(expectedResult[i], (m.at(j)).ConvertToInt<uint32_t>())
+  for (usint i = 0; i < 5; ++i) {
+    EXPECT_EQ(expectedResult[i], (m.at(i)).ConvertToInt<uint32_t>())
         << "Failure testing method_add_equals";
   }
 
@@ -184,7 +183,7 @@ TEST(UTmubintvec, ctor_access_eq_neq) {
   EXPECT_EQ(10U, eqtest.GetLength())
       << "Failure create bigintdyn::xmubintvec of 10 zeros";
 
-  for (i = 0; i < eqtest.GetLength(); i++) {
+  for (usint i = 0; i < eqtest.GetLength(); ++i) {
     EXPECT_EQ(bigintdyn::xubint(0U), eqtest[i])
         << "Failure create bigintdyn::xmubintvec of zeros";
   }
@@ -193,7 +192,7 @@ TEST(UTmubintvec, ctor_access_eq_neq) {
   eqtest = bigintdyn::xubint(1);
   EXPECT_EQ(bigintdyn::xubint(1), eqtest[0])
       << "Failure assign single bigintdyn::xubint 0 index";
-  for (i = 1; i < eqtest.GetLength(); i++) {
+  for (usint i = 1; i < eqtest.GetLength(); i++) {
     EXPECT_EQ(bigintdyn::xubint(0U), eqtest[i])
         << "Failure assign single bigintdyn::xubint nonzero index";
   }
@@ -202,7 +201,7 @@ TEST(UTmubintvec, ctor_access_eq_neq) {
   eqtest = 5U;
   EXPECT_EQ(bigintdyn::xubint(5U), eqtest[0])
       << "Failure assign single bigintdyn::xubint 0 index";
-  for (i = 1; i < eqtest.GetLength(); i++) {
+  for (usint i = 1; i < eqtest.GetLength(); ++i) {
     EXPECT_EQ(bigintdyn::xubint(0U), eqtest[i])
         << "Failure assign single bigintdyn::xubint nonzero index";
   }
@@ -229,7 +228,7 @@ TEST(UTmubintvec, ctor_access_eq_neq) {
   EXPECT_FALSE(test1) << "Failure ==";
   EXPECT_TRUE(test2) << "Failure !=";
 
-  for (usint i = 0; i < m.GetLength(); i++) {
+  for (usint i = 0; i < m.GetLength(); ++i) {
     m[i] = n[i];  // test both lhs and rhs []
   }
 
@@ -275,8 +274,6 @@ TEST(UTmubintvec, mod) {
   bigintdyn::xmubintvec m(
       10);  // calling constructor to create a vector of length 10 zeroed
 
-  size_t i;
-
   // setting value of the value at different index locations
   m.at(0) = "987968";
   m.at(1) = "587679";
@@ -298,7 +295,7 @@ TEST(UTmubintvec, mod) {
   // the expected values are stored as one dimensional integer array
   usint expectedResult[10] = {48, 53, 7, 178, 190, 120, 79, 108, 60, 12};
 
-  for (i = 0; i < 10; i++) {
+  for (size_t i = 0; i < 10; i++) {
     EXPECT_EQ(expectedResult[i], calculatedResult[i].ConvertToInt<uint32_t>());
   }
 }

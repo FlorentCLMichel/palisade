@@ -174,7 +174,7 @@ inline void RLWETrapdoorUtility<DCRTPoly>::ZSampleSigmaP(
     }
   } else {
     // Peikert's inversion sampling method
-    std::shared_ptr<int32_t> dggVector = dggLargeSigma.GenerateIntVector(n * k);
+    std::shared_ptr<int64_t> dggVector = dggLargeSigma.GenerateIntVector(n * k);
 
     for (size_t i = 0; i < n * k; i++) {
       p2ZVector(i, 0) = (dggVector.get())[i];

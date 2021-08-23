@@ -2085,10 +2085,32 @@ class LPSHEAlgorithm {
       ConstCiphertext<Element> ct1, ConstCiphertext<Element> ct2,
       const vector<LPEvalKey<Element>> &ek) const = 0;
 
+  /**
+   * Virtual function to do relinearization
+   *
+   * @param ciphertext input ciphertext.
+   * @param ek are the evaluation keys to make the newCiphertext
+   *  decryptable by the same secret key as that of ciphertext1 and
+   * ciphertext2.
+   * @return the new resulting ciphertext.
+   */
   virtual Ciphertext<Element> Relinearize(
       ConstCiphertext<Element> ciphertext,
       const vector<LPEvalKey<Element>> &ek) const {
     PALISADE_THROW(config_error, "Relinearize operation not supported");
+  }
+
+  /**
+   * Virtual function to do in-place relinearization
+   *
+   * @param &ciphertext input ciphertext.
+   * @param ek are the evaluation keys
+   * @return the new resulting ciphertext.
+   */
+  virtual void RelinearizeInPlace(
+      Ciphertext<Element> &ciphertext,
+      const vector<LPEvalKey<Element>> &ek) const {
+    PALISADE_THROW(config_error, "RelinearizeInPlace operation not supported");
   }
 
   /**
@@ -4280,6 +4302,19 @@ class LPPublicKeyEncryptionScheme {
       return m_algorithmSHE->Relinearize(ciphertext, ek);
     }
     PALISADE_THROW(config_error, "Relinearize operation has not been enabled");
+  }
+
+  virtual void RelinearizeInPlace(
+      Ciphertext<Element> &ciphertext,
+      const vector<LPEvalKey<Element>> &ek) const {
+    if (m_algorithmSHE) {
+      if (!ciphertext)
+        PALISADE_THROW(config_error, "Input ciphertext is nullptr");
+      if (!ek.size())
+        PALISADE_THROW(config_error, "Input evaluation key vector is empty");
+      return m_algorithmSHE->RelinearizeInPlace(ciphertext, ek);
+    }
+    PALISADE_THROW(config_error, "RelinearizeInPlace operation has not been enabled");
   }
 
   /////////////////////////////////////////

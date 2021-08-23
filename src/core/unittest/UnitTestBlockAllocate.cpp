@@ -201,6 +201,7 @@ void Benchmark(const char* name, AllocFunc allocFunc, DeallocFunc deallocFunc) {
   TotalElapsedMicroseconds += ElapsedMicroseconds;
 
   PROFILELOG(name << "           TOTAL TIME: " << TotalElapsedMicroseconds);
+  (void)TotalElapsedMicroseconds;  // Avoid unused variable warning
 }
 
 TEST(UTBlockAllocate, block_allocator_test) {

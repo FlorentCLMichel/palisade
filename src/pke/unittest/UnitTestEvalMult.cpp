@@ -130,24 +130,36 @@ namespace {
 
         cryptoContext->Enable(ENCRYPTION);
         cryptoContext->Enable(SHE);
+        cryptoContext->Enable(LEVELEDSHE);
 
         return cryptoContext;
     }
 
     static CryptoContext<DCRTPoly> MakeCKKSDCRTPolyCC(TEST_ESTIMATED_RESULT testResult = SUCCESS) {
         uint32_t multDepth = 4;
-        uint32_t scaleFactorBits = 50;
         uint32_t batchSize = 8;
         SecurityLevel securityLevel = HEStd_NotSet;
         usint ringDim = 16; 
 
+#if NATIVEINT == 128
+        uint32_t scaleFactorBits = 78;
         // Set Crypto Parameters
         CryptoContext<DCRTPoly> cryptoContext =
             CryptoContextFactory<DCRTPoly>::genCryptoContextCKKS(
-                    multDepth, scaleFactorBits, batchSize, securityLevel, ringDim);
+                    multDepth, scaleFactorBits, batchSize, securityLevel, ringDim,
+		    APPROXAUTO,HYBRID,0,3);
+#else
+        uint32_t scaleFactorBits = 50;
+        // Set Crypto Parameters
+        CryptoContext<DCRTPoly> cryptoContext =
+            CryptoContextFactory<DCRTPoly>::genCryptoContextCKKS(
+                    multDepth, scaleFactorBits, batchSize, securityLevel, ringDim,
+		    EXACTRESCALE,HYBRID,0,3);
+#endif
 
         cryptoContext->Enable(ENCRYPTION);
         cryptoContext->Enable(SHE);
+        cryptoContext->Enable(LEVELEDSHE);
 
         return cryptoContext;
     }
@@ -432,6 +444,215 @@ namespace {
                         plaintextResult->GetPackedValue()));
         }
 
+    template <typename Element>
+        static void RunRelinTestBGVrns(CryptoContext<Element> cryptoContext,
+                TEST_ESTIMATED_RESULT testResult = SUCCESS) {
+            ////////////////////////////////////////////////////////////
+            // Perform the key generation operation.
+            ////////////////////////////////////////////////////////////
+            auto keyPair = cryptoContext->KeyGen();
+            ASSERT_TRUE(keyPair.good()) << "Key generation failed!";
+            // Create evaluation key vector to be used in keyswitching
+            cryptoContext->EvalMultKeysGen(keyPair.secretKey);
+
+            ////////////////////////////////////////////////////////////
+            // Plaintext
+            ////////////////////////////////////////////////////////////
+
+            std::vector<int64_t> vectorOfInts1 = { 0, 1, 2, 3, 4, 5, 6, 7 };
+            std::vector<int64_t> vectorOfInts2 = { 7, 6, 5, 4, 3, 2, 1, 0 };
+
+            std::vector<int64_t> vectorOfIntsResult = { 0, 6, 10, 12, 12, 10, 6, 0 };
+            std::vector<int64_t> vectorOfIntsResult2 = { 0, 6, 20, 36, 48, 50, 36, 0 };
+
+            Plaintext plaintext1 = cryptoContext->MakePackedPlaintext(vectorOfInts1);
+            Plaintext plaintext2 = cryptoContext->MakePackedPlaintext(vectorOfInts2);
+
+            Plaintext plaintextResult =
+                cryptoContext->MakePackedPlaintext(vectorOfIntsResult);
+
+            Plaintext plaintextResult2 =
+                cryptoContext->MakePackedPlaintext(vectorOfIntsResult2);
+
+            ////////////////////////////////////////////////////////////
+            // Encryption
+            ////////////////////////////////////////////////////////////
+            auto ciphertext1 = cryptoContext->Encrypt(keyPair.publicKey, plaintext1);
+            auto ciphertext2 = cryptoContext->Encrypt(keyPair.publicKey, plaintext2);
+            ////////////////////////////////////////////////////////////
+            // EvalMult Operation
+            ////////////////////////////////////////////////////////////
+            // Perform consecutive multiplications and do a keyswtiching at the end.
+            auto  ciphertextMul12 = cryptoContext->EvalMultNoRelin(ciphertext1, ciphertext2);
+
+            auto ciphertextMult = cryptoContext->Relinearize(ciphertextMul12);
+
+            ////////////////////////////////////////////////////////////
+            // Decryption of multiplicative results with and without keyswtiching (depends
+            // on the level)
+            ////////////////////////////////////////////////////////////
+
+            Plaintext plaintextMult;
+
+            cryptoContext->Decrypt(keyPair.secretKey, ciphertextMult, &plaintextMult);
+
+            plaintextMult->SetLength(plaintextResult->GetLength());
+
+            EXPECT_TRUE(checkEquality(plaintextMult->GetPackedValue(),
+                        plaintextResult->GetPackedValue()))
+                 << ".Relinearization after one multiplication failed.\n";
+
+            ciphertextMult = ciphertextMul12;
+
+            cryptoContext->Relinearize(ciphertextMult);
+
+            cryptoContext->Decrypt(keyPair.secretKey, ciphertextMult, &plaintextMult);
+
+            plaintextMult->SetLength(plaintextResult->GetLength());
+
+            EXPECT_TRUE(checkEquality(plaintextMult->GetPackedValue(),
+                        plaintextResult->GetPackedValue()))
+                 << ".In-place relinearization after one multiplication failed.\n";
+
+            // Perform consecutive multiplications and do a keyswtiching at the end.
+            auto  ciphertextMul123 = cryptoContext->EvalMultNoRelin(ciphertext1, ciphertextMul12);
+
+            auto ciphertextMult2 = cryptoContext->Relinearize(ciphertextMul123);
+
+            ////////////////////////////////////////////////////////////
+            // Decryption of multiplicative results with and without keyswtiching (depends
+            // on the level)
+            ////////////////////////////////////////////////////////////
+
+            Plaintext plaintextMult2;
+
+            cryptoContext->Decrypt(keyPair.secretKey, ciphertextMult2, &plaintextMult2);
+
+            plaintextMult2->SetLength(plaintextResult2->GetLength());
+
+            EXPECT_TRUE(checkEquality(plaintextMult2->GetPackedValue(),
+                        plaintextResult2->GetPackedValue()))
+            << ".Relinearization after two multiplications failed.\n";
+
+            ciphertextMult2 = ciphertextMul123;
+
+            cryptoContext->Relinearize(ciphertextMult2);
+
+            cryptoContext->Decrypt(keyPair.secretKey, ciphertextMult2, &plaintextMult2);
+
+            plaintextMult2->SetLength(plaintextResult2->GetLength());
+
+            EXPECT_TRUE(checkEquality(plaintextMult2->GetPackedValue(),
+                        plaintextResult2->GetPackedValue()))
+            << ".In-place relinearization after two multiplications failed.\n";
+
+        }
+
+    template <typename Element>
+         static void RunRelinTestCKKS(CryptoContext<Element> cryptoContext,
+                 TEST_ESTIMATED_RESULT testResult = SUCCESS) {
+             ////////////////////////////////////////////////////////////
+             // Perform the key generation operation.
+             ////////////////////////////////////////////////////////////
+             auto keyPair = cryptoContext->KeyGen();
+             ASSERT_TRUE(keyPair.good()) << "Key generation failed!";
+             // Create evaluation key vector to be used in keyswitching
+             cryptoContext->EvalMultKeysGen(keyPair.secretKey);
+
+             ////////////////////////////////////////////////////////////
+             // Plaintext
+             ////////////////////////////////////////////////////////////
+
+             std::vector<std::complex<double>> vectorOfInts1 = { 0, 1, 2, 3, 4, 5, 6, 7 };
+             std::vector<std::complex<double>> vectorOfInts2 = { 7, 6, 5, 4, 3, 2, 1, 0 };
+
+             std::vector<std::complex<double>> vectorOfIntsResult = { 0, 6, 10, 12, 12, 10, 6, 0 };
+             std::vector<std::complex<double>> vectorOfIntsResult2 = { 0, 6, 20, 36, 48, 50, 36, 0 };
+
+             Plaintext plaintext1 = cryptoContext->MakeCKKSPackedPlaintext(vectorOfInts1);
+             Plaintext plaintext2 = cryptoContext->MakeCKKSPackedPlaintext(vectorOfInts2);
+
+             Plaintext plaintextResult =
+                 cryptoContext->MakeCKKSPackedPlaintext(vectorOfIntsResult);
+
+             Plaintext plaintextResult2 =
+                 cryptoContext->MakeCKKSPackedPlaintext(vectorOfIntsResult2);
+
+             ////////////////////////////////////////////////////////////
+             // Encryption
+             ////////////////////////////////////////////////////////////
+             auto ciphertext1 = cryptoContext->Encrypt(keyPair.publicKey, plaintext1);
+             auto ciphertext2 = cryptoContext->Encrypt(keyPair.publicKey, plaintext2);
+             ////////////////////////////////////////////////////////////
+             // EvalMult Operation
+             ////////////////////////////////////////////////////////////
+             // Perform consecutive multiplications and do a keyswtiching at the end.
+             auto  ciphertextMul12 = cryptoContext->EvalMultNoRelin(ciphertext1, ciphertext2);
+
+             auto ciphertextMult = cryptoContext->Relinearize(ciphertextMul12);
+
+             ////////////////////////////////////////////////////////////
+             // Decryption of multiplicative results with and without keyswtiching (depends
+             // on the level)
+             ////////////////////////////////////////////////////////////
+
+             Plaintext plaintextMult;
+
+             cryptoContext->Decrypt(keyPair.secretKey, ciphertextMult, &plaintextMult);
+
+             plaintextMult->SetLength(plaintextResult->GetLength());
+
+             EXPECT_TRUE(checkEquality(plaintextMult->GetCKKSPackedValue(),
+                         plaintextResult->GetCKKSPackedValue()))
+                  << ".Relinearization after one multiplication failed.\n";
+
+             ciphertextMult = ciphertextMul12;
+
+             cryptoContext->Relinearize(ciphertextMult);
+
+             cryptoContext->Decrypt(keyPair.secretKey, ciphertextMult, &plaintextMult);
+
+             plaintextMult->SetLength(plaintextResult->GetLength());
+
+             EXPECT_TRUE(checkEquality(plaintextMult->GetCKKSPackedValue(),
+                         plaintextResult->GetCKKSPackedValue()))
+                  << ".In-place relinearization after one multiplication failed.\n";
+
+             // Perform consecutive multiplications and do a keyswtiching at the end.
+             auto  ciphertextMul123 = cryptoContext->EvalMultNoRelin(ciphertext1, ciphertextMul12);
+
+             auto ciphertextMult2 = cryptoContext->Relinearize(ciphertextMul123);
+
+             ////////////////////////////////////////////////////////////
+             // Decryption of multiplicative results with and without keyswtiching (depends
+             // on the level)
+             ////////////////////////////////////////////////////////////
+
+             Plaintext plaintextMult2;
+
+             cryptoContext->Decrypt(keyPair.secretKey, ciphertextMult2, &plaintextMult2);
+
+             plaintextMult2->SetLength(plaintextResult2->GetLength());
+
+             EXPECT_TRUE(checkEquality(plaintextMult2->GetCKKSPackedValue(),
+                         plaintextResult2->GetCKKSPackedValue()))
+             << ".Relinearization after two multiplications failed.\n";
+
+             ciphertextMult2 = ciphertextMul123;
+
+             cryptoContext->Relinearize(ciphertextMult2);
+
+             cryptoContext->Decrypt(keyPair.secretKey, ciphertextMult2, &plaintextMult2);
+
+             plaintextMult2->SetLength(plaintextResult2->GetLength());
+
+             EXPECT_TRUE(checkEquality(plaintextMult2->GetCKKSPackedValue(),
+                         plaintextResult2->GetCKKSPackedValue()))
+             << ".In-place relinearization after two multiplications failed.\n";
+
+         }
+
+
 } // anonymous namespace
 
 //===================================================================
@@ -578,3 +799,11 @@ TEST_F(UnitTestEvalMult, Test_BGVrns_Eval_Mult_INVALID_PRIVATE_KEY_DECRYPT) {
     UT_EXPECT_THROW_SIMPLE(RunEvalMultTestBGVrns(MakeBGVrnsDCRTPolyCC(), INVALID_PRIVATE_KEY_DECRYPT));
 }
 //===================================================================
+TEST_F(UnitTestEvalMult, Test_BGVrns_Relin) {
+    PackedEncoding::Destroy();
+    RunRelinTestBGVrns(MakeBGVrnsDCRTPolyCC());
+}
+TEST_F(UnitTestEvalMult, Test_CKKS_Relin) {
+    PackedEncoding::Destroy();
+    RunRelinTestCKKS(MakeCKKSDCRTPolyCC());
+}
