@@ -108,8 +108,9 @@ std::vector<int64_t> NullAutomorphismPackedArray(usint i,
     cc->EvalAutomorphismKeyGen(kp.publicKey, nullptr, indexList) :
     cc->EvalAutomorphismKeyGen(kp.publicKey, kp.secretKey, indexList);
 
+  std::map<usint, LPEvalKey<Element>> emptyEvalKeys;
   Ciphertext<Element> p1 = (INVALID_EVAL_KEY == testResult) ?
-    cc->EvalAutomorphism(ciphertext, i, std::map<usint, LPEvalKey<Element>>()) :
+    cc->EvalAutomorphism(ciphertext, i, emptyEvalKeys) :
     cc->EvalAutomorphism(ciphertext, i, *evalKeys);
 
   Plaintext intArrayNew;
@@ -154,8 +155,9 @@ std::vector<int64_t> BGVrnsAutomorphismPackedArray(usint i,
   auto evalKeys = (INVALID_PRIVATE_KEY == testResult) ?
     cc->EvalAutomorphismKeyGen(nullptr, indexList) : cc->EvalAutomorphismKeyGen(kp.secretKey, indexList);
 
+  std::map<usint, LPEvalKey<Element>> emptyEvalKeys;
   Ciphertext<Element> p1 = (INVALID_EVAL_KEY == testResult) ?
-    cc->EvalAutomorphism(ciphertext, i, std::map<usint, LPEvalKey<Element>>()) :
+    cc->EvalAutomorphism(ciphertext, i, emptyEvalKeys) :
     cc->EvalAutomorphism(ciphertext, i, *evalKeys);
 
   Plaintext intArrayNew;
@@ -200,8 +202,9 @@ std::vector<int64_t> BFVAutomorphismPackedArray(usint i,
   auto evalKeys = (INVALID_PRIVATE_KEY == testResult) ?
     cc->EvalAutomorphismKeyGen(nullptr, indexList) : cc->EvalAutomorphismKeyGen(kp.secretKey, indexList);
 
+  std::map<usint, LPEvalKey<Element>> emptyEvalKeys;
   Ciphertext<Element> p1 = (INVALID_EVAL_KEY == testResult) ?
-    cc->EvalAutomorphism(ciphertext, i, std::map<usint, LPEvalKey<Element>>()) :
+    cc->EvalAutomorphism(ciphertext, i, emptyEvalKeys) :
     cc->EvalAutomorphism(ciphertext, i, *evalKeys);
 
   Plaintext intArrayNew;
@@ -244,8 +247,9 @@ std::vector<int64_t> BFVrnsAutomorphismPackedArray(usint i,
   auto evalKeys = (INVALID_PRIVATE_KEY == testResult) ?
     cc->EvalAutomorphismKeyGen(nullptr, indexList) : cc->EvalAutomorphismKeyGen(kp.secretKey, indexList);
 
+  std::map<usint, LPEvalKey<Element>> emptyEvalKeys;
   Ciphertext<Element> p1 = (INVALID_EVAL_KEY == testResult) ?
-    cc->EvalAutomorphism(ciphertext, i, std::map<usint, LPEvalKey<Element>>()) :
+    cc->EvalAutomorphism(ciphertext, i, emptyEvalKeys) :
     cc->EvalAutomorphism(ciphertext, i, *evalKeys);
 
   Plaintext intArrayNew;
@@ -594,11 +598,12 @@ std::vector<std::complex<double>> CKKSEvalAtIndexPackedArray(usint i,
   Plaintext intArray = cc->MakeCKKSPackedPlaintext(inputVec);
   //intArray->SetLength(inputVec.size());
 
+  std::vector<int32_t> indices { index, -index };
   if (NO_KEY_GEN_CALL != testResult) {
     if (INVALID_PRIVATE_KEY == testResult) {
-      cc->EvalAtIndexKeyGen(nullptr, {index, -index});
+      cc->EvalAtIndexKeyGen(nullptr, indices);
     } else {
-      cc->EvalAtIndexKeyGen(kp.secretKey, {index, -index});
+      cc->EvalAtIndexKeyGen(kp.secretKey, indices);
     }
   }
 
@@ -834,10 +839,11 @@ std::vector<int64_t> BGVrnsEvalAtIndexPackedArray(usint i,
 
   if( NO_KEY_GEN_CALL != testResult )
   {
+    std::vector<int32_t> indices { index, -index };
     if( INVALID_PRIVATE_KEY == testResult )
-      cc->EvalAtIndexKeyGen(nullptr, {index, -index});
+      cc->EvalAtIndexKeyGen(nullptr, indices);
     else
-      cc->EvalAtIndexKeyGen(kp.secretKey, {index, -index});
+      cc->EvalAtIndexKeyGen(kp.secretKey, indices);
   }
 
   Ciphertext<Element> ciphertext = (INVALID_PUBLIC_KEY == testResult) ?

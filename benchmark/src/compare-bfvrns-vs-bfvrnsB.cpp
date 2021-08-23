@@ -125,7 +125,6 @@ CryptoContext<DCRTPoly> GenerateFlatBFVrnsContext(usint ptm, usint dcrtBits,
                                                   usint n) {
   double sigma = 3.19;
   SecurityLevel securityLevel = HEStd_128_classic;
-  usint relinWindow = 0;
   CryptoContext<DCRTPoly> cc =
       CryptoContextFactory<DCRTPoly>::genCryptoContextBFVrns(
           ptm, securityLevel, sigma, 0, 0, 0, OPTIMIZED, 0, 0, dcrtBits, n);
@@ -138,7 +137,6 @@ CryptoContext<DCRTPoly> GenerateFlatBFVrnsBContext(usint ptm, usint dcrtBits,
                                                    usint n) {
   double sigma = 3.19;
   SecurityLevel securityLevel = HEStd_128_classic;
-  usint relinWindow = 0;
   CryptoContext<DCRTPoly> cc =
       CryptoContextFactory<DCRTPoly>::genCryptoContextBFVrnsB(
           ptm, securityLevel, sigma, 0, 0, 0, OPTIMIZED, 0, 0, dcrtBits, n);

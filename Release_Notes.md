@@ -1,4 +1,10 @@
-05/28/2020: PALISADE v1.11.3 (stable) is released in the palisade-release repo
+08/22/2021: PALISADE v1.11.4 (stable) is released in the palisade-release repo
+* Fixes WebAssembly compilation for new versions of Emscripten (2.0.23+)
+* Integrates HEXL v1.2.0 improvements (additional acceleration)
+* Adds support for Gaussian sampling with standard deviations between 2^32 and 2^59
+* Fixes several minor bugs
+
+05/28/2021: PALISADE v1.11.3 (stable) is released in the palisade-release repo
 * Includes all changes from development releases v1.11.0, v1.11.1, and v1.11.2
 
 05/26/2021: PALISADE v1.11.2 (development) is released

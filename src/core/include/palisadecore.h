@@ -36,5 +36,6 @@
 #include "lattice/backend.h"
 #include "lattice/stdlatticeparms.h"
 #include "utils/debug.h"
+#include "utils/defines.h"
 
 #endif /* SRC_CORE_INCLUDE_PALISADECORE_H_ */

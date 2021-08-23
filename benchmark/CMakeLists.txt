@@ -27,7 +27,7 @@ foreach (app ${BMARK_SRC_FILES})
 	set_property(TARGET ${exe} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/benchmark)
 	target_include_directories( ${exe} PUBLIC ../third-party/google-benchmark/include )
 	set_target_properties( ${exe} PROPERTIES COMPILE_FLAGS
-		"${REGEX_FLAG} -DHAVE_STEADY_CLOCK -DNDEBUG ${WARNING_FLAG} -Wno-unused-variable" )
+		"${REGEX_FLAG} -DHAVE_STEADY_CLOCK -DNDEBUG ${WARNING_FLAG}" )
 	target_link_libraries ( ${exe} ${BMLIBS} )
 	set (BMAPPS ${BMAPPS} ${exe})
 endforeach()

@@ -593,10 +593,7 @@ void CKKS_Add(benchmark::State &state) {
   for (usint i = 0; i < slots; i++) {
     vectorOfInts1[i] = 1.001 * i;
   }
-  std::vector<std::complex<double>> vectorOfInts2(slots);
-  for (usint i = 0; i < slots; i++) {
-    vectorOfInts2[i] = 1.001 * i;
-  }
+  std::vector<std::complex<double>> vectorOfInts2(vectorOfInts1);
 
   auto plaintext1 = cc->MakeCKKSPackedPlaintext(vectorOfInts1);
   auto plaintext2 = cc->MakeCKKSPackedPlaintext(vectorOfInts2);
@@ -621,10 +618,7 @@ void CKKS_AddInPlace(benchmark::State &state) {
   for (usint i = 0; i < slots; i++) {
     vectorOfInts1[i] = 1.001 * i;
   }
-  std::vector<std::complex<double>> vectorOfInts2(slots);
-  for (usint i = 0; i < slots; i++) {
-    vectorOfInts2[i] = 1.001 * i;
-  }
+  std::vector<std::complex<double>> vectorOfInts2(vectorOfInts1);
 
   auto plaintext1 = cc->MakeCKKSPackedPlaintext(vectorOfInts1);
   auto plaintext2 = cc->MakeCKKSPackedPlaintext(vectorOfInts2);
@@ -649,10 +643,7 @@ void CKKS_MultNoRelin(benchmark::State &state) {
   for (usint i = 0; i < slots; i++) {
     vectorOfInts1[i] = 1.001 * i;
   }
-  std::vector<std::complex<double>> vectorOfInts2(slots);
-  for (usint i = 0; i < slots; i++) {
-    vectorOfInts2[i] = 1.001 * i;
-  }
+  std::vector<std::complex<double>> vectorOfInts2(vectorOfInts1);
 
   auto plaintext1 = cc->MakeCKKSPackedPlaintext(vectorOfInts1);
   auto plaintext2 = cc->MakeCKKSPackedPlaintext(vectorOfInts2);
@@ -678,10 +669,7 @@ void CKKS_MultRelin(benchmark::State &state) {
   for (usint i = 0; i < slots; i++) {
     vectorOfInts1[i] = 1.001 * i;
   }
-  std::vector<std::complex<double>> vectorOfInts2(slots);
-  for (usint i = 0; i < slots; i++) {
-    vectorOfInts2[i] = 1.001 * i;
-  }
+  std::vector<std::complex<double>> vectorOfInts2(vectorOfInts1);
 
   auto plaintext1 = cc->MakeCKKSPackedPlaintext(vectorOfInts1);
   auto plaintext2 = cc->MakeCKKSPackedPlaintext(vectorOfInts2);
@@ -707,10 +695,7 @@ void CKKS_Relin(benchmark::State &state) {
   for (usint i = 0; i < slots; i++) {
     vectorOfInts1[i] = 1.001 * i;
   }
-  std::vector<std::complex<double>> vectorOfInts2(slots);
-  for (usint i = 0; i < slots; i++) {
-    vectorOfInts2[i] = 1.001 * i;
-  }
+  std::vector<std::complex<double>> vectorOfInts2(vectorOfInts1);
 
   auto plaintext1 = cc->MakeCKKSPackedPlaintext(vectorOfInts1);
   auto plaintext2 = cc->MakeCKKSPackedPlaintext(vectorOfInts2);
@@ -727,6 +712,38 @@ void CKKS_Relin(benchmark::State &state) {
 
 BENCHMARK(CKKS_Relin)->Unit(benchmark::kMicrosecond);
 
+void CKKS_RelinInPlace(benchmark::State &state) {
+  CryptoContext<DCRTPoly> cc = GenerateCKKSContext();
+
+  LPKeyPair<DCRTPoly> keyPair = cc->KeyGen();
+  cc->EvalMultKeyGen(keyPair.secretKey);
+
+  usint slots = cc->GetEncodingParams()->GetBatchSize();
+  std::vector<std::complex<double>> vectorOfInts1(slots);
+  for (usint i = 0; i < slots; i++) {
+    vectorOfInts1[i] = 1.001 * i;
+  }
+  std::vector<std::complex<double>> vectorOfInts2(vectorOfInts1);
+
+  auto plaintext1 = cc->MakeCKKSPackedPlaintext(vectorOfInts1);
+  auto plaintext2 = cc->MakeCKKSPackedPlaintext(vectorOfInts2);
+
+  auto ciphertext1 = cc->Encrypt(keyPair.publicKey, plaintext1);
+  auto ciphertext2 = cc->Encrypt(keyPair.publicKey, plaintext2);
+
+  auto ciphertextMul = cc->EvalMultNoRelin(ciphertext1, ciphertext2);
+  auto ciphertextMulClone = ciphertextMul->Clone();
+
+  while (state.KeepRunning()) {
+    cc->RelinearizeInPlace(ciphertextMul);
+    state.PauseTiming();
+    ciphertextMul = ciphertextMulClone->Clone();
+    state.ResumeTiming();
+  }
+}
+
+BENCHMARK(CKKS_RelinInPlace)->Unit(benchmark::kMicrosecond);
+
 void CKKS_Rescale(benchmark::State &state) {
   CryptoContext<DCRTPoly> cc = GenerateCKKSContext();
 
@@ -738,10 +755,7 @@ void CKKS_Rescale(benchmark::State &state) {
   for (usint i = 0; i < slots; i++) {
     vectorOfInts1[i] = 1.001 * i;
   }
-  std::vector<std::complex<double>> vectorOfInts2(slots);
-  for (usint i = 0; i < slots; i++) {
-    vectorOfInts2[i] = 1.001 * i;
-  }
+  std::vector<std::complex<double>> vectorOfInts2(vectorOfInts1);
 
   auto plaintext1 = cc->MakeCKKSPackedPlaintext(vectorOfInts1);
   auto plaintext2 = cc->MakeCKKSPackedPlaintext(vectorOfInts2);
@@ -803,10 +817,7 @@ void CKKS_EvalAtIndex(benchmark::State &state) {
   for (usint i = 0; i < slots; i++) {
     vectorOfInts1[i] = 1.001 * i;
   }
-  std::vector<std::complex<double>> vectorOfInts2(slots);
-  for (usint i = 0; i < slots; i++) {
-    vectorOfInts2[i] = 1.001 * i;
-  }
+  std::vector<std::complex<double>> vectorOfInts2(vectorOfInts1);
 
   auto plaintext1 = cc->MakeCKKSPackedPlaintext(vectorOfInts1);
   auto plaintext2 = cc->MakeCKKSPackedPlaintext(vectorOfInts2);
@@ -1013,6 +1024,34 @@ void BGVrns_Relin(benchmark::State &state) {
 }
 
 BENCHMARK(BGVrns_Relin)->Unit(benchmark::kMicrosecond);
+
+void BGVrns_RelinInPlace(benchmark::State &state) {
+  CryptoContext<DCRTPoly> cc = GenerateBGVrnsContext();
+
+  LPKeyPair<DCRTPoly> keyPair = cc->KeyGen();
+  cc->EvalMultKeyGen(keyPair.secretKey);
+
+  std::vector<int64_t> vectorOfInts1 = {1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0};
+  std::vector<int64_t> vectorOfInts2 = {0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1};
+
+  auto plaintext1 = cc->MakePackedPlaintext(vectorOfInts1);
+  auto plaintext2 = cc->MakePackedPlaintext(vectorOfInts2);
+
+  auto ciphertext1 = cc->Encrypt(keyPair.publicKey, plaintext1);
+  auto ciphertext2 = cc->Encrypt(keyPair.publicKey, plaintext2);
+
+  auto ciphertextMul = cc->EvalMultNoRelin(ciphertext1, ciphertext2);
+  auto ciphertextMulClone = ciphertextMul->Clone();
+
+  while (state.KeepRunning()) {
+    cc->RelinearizeInPlace(ciphertextMul);
+    state.PauseTiming();
+    ciphertextMul = ciphertextMulClone->Clone();
+    state.ResumeTiming();
+  }
+}
+
+BENCHMARK(BGVrns_RelinInPlace)->Unit(benchmark::kMicrosecond);
 
 void BGVrns_ModSwitch(benchmark::State &state) {
   CryptoContext<DCRTPoly> cc = GenerateBGVrnsContext();

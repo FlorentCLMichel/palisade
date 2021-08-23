@@ -108,15 +108,15 @@ bool PackedEncoding::Encode() {
       const std::vector<std::shared_ptr<ILNativeParams>> &nativeParams =
           params->GetParams();
 
-      for (size_t i = 1; i < nativeParams.size(); i++) {
+      for (size_t ii = 1; ii < nativeParams.size(); ii++) {
         NativePoly temp(firstElement);
 
-        temp.SwitchModulus(nativeParams[i]->GetModulus(),
-                           nativeParams[i]->GetRootOfUnity(),
-                           nativeParams[i]->GetBigModulus(),
-                           nativeParams[i]->GetBigRootOfUnity());
+        temp.SwitchModulus(nativeParams[ii]->GetModulus(),
+                           nativeParams[ii]->GetRootOfUnity(),
+                           nativeParams[ii]->GetBigModulus(),
+                           nativeParams[ii]->GetBigRootOfUnity());
 
-        this->encodedVectorDCRT.SetElementAtIndex(i, std::move(temp));
+        this->encodedVectorDCRT.SetElementAtIndex(ii, std::move(temp));
       }
     }
 

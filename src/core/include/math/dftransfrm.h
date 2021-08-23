@@ -115,6 +115,10 @@ class DiscreteFourierTransform {
   static size_t m_M;
   static size_t m_Nh;
 
+  // flag that is set to false
+  // when initialization is in progress
+  static bool m_isInitialized;
+
   /// precomputed rotation group indexes
   static std::vector<uint32_t> m_rotGroup;
   /// precomputed ksi powers

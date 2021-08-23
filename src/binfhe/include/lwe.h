@@ -127,6 +127,17 @@ class LWEEncryptionScheme {
       const std::shared_ptr<LWECryptoParams> params,
       const std::shared_ptr<LWESwitchingKey> K,
       const std::shared_ptr<const LWECiphertextImpl> ctQN) const;
+
+  /**
+   * Embeds a plaintext bit without noise or encryption
+   *
+   * @param params a shared pointer to LWE scheme parameters
+   * @param &m - the plaintext
+   * @return a shared pointer to the ciphertext
+   */
+  std::shared_ptr<LWECiphertextImpl> NoiselessEmbedding(
+      const std::shared_ptr<LWECryptoParams> params,
+      const LWEPlaintext& m) const;
 };
 
 }  // namespace lbcrypto

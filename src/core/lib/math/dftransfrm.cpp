@@ -29,6 +29,7 @@ namespace lbcrypto {
 std::complex<double> *DiscreteFourierTransform::rootOfUnityTable = nullptr;
 size_t DiscreteFourierTransform::m_M = 0;
 size_t DiscreteFourierTransform::m_Nh = 0;
+bool DiscreteFourierTransform::m_isInitialized = false;
 
 /// precomputed rotation group indices
 std::vector<uint32_t> DiscreteFourierTransform::m_rotGroup;
@@ -45,6 +46,7 @@ void DiscreteFourierTransform::Reset() {
 void DiscreteFourierTransform::Initialize(size_t m, size_t nh) {
 #pragma omp critical
   {
+    m_isInitialized = false;
     m_M = m;
     m_Nh = nh;
 
@@ -64,6 +66,7 @@ void DiscreteFourierTransform::Initialize(size_t m, size_t nh) {
     }
 
     m_ksiPows[m_M] = m_ksiPows[0];
+    m_isInitialized = true;
   }
 }
 
@@ -221,7 +224,8 @@ void DiscreteFourierTransform::FFTSpecialInvLazy(
 void DiscreteFourierTransform::FFTSpecialInv(
     std::vector<std::complex<double>> &vals) {
   // if the precomputed tables do not exist
-  if (vals.size() != m_Nh) Initialize(vals.size() * 4, vals.size());
+  if ((vals.size() != m_Nh) || (!m_isInitialized))
+    Initialize(vals.size() * 4, vals.size());
   FFTSpecialInvLazy(vals);
   uint32_t size = vals.size();
   for (size_t i = 0; i < size; ++i) {
@@ -232,7 +236,8 @@ void DiscreteFourierTransform::FFTSpecialInv(
 void DiscreteFourierTransform::FFTSpecial(
     std::vector<std::complex<double>> &vals) {
   // if the precomputed tables do not exist
-  if (vals.size() != m_Nh) Initialize(vals.size() * 4, vals.size());
+  if ((vals.size() != m_Nh) || (!m_isInitialized))
+    Initialize(vals.size() * 4, vals.size());
   BitReverse(vals);
   uint32_t size = vals.size();
   for (size_t len = 2; len <= size; len <<= 1) {

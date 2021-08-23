@@ -458,7 +458,7 @@ void DiscreteGaussianGeneratorTest(const string& msg) {
     usint size = 100000;
     typename V::Integer modulus("10403");
     auto dgg = DiscreteGaussianGeneratorImpl<V>(stdev);
-    std::shared_ptr<int32_t> dggCharVector = dgg.GenerateIntVector(size);
+    std::shared_ptr<int64_t> dggCharVector = dgg.GenerateIntVector(size);
 
     double mean = 0;
     for (usint i = 0; i < size; i++) {

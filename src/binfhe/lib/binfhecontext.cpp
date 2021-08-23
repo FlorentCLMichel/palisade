@@ -175,4 +175,8 @@ LWECiphertext BinFHEContext::EvalNOT(ConstLWECiphertext ct) const {
   return m_RingGSWscheme->EvalNOT(m_params, ct);
 }
 
+LWECiphertext BinFHEContext::EvalConstant(bool value) const {
+  return m_LWEscheme->NoiselessEmbedding(m_params->GetLWEParams(), value);
+}
+
 }  // namespace lbcrypto

@@ -80,21 +80,22 @@ TEST_F(UTBinInt, assign) { RUN_ALL_BACKENDS_INT(assign_test, "assign") }
 
 template <typename T>
 void identity_test(const string& msg) {
-  auto f = [](T& a, const string& msg) {
+  // Function to produce a failure message
+  auto f = [](T& a, const string& m) {
     T ZERO(0);
     T ONE(1);
 
-    EXPECT_EQ(a, a + ZERO) << msg << " Failure testing a + 0";
-    EXPECT_EQ(a, a += ZERO) << msg << " Failure testing a += 0";
-    EXPECT_EQ(a, a * ONE) << msg << " Failure testing a * 1";
-    EXPECT_EQ(a, a *= ONE) << msg << " Failure testing a *= 1";
+    EXPECT_EQ(a, a + ZERO) << m << " Failure testing a + 0";
+    EXPECT_EQ(a, a += ZERO) << m << " Failure testing a += 0";
+    EXPECT_EQ(a, a * ONE) << m << " Failure testing a * 1";
+    EXPECT_EQ(a, a *= ONE) << m << " Failure testing a *= 1";
 
-    EXPECT_EQ(a, ZERO + a) << msg << " Failure testing 0 + a";
-    EXPECT_EQ(a, ZERO += a) << msg << " Failure testing 0 += a";
-    EXPECT_EQ(a, ONE * a) << msg << " Failure testing 1 * a";
-    EXPECT_EQ(a, ONE *= a) << msg << " Failure testing 1 *= a";
+    EXPECT_EQ(a, ZERO + a) << m << " Failure testing 0 + a";
+    EXPECT_EQ(a, ZERO += a) << m << " Failure testing 0 += a";
+    EXPECT_EQ(a, ONE * a) << m << " Failure testing 1 * a";
+    EXPECT_EQ(a, ONE *= a) << m << " Failure testing 1 *= a";
 
-    EXPECT_EQ(a * a, ONE *= a) << msg << " Failure on 1 *= a, twice";
+    EXPECT_EQ(a * a, ONE *= a) << m << " Failure on 1 *= a, twice";
   };
 
   T sm("3279");
@@ -841,8 +842,8 @@ void mod_arithmetic(const string& msg) {
     T n("4");
     T q("32");
 
-    T calculatedResult = m.ModMul(n, q);
-    uint64_t expectedResult = 24;
+    calculatedResult = m.ModMul(n, q);
+    expectedResult = 24;
 
     EXPECT_EQ(expectedResult, calculatedResult.ConvertToInt())
         << msg << " Failure testing ModMul first > mod";
@@ -854,8 +855,8 @@ void mod_arithmetic(const string& msg) {
     T n("4");
     T q("32");
 
-    T calculatedResult = m.ModMul(n, q);
-    uint64_t expectedResult = 0;
+    calculatedResult = m.ModMul(n, q);
+    expectedResult = 0;
 
     EXPECT_EQ(expectedResult, calculatedResult.ConvertToInt())
         << msg << " Failure testing ModMul first == mod";
@@ -867,8 +868,8 @@ void mod_arithmetic(const string& msg) {
     T n("37");
     T q("32");
 
-    T calculatedResult = m.ModMul(n, q);
-    uint64_t expectedResult = 15;
+    calculatedResult = m.ModMul(n, q);
+    expectedResult = 15;
 
     EXPECT_EQ(expectedResult, calculatedResult.ConvertToInt())
         << msg << " Failure testing ModMul second > mod";
@@ -880,8 +881,8 @@ void mod_arithmetic(const string& msg) {
     T n("32");
     T q("32");
 
-    T calculatedResult = m.ModMul(n, q);
-    uint64_t expectedResult = 0;
+    calculatedResult = m.ModMul(n, q);
+    expectedResult = 0;
 
     EXPECT_EQ(expectedResult, calculatedResult.ConvertToInt())
         << msg << " Failure testing ModMul second == mod";
@@ -893,8 +894,8 @@ void mod_arithmetic(const string& msg) {
     T n("37");
     T q("32");
 
-    T calculatedResult = m.ModMul(n, q);
-    uint64_t expectedResult = 20;
+    calculatedResult = m.ModMul(n, q);
+    expectedResult = 20;
 
     EXPECT_EQ(expectedResult, calculatedResult.ConvertToInt())
         << msg << " Failure testing ModMul both > mod";
@@ -906,8 +907,8 @@ void mod_arithmetic(const string& msg) {
     T n("32");
     T q("32");
 
-    T calculatedResult = m.ModMul(n, q);
-    uint64_t expectedResult = 0;
+    calculatedResult = m.ModMul(n, q);
+    expectedResult = 0;
 
     EXPECT_EQ(expectedResult, calculatedResult.ConvertToInt())
         << msg << " Failure testing ModMul both == mod";
@@ -919,8 +920,8 @@ void mod_arithmetic(const string& msg) {
     T n("37");
     T q("32");
 
-    T calculatedResult = m.ModMul(n, q);
-    uint64_t expectedResult = 3;
+    calculatedResult = m.ModMul(n, q);
+    expectedResult = 3;
 
     EXPECT_EQ(expectedResult, calculatedResult.ConvertToInt())
         << msg << " Failure testing ModMul product > mod";
@@ -932,8 +933,8 @@ void mod_arithmetic(const string& msg) {
     T n("4");
     T q("32");
 
-    T calculatedResult = m.ModMul(n, q);
-    uint64_t expectedResult = 0;
+    calculatedResult = m.ModMul(n, q);
+    expectedResult = 0;
 
     EXPECT_EQ(expectedResult, calculatedResult.ConvertToInt())
         << msg << " Failure testing ModMul product == mod";
@@ -953,8 +954,8 @@ void mod_arithmetic(const string& msg) {
     T n("9");
     T q("406756");
 
-    T calculatedResult = m.ModExp(n, q);
-    uint64_t expectedResult = 96776;
+    calculatedResult = m.ModExp(n, q);
+    expectedResult = 96776;
 
     EXPECT_EQ(expectedResult, calculatedResult.ConvertToInt())
         << msg << " Failure testing mod_exp_test";

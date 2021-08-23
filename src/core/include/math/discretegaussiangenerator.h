@@ -127,7 +127,7 @@ class DiscreteGaussianGeneratorImpl : public DistributionGenerator<VecType> {
    * @return     A pointer to an array of integer values generated with the
    * distribution.
    */
-  std::shared_ptr<int32_t> GenerateIntVector(usint size) const;
+  std::shared_ptr<int64_t> GenerateIntVector(usint size) const;
 
   /**
    * @brief  Returns a generated integer. Uses Peikert's inversion method.
