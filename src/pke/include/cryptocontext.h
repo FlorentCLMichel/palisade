@@ -111,7 +111,7 @@ class CryptoContextImpl : public Serializable {
 
   string m_schemeId;
 
-  size_t m_keyGenLevel;
+  uint32_t m_keyGenLevel;
 
   /**
    * TypeCheck makes sure that an operation between two ciphertexts is permitted
@@ -2647,7 +2647,10 @@ class CryptoObject {
     ar(::cereal::make_nvp("kt", keyTag));
 
     context = CryptoContextFactory<Element>::GetContext(
-        context->GetCryptoParameters(), context->GetEncryptionAlgorithm());
+        context->GetCryptoParameters(),
+        context->GetEncryptionAlgorithm(),
+        context->getSchemeId()
+        );
   }
 
   std::string SerializedObjectName() const { return "CryptoObject"; }

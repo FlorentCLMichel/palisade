@@ -1,3 +1,11 @@
+01/28/2022: PALISADE v1.11.6 (stable) is released in the palisade-release repo
+* Fixes a bug affecting Intel HEXL builds
+* Updates Intel HEXL to 1.2.3
+* Fixes a serialization compatibility issue between 32-bit and 64-bit systems (needed for WebAssembly)
+* Improves runtime of TFHE bootstrapping (by about 1.5x)
+* Adds the uninstall capability
+* Fixes other bugs
+
 09/17/2021: PALISADE v1.11.5 (stable) is released in the palisade-release repo
 * Fixes a bug affecting Intel HEXL builds
 * Upgrades HEXL to 1.2.1 (improves performance of AVX-512 acceleration)
