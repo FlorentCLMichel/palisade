@@ -36,6 +36,16 @@ std::map<usint, std::vector<usint>> PackedEncoding::m_fromCRTPerm;
 
 bool PackedEncoding::Encode() {
   if (this->isEncoded) return true;
+
+  if (this->GetElementRingDimension() < value.size()) {
+      std::string errMsg =
+          std::string("Element ring dimention [") +
+          std::to_string(this->GetElementRingDimension()) +
+          "] is less than the size of data [" +
+          std::to_string(value.size()) + "]";
+      PALISADE_THROW(config_error, errMsg);
+  }
+
   auto mod = this->encodingParams->GetPlaintextModulus();
 
   if ((this->typeFlag == IsNativePoly) || (this->typeFlag == IsDCRTPoly)) {
@@ -446,6 +456,13 @@ void PackedEncoding::SetParams_2n(usint m, const NativeInteger &modulusNI) {
   m_toCRTPerm[m] = std::vector<usint>(phim);
   m_fromCRTPerm[m] = std::vector<usint>(phim);
 
+  if (!MillerRabinPrimalityTest(modulusNI)) {
+    std::string errMsg =
+        "The given modulus: " + modulusNI.ToString() +
+            ", must be prime. The given value does not satisfy this condition.";
+    PALISADE_THROW(math_error, errMsg);
+  }
+
   usint curr_index = 1;
   usint logn = std::round(log2(m / 2));
   for (usint i = 0; i < phim_by_2; i++) {
@@ -465,6 +482,13 @@ void PackedEncoding::SetParams_2n(usint m, const NativeInteger &modulusNI) {
 void PackedEncoding::SetParams_2n(usint m, EncodingParams params) {
   NativeInteger modulusNI(params->GetPlaintextModulus());  // native int modulus
   const ModulusM modulusM = {modulusNI, m};
+
+  if (!MillerRabinPrimalityTest(modulusNI)) {
+    std::string errMsg =
+        "The given modulus: " + modulusNI.ToString() +
+        ", must be prime. The given value does not satisfy this condition.";
+    PALISADE_THROW(math_error, errMsg);
+  }
 
   // Power of two: m/2-point FTT. So we need the mth root of unity
   if (params->GetPlaintextRootOfUnity() == 0) {

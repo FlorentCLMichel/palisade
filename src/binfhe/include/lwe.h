@@ -93,13 +93,12 @@ class LWEEncryptionScheme {
   /**
    * Changes an LWE ciphertext modulo Q into an LWE ciphertext modulo q
    *
-   * @param params a shared pointer to LWE scheme parameters
+   * @param q modulus to
    * @param ctQ the input ciphertext
    * @return resulting ciphertext
    */
   std::shared_ptr<LWECiphertextImpl> ModSwitch(
-      const std::shared_ptr<LWECryptoParams> params,
-      const std::shared_ptr<const LWECiphertextImpl> ctQ) const;
+      NativeInteger q, const std::shared_ptr<const LWECiphertextImpl> ctQ) const;
 
   /**
    * Generates a switching key to go from a secret key with (Q,N) to a secret

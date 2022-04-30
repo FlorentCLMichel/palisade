@@ -273,6 +273,28 @@ class Matrix : public Serializable {
    */
   double Norm() const;
 
+  /**
+   * Computes the euclidean norm
+   *
+   * @return the euclidean norm in double format
+   */
+  double EuclideanNorm() const;
+
+
+#define EUCLIDEANNORM_FOR_TYPE(T)               \
+  template <>                                   \
+  double Matrix<T>::EuclideanNorm() const {     \
+    double retVal = 0.0;                        \
+    double locVal = 0.0;                        \
+    for (size_t row = 0; row < rows; ++row) {   \
+      for (size_t col = 0; col < cols; ++col) { \
+        locVal = data[row][col].EuclideanNorm();\
+        retVal = retVal+locVal*locVal;          \
+      }                                         \
+    }                                           \
+    return sqrt(retVal);                        \
+  }
+
 #define NORM_FOR_TYPE(T)                        \
   template <>                                   \
   double Matrix<T>::Norm() const {              \

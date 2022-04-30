@@ -721,6 +721,14 @@ class PolyImpl : public ILElement<PolyImpl<VecType>, VecType> {
    */
   double Norm() const;
 
+/**
+   * @brief Returns the euclidean norm, basically the sqrt of sum of squares of values in the ring
+   * element.
+   *
+   * @return is the sqrt of sum of squares of values in the ring element.
+   */
+  double EuclideanNorm() const;
+
   /**
    * @brief Rounds the polynomial to an input integer.
    *

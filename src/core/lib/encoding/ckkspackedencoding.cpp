@@ -118,6 +118,12 @@ bool CKKSPackedEncoding::Encode() {
   uint32_t Nh = (ringDim >> 1);
 
   std::vector<std::complex<double>> inverse = this->GetCKKSPackedValue();
+  if (Nh < inverse.size()) {
+      std::string errMsg =
+          std::string("RingDimention/2 [") + std::to_string(Nh) +
+          "] is less than the size of data [" + std::to_string(inverse.size()) + "]";
+      PALISADE_THROW(config_error, errMsg);
+  }
 
   // clears all imaginary values as CKKS for complex numbers
   for (size_t i = 0; i < inverse.size(); i++) inverse[i].imag(0.0);
@@ -234,6 +240,12 @@ bool CKKSPackedEncoding::Encode() {
   uint32_t Nh = (ringDim >> 1);
 
   std::vector<std::complex<double>> inverse = this->GetCKKSPackedValue();
+  if (Nh < inverse.size()) {
+      std::string errMsg =
+          std::string("RingDimention/2 [") + std::to_string(Nh) +
+          "] is less than the size of data [" + std::to_string(inverse.size()) + "]";
+      PALISADE_THROW(config_error, errMsg);
+  }
 
   // clears all imaginary values as CKKS for complex numbers
   for (size_t i = 0; i < inverse.size(); i++) inverse[i].imag(0.0);

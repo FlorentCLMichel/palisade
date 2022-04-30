@@ -2084,10 +2084,10 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::EvalMult(
       auto algo = ciphertext1->GetCryptoContext()->GetEncryptionAlgorithm();
       auto ct1 = ciphertext1->Clone();
       auto ct2 = ciphertext2->Clone();
-      if (ciphertext1->GetDepth() > 1) { // do automated modulus switching
+      while (ct1->GetDepth() > 1) { // do automated modulus switching
         algo->ModReduceInternalInPlace(ct1);
       }
-      if (ciphertext2->GetDepth() > 1) { // do automated modulus switching
+      while (ct2->GetDepth() > 1) { // do automated modulus switching
         algo->ModReduceInternalInPlace(ct2);
       }
       AdjustLevelsEq(ct1, ct2);
@@ -2107,10 +2107,10 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::EvalMultMutable(
     return EvalMultCore(ciphertext1, ciphertext2);
   } else { // AUTO mode
       auto algo = ciphertext1->GetCryptoContext()->GetEncryptionAlgorithm();
-      if (ciphertext1->GetDepth() > 1) { // do automated modulus switching
+      while (ciphertext1->GetDepth() > 1) { // do automated modulus switching
         algo->ModReduceInternalInPlace(ciphertext1);
       }
-      if (ciphertext2->GetDepth() > 1) { // do automated modulus switching
+      while (ciphertext2->GetDepth() > 1) { // do automated modulus switching
         algo->ModReduceInternalInPlace(ciphertext2);
       }
       AdjustLevelsEq(ciphertext1, ciphertext2);
@@ -2137,21 +2137,8 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::EvalMult(
     PALISADE_THROW(not_available_error,
                    "EvalMult cannot multiply in COEFFICIENT domain.");
   }
-  const auto cryptoParams =
-      std::static_pointer_cast<LPCryptoParametersBGVrns<DCRTPoly>>(
-          ciphertext->GetCryptoParameters());
-  if (cryptoParams->GetModSwitchMethod() == MANUAL) {
-    auto inPair = AdjustLevels(ciphertext, plaintext);
-    return EvalMultCore(*(inPair.first), inPair.second);
-  } else { // AUTO mode
-    auto algo = ciphertext->GetCryptoContext()->GetEncryptionAlgorithm();
-    auto ct = ciphertext->Clone();
-    if (ciphertext->GetDepth() > 1) { // do automated modulus switching
-      algo->ModReduceInternalInPlace(ct);
-    }
-    auto inPair = AdjustLevels(ct, plaintext);
-    return EvalMultCore(*(inPair.first), inPair.second);
-  }
+  auto inPair = AdjustLevels(ciphertext, plaintext);
+  return EvalMultCore(*(inPair.first), inPair.second);
 }
 
 template <>
@@ -2161,20 +2148,8 @@ Ciphertext<DCRTPoly> LPAlgorithmSHEBGVrns<DCRTPoly>::EvalMultMutable(
     PALISADE_THROW(not_available_error,
                    "EvalMult cannot multiply in COEFFICIENT domain.");
   }
-  const auto cryptoParams =
-      std::static_pointer_cast<LPCryptoParametersBGVrns<DCRTPoly>>(
-          ciphertext->GetCryptoParameters());
-  if (cryptoParams->GetModSwitchMethod() == MANUAL) {
-    AdjustLevelsEq(ciphertext, plaintext);
-    return EvalMultCore(ciphertext, plaintext->GetElement<DCRTPoly>());
-  } else { // AUTO mode
-    auto algo = ciphertext->GetCryptoContext()->GetEncryptionAlgorithm();
-    if (ciphertext->GetDepth() > 1) { // do automated modulus switching
-      algo->ModReduceInternalInPlace(ciphertext);
-    }
-    AdjustLevelsEq(ciphertext, plaintext);
-    return EvalMultCore(ciphertext, plaintext->GetElement<DCRTPoly>());
-  }
+  AdjustLevelsEq(ciphertext, plaintext);
+  return EvalMultCore(ciphertext, plaintext->GetElement<DCRTPoly>());
 }
 
 template <>

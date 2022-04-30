@@ -132,16 +132,12 @@ NativeInteger RoundqQ(const NativeInteger &v, const NativeInteger &q,
 
 // Modulus switching - directly applies the scale-and-round operation RoundQ
 std::shared_ptr<LWECiphertextImpl> LWEEncryptionScheme::ModSwitch(
-    const std::shared_ptr<LWECryptoParams> params,
-    const std::shared_ptr<const LWECiphertextImpl> ctQ) const {
-  NativeVector a(params->Getn(), params->Getq());
+    NativeInteger q, const std::shared_ptr<const LWECiphertextImpl> ctQ) const {
+  auto n = ctQ->GetA().GetLength();
+  auto Q = ctQ->GetA().GetModulus();
 
-  uint32_t n = params->Getn();
-  NativeInteger q = params->Getq();
-  NativeInteger Q = params->GetQ();
-
+  NativeVector a(n, q);
   for (uint32_t i = 0; i < n; ++i) a[i] = RoundqQ(ctQ->GetA()[i], q, Q);
-
   NativeInteger b = RoundqQ(ctQ->GetB(), q, Q);
 
   return std::make_shared<LWECiphertextImpl>(LWECiphertextImpl(a, b));
@@ -155,7 +151,7 @@ std::shared_ptr<LWESwitchingKey> LWEEncryptionScheme::KeySwitchGen(
   // Create local copies of main variables
   uint32_t n = params->Getn();
   uint32_t N = params->GetN();
-  NativeInteger Q = params->GetQ();
+  NativeInteger Q = params->GetqKS();
   uint32_t baseKS = params->GetBaseKS();
   std::vector<NativeInteger> digitsKS = params->GetDigitsKS();
   uint32_t expKS = digitsKS.size();
@@ -165,7 +161,16 @@ std::shared_ptr<LWESwitchingKey> LWEEncryptionScheme::KeySwitchGen(
   NativeVector newSK = sk->GetElement();
   newSK.SwitchModulus(Q);
 
-  NativeVector oldSK = skN->GetElement();
+  NativeVector oldSKlargeQ = skN->GetElement();
+  NativeVector oldSK(oldSKlargeQ.GetLength(), Q);
+  for(size_t i = 0; i < oldSK.GetLength(); i++){
+    if((oldSKlargeQ[i] == 0) || (oldSKlargeQ[i] == 1)){
+      oldSK[i] = oldSKlargeQ[i];
+    }
+    else {
+      oldSK[i] = Q - 1;
+    }
+  }
 
   DiscreteUniformGeneratorImpl<NativeVector> dug;
   dug.SetModulus(Q);
@@ -214,7 +219,7 @@ std::shared_ptr<LWECiphertextImpl> LWEEncryptionScheme::KeySwitch(
     const std::shared_ptr<const LWECiphertextImpl> ctQN) const {
   uint32_t n = params->Getn();
   uint32_t N = params->GetN();
-  NativeInteger Q = params->GetQ();
+  NativeInteger Q = params->GetqKS();
   uint32_t baseKS = params->GetBaseKS();
   std::vector<NativeInteger> digitsKS = params->GetDigitsKS();
   uint32_t expKS = digitsKS.size();

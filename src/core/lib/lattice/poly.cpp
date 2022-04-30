@@ -944,6 +944,25 @@ double PolyImpl<VecType>::Norm() const {
   return retVal.ConvertToDouble();
 }
 
+template <typename VecType>
+double PolyImpl<VecType>::EuclideanNorm() const {
+  Integer locVal;
+  Integer retVal;
+  const Integer &q = m_params->GetModulus();
+  const Integer &half = m_params->GetModulus() >> 1;
+
+  for (usint i = 0; i < GetValues().GetLength(); i++) {
+    if (m_values->operator[](i) > half)
+      locVal = q - (*m_values)[i];
+    else
+      locVal = m_values->operator[](i);
+
+    //if (locVal > retVal) retVal = locVal;
+    retVal = retVal + locVal*locVal;
+  }
+  return sqrt(retVal.ConvertToDouble());
+}
+
 // Write vector x(current value of the PolyImpl object) as \sum\limits{ i = 0
 // }^{\lfloor{ \log q / base } \rfloor} {(base^i u_i)} and return the vector of{
 // u_0, u_1,...,u_{ \lfloor{ \log q / base } \rfloor } } \in R_base^{ \lceil{

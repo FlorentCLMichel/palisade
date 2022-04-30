@@ -560,15 +560,15 @@ std::shared_ptr<LWECiphertextImpl> RingGSWAccumulatorScheme::EvalBinGate(
     // we add Q/8 to "b" to to map back to Q/4 (i.e., mod 2) arithmetic.
     bNew = Q8.ModAddFast(temp[0], Q);
 
-    auto eQN =
-        std::make_shared<LWECiphertextImpl>(std::move(aNew), std::move(bNew));
+    // Modulus switching to a middle step Q'
+    auto eQN = LWEscheme->ModSwitch(params->GetLWEParams()->GetqKS(), std::make_shared<LWECiphertextImpl>(aNew, bNew));
 
     // Key switching
     const std::shared_ptr<const LWECiphertextImpl> eQ =
         LWEscheme->KeySwitch(params->GetLWEParams(), EK.KSkey, eQN);
 
     // Modulus switching
-    return LWEscheme->ModSwitch(params->GetLWEParams(), eQ);
+    return LWEscheme->ModSwitch(q, eQ);
   }
 }
 
@@ -607,15 +607,15 @@ std::shared_ptr<LWECiphertextImpl> RingGSWAccumulatorScheme::Bootstrap(
   // we add Q/8 to "b" to to map back to Q/4 (i.e., mod 2) arithmetic.
   bNew = Q8.ModAddFast(temp[0], Q);
 
-  auto eQN =
-      std::make_shared<LWECiphertextImpl>(std::move(aNew), std::move(bNew));
+  // Modulus switching to a middle step Q'
+  auto eQN = LWEscheme->ModSwitch(params->GetLWEParams()->GetqKS(), std::make_shared<LWECiphertextImpl>(aNew, bNew));
 
   // Key switching
   const std::shared_ptr<const LWECiphertextImpl> eQ =
       LWEscheme->KeySwitch(params->GetLWEParams(), EK.KSkey, eQN);
 
   // Modulus switching
-  return LWEscheme->ModSwitch(params->GetLWEParams(), eQ);
+  return LWEscheme->ModSwitch(q, eQ);
 }
 
 // Evaluation of the NOT operation; no key material is needed

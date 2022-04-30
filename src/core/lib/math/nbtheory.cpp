@@ -280,6 +280,7 @@ IntType RootOfUnity(usint m, const IntType &modulo) {
         " do not satisfy this condition";
     PALISADE_THROW(math_error, errMsg);
   }
+
   IntType result;
   DEBUG("calling FindGenerator");
   IntType gen = FindGenerator(modulo);

@@ -257,7 +257,7 @@ void LatticeGaussSampUtility<Element>::SampleC(const Matrix<double> &c,
                                                vector<int64_t> *z) {
   (*z)[k - 1] = dgg.GenerateIntegerKarney(-(*a)(k - 1, 0) / c(k - 1, 0),
                                           sigma / c(k - 1, 0));
-  *a = *a - (static_cast<double>((*z)[k - 1])) * c;
+  *a = *a + (static_cast<double>((*z)[k - 1])) * c;
 
   for (size_t i = 0; i < k - 1; i++) {
     (*z)[i] = dgg.GenerateIntegerKarney(-(*a)(i, 0), sigma);
