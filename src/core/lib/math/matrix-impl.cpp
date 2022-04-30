@@ -106,6 +106,17 @@ NONORM_FOR_TYPE(int)
 NONORM_FOR_TYPE(int64_t)
 NONORM_FOR_TYPE(Field2n)
 
+#define NOEUCLIDEANNORM_FOR_TYPE(T)                                                 \
+  template <>                                                              \
+  double Matrix<T>::EuclideanNorm() const {                                         \
+    PALISADE_THROW(not_available_error, "Euclidean Norm not defined for this type"); \
+  }
+
+NOEUCLIDEANNORM_FOR_TYPE(double)
+NOEUCLIDEANNORM_FOR_TYPE(int)
+NOEUCLIDEANNORM_FOR_TYPE(int64_t)
+NOEUCLIDEANNORM_FOR_TYPE(Field2n)
+
 // YSP removed the Matrix class because it is not defined for all possible data
 // types needs to be checked to make sure input matrix is used in the right
 // places the assumption is that covariance matrix does not have large

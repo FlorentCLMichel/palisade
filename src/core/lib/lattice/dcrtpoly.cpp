@@ -3076,6 +3076,12 @@ double DCRTPolyImpl<VecType>::Norm() const {
 }
 
 template <typename VecType>
+double DCRTPolyImpl<VecType>::EuclideanNorm() const {
+  PolyLargeType poly(CRTInterpolate());
+  return poly.EuclideanNorm();
+}
+
+template <typename VecType>
 std::ostream &operator<<(std::ostream &os, const DCRTPolyImpl<VecType> &p) {
   // TODO(gryan): Standardize this printing so it is like other poly's
   os << "---START PRINT DOUBLE CRT-- WITH SIZE" << p.m_vectors.size()

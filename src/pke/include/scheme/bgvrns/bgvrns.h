@@ -186,7 +186,9 @@ class LPCryptoParametersBGVrns : public LPCryptoParametersRLWE<Element> {
     ar(cereal::make_nvp("ks", m_ksTechnique));
     ar(cereal::make_nvp("ms", m_msMethod));
     ar(cereal::make_nvp("dnum", m_numPartQ));
-    PrecomputeCRTTables(m_ksTechnique, m_numPartQ);
+    if (SERIALIZE_PRECOMPUTE) {
+      PrecomputeCRTTables(m_ksTechnique, m_numPartQ);
+    }
   }
 
   std::string SerializedObjectName() const { return "BGVrnsSchemeParameters"; }

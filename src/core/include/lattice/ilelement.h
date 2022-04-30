@@ -356,6 +356,14 @@ class ILElement : public Serializable {
    */
   virtual double Norm() const = 0;
 
+/**
+   * @brief Returns the euclidean norm, basically the sqrt of sum of squares of values in the ring
+   * element.
+   *
+   * @return the the sqrt of sum of squares of values in the ring element.
+   */
+  virtual double EuclideanNorm() const = 0;
+
   /**
    * @brief Returns true if the vector is empty/ m_values==nullptr
    *

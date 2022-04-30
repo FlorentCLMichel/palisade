@@ -1,3 +1,8 @@
+04/30/2022: PALISADE v1.11.7 (stable) is released in the palisade-release repo
+* Updates the parameter sets for FHEW/TFHE
+* Optimizes the BGV AUTO modulus switching mode
+* Fixes several bugs
+
 01/28/2022: PALISADE v1.11.6 (stable) is released in the palisade-release repo
 * Fixes a bug affecting Intel HEXL builds
 * Updates Intel HEXL to 1.2.3

@@ -28,10 +28,12 @@ namespace lbcrypto {
 
 void BinFHEContext::GenerateBinFHEContext(uint32_t n, uint32_t N,
                                           const NativeInteger &q,
-                                          const NativeInteger &Q, double std,
+                                          const NativeInteger &Q,
+                                          const NativeInteger &qKS,
+                                          double std,
                                           uint32_t baseKS, uint32_t baseG,
                                           uint32_t baseR, BINFHEMETHOD method) {
-  auto lweparams = std::make_shared<LWECryptoParams>(n, N, q, Q, std, baseKS);
+  auto lweparams = std::make_shared<LWECryptoParams>(n, N, q, Q, qKS, std, baseKS);
   m_params =
       std::make_shared<RingGSWCryptoParams>(lweparams, baseG, baseR, method);
 }
@@ -44,79 +46,133 @@ void BinFHEContext::GenerateBinFHEContext(BINFHEPARAMSET set,
     case TOY:
       Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(27, 1024),
                                        1024);
-      lweparams = std::make_shared<LWECryptoParams>(64, 512, 512, Q, 3.19, 25);
+      lweparams = std::make_shared<LWECryptoParams>(64, 512, 512, Q, Q, 3.19, 25);
       m_params =
-          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 9, 23, method);
+          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 9, 32, method);
       break;
     case MEDIUM:
-      Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(27, 2048),
+      Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(28, 2048),
                                        2048);
-      lweparams =
-          std::make_shared<LWECryptoParams>(256, 1024, 512, Q, 3.19, 25);
+      lweparams = std::make_shared<LWECryptoParams>(422, 1024, 1024, Q, 1 << 14, 3.19, 1 << 7);
       m_params =
-          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 9, 23, method);
-      break;
+          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 10, 32, method);
     case STD128_AP:
       Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(27, 2048),
                                        2048);
       lweparams =
-          std::make_shared<LWECryptoParams>(512, 1024, 512, Q, 3.19, 25);
+          std::make_shared<LWECryptoParams>(512, 1024, 1024, Q, 1 << 14, 3.19, 1 << 7);
       m_params =
-          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 9, 23, method);
+          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 9, 32, method);
+      break;
+    case STD128_APOPT:
+      Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(27, 2048),
+                                       2048);
+      lweparams =
+          std::make_shared<LWECryptoParams>(502, 1024, 1024, Q, 1 << 14, 3.19, 1 << 7);
+      m_params =
+          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 9, 32, method);
       break;
     case STD128:
       Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(27, 2048),
                                        2048);
       lweparams =
-          std::make_shared<LWECryptoParams>(512, 1024, 512, Q, 3.19, 25);
+          std::make_shared<LWECryptoParams>(512, 1024, 1024, Q, 1 << 14, 3.19, 1 << 7);
       m_params =
-          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 7, 23, method);
+          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 7, 32, method);
+      break;
+    case STD128_OPT:
+      Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(27, 2048),
+                                       2048);
+      lweparams =
+          std::make_shared<LWECryptoParams>(502, 1024, 1024, Q, 1 << 14, 3.19, 1 << 7);
+      m_params =
+          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 7, 32, method);
       break;
     case STD192:
-      Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(37, 4096),
+      Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(54, 4096),
                                        4096);
       lweparams =
-          std::make_shared<LWECryptoParams>(512, 2048, 512, Q, 3.19, 25);
+          std::make_shared<LWECryptoParams>(1024, 2048, 1024, Q, 1 << 19, 3.19, 28);
       m_params =
-          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 13, 23, method);
+          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 27, 32, method);
+      break;
+    case STD192_OPT:
+      Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(54, 4096),
+                                       4096);
+      lweparams =
+          std::make_shared<LWECryptoParams>(805, 2048, 1024, Q, 1 << 15, 3.19, 1 << 5);
+      m_params =
+          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 27, 32, method);
       break;
     case STD256:
-      Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(29, 4096),
+      Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(50, 4096),
                                        4096);
       lweparams =
-          std::make_shared<LWECryptoParams>(1024, 2048, 1024, Q, 3.19, 25);
+          std::make_shared<LWECryptoParams>(1024, 2048, 2048, Q, 1 << 14, 3.19, 1 << 7);
       m_params =
-          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 10, 32, method);
+          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 25, 46, method);
+      break;
+    case STD256_OPT:
+      Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(50, 4096),
+                                       4096);
+      lweparams =
+          std::make_shared<LWECryptoParams>(990, 2048, 2048, Q, 1 << 14, 3.19, 1 << 7);
+      m_params =
+          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 25, 46, method);
       break;
     case STD128Q:
       Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(50, 4096),
                                        4096);
       lweparams =
-          std::make_shared<LWECryptoParams>(512, 2048, 512, Q, 3.19, 25);
+          std::make_shared<LWECryptoParams>(1024, 2048, 1024, Q, 1 << 25, 3.19, 32);
       m_params =
-          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 25, 23, method);
+          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 25, 32, method);
+      break;
+    case STD128Q_OPT:
+      Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(50, 4096),
+                                       4096);
+      lweparams =
+          std::make_shared<LWECryptoParams>(585, 2048, 1024, Q, 1 << 15, 3.19, 32);
+      m_params =
+          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 25, 32, method);
       break;
     case STD192Q:
-      Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(35, 4096),
+      Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(50, 4096),
                                        4096);
       lweparams =
-          std::make_shared<LWECryptoParams>(1024, 2048, 1024, Q, 3.19, 25);
+          std::make_shared<LWECryptoParams>(1024, 2048, 1024, Q, 1 << 17, 3.19, 64);
       m_params =
-          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 12, 32, method);
+          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 25, 32, method);
+      break;
+    case STD192Q_OPT:
+      Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(50, 4096),
+                                       4096);
+      lweparams =
+          std::make_shared<LWECryptoParams>(875, 2048, 1024, Q, 1 << 15, 3.19, 1 << 5);
+      m_params =
+          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 25, 32, method);
       break;
     case STD256Q:
-      Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(27, 4096),
+      Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(54, 4096),
                                        4096);
       lweparams =
-          std::make_shared<LWECryptoParams>(1024, 2048, 1024, Q, 3.19, 25);
+          std::make_shared<LWECryptoParams>(2048, 2048, 1024, Q, 1 << 16, 3.19, 16);
       m_params =
-          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 7, 32, method);
+          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 27, 32, method);
+      break;
+    case STD256Q_OPT:
+      Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(54, 4096),
+                                       4096);
+      lweparams =
+          std::make_shared<LWECryptoParams>(1225, 2048, 1024, Q, 1 << 16, 3.19, 16);
+      m_params =
+          std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 27, 32, method);
       break;
     case SIGNED_MOD_TEST:
       Q = PreviousPrime<NativeInteger>(FirstPrime<NativeInteger>(28, 2048),
                                        2048);
       lweparams =
-          std::make_shared<LWECryptoParams>(512, 1024, 512, Q, 3.19, 25);
+          std::make_shared<LWECryptoParams>(512, 1024, 512, Q, Q, 3.19, 25);
       m_params =
           std::make_shared<RingGSWCryptoParams>(lweparams, 1 << 7, 23, method);
       break;

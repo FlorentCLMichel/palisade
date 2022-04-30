@@ -1971,6 +1971,77 @@ class LPAlgorithmSHECKKS : public LPSHEAlgorithm<Element> {
   std::string SerializedObjectName() const { return "CKKSSHE"; }
 };
 
+// LPAlgorithmSHECKKS' function template specializations for DCRTPoly
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::AdjustLevelWithRescale(
+    Ciphertext<DCRTPoly>& ciphertext, uint32_t targetLevel) const;
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::AdjustLevelWithoutRescale(
+    Ciphertext<DCRTPoly>& ciphertext, uint32_t targetLevel) const;
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalAddApprox(
+    ConstCiphertext<DCRTPoly> ciphertext1, ConstCiphertext<DCRTPoly> ciphertext2) const;
+template <>
+void LPAlgorithmSHECKKS<DCRTPoly>::EvalAddApproxInPlace(
+    Ciphertext<DCRTPoly>& ciphertext1, ConstCiphertext<DCRTPoly> ciphertext2) const;
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalAddMutable(
+    Ciphertext<DCRTPoly>& ciphertext1, Ciphertext<DCRTPoly>& ciphertext2) const;
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalAddMutable(
+    Ciphertext<DCRTPoly>& ciphertext, Plaintext plaintext) const;
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalLinearWSum(
+    vector<Ciphertext<DCRTPoly>> ciphertexts, vector<double> constants) const;
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalLinearWSum(
+    vector<Ciphertext<DCRTPoly>> ciphertexts, vector<double> constants) const;
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalLinearWSumMutable(
+    vector<Ciphertext<DCRTPoly>> ciphertexts, vector<double> constants) const;
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalLinearWSumMutable(
+    vector<Ciphertext<DCRTPoly>> ciphertexts, vector<double> constants) const;
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalMultAndRelinearize(
+    ConstCiphertext<DCRTPoly> ciphertext1, ConstCiphertext<DCRTPoly> ciphertext2, const vector<LPEvalKey<DCRTPoly>>& ek) const;
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalMultApprox(
+    ConstCiphertext<DCRTPoly> ciphertext1, ConstCiphertext<DCRTPoly> ciphertext2) const;
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalMultApprox(
+    ConstCiphertext<DCRTPoly> ciphertext, ConstPlaintext plaintext) const;
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalMultApprox(
+    ConstCiphertext<DCRTPoly> ciphertext, double constant) const;
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalMultMutable(
+    Ciphertext<DCRTPoly>& ciphertext, double constant) const;
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalMultMutable(
+    Ciphertext<DCRTPoly>& ciphertext1, Ciphertext<DCRTPoly>& ciphertext2) const;
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalMultMutable(
+    Ciphertext<DCRTPoly>& ciphertext, Plaintext plaintext) const;
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalSubMutable(
+    Ciphertext<DCRTPoly>& ciphertext1, Ciphertext<DCRTPoly>& ciphertext2) const;
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::EvalSubMutable(
+    Ciphertext<DCRTPoly>& ciphertext, Plaintext plaintext) const;
+template <>
+LPEvalKey<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::KeySwitchHybridGen(
+    const LPPrivateKey<DCRTPoly> oldKey, const LPPrivateKey<DCRTPoly> newKey, const LPEvalKey<DCRTPoly> ekPrev) const;
+template <>
+void LPAlgorithmSHECKKS<DCRTPoly>::KeySwitchHybridInPlace(
+    const LPEvalKey<DCRTPoly> ek, Ciphertext<DCRTPoly>& ciphertext) const;
+template <>
+Ciphertext<DCRTPoly> LPAlgorithmSHECKKS<DCRTPoly>::Relinearize(
+    ConstCiphertext<DCRTPoly> ciphertext, const vector<LPEvalKey<DCRTPoly>>& ek) const;
+template <>
+void LPAlgorithmSHECKKS<DCRTPoly>::RelinearizeInPlace(
+    Ciphertext<DCRTPoly>& ciphertext, const vector<LPEvalKey<DCRTPoly>>& ek) const;
+
 /**
  * @brief PRE scheme based on CKKS.
  * The basic scheme is described here:

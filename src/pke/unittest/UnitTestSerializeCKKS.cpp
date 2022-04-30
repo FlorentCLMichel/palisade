@@ -438,6 +438,8 @@ static void TestDecryptionSerNoCRTTables(CryptoContext<T> cc, const ST& sertype,
   auto tmp_b = result->GetCKKSPackedValue();
   checkApproximateEquality(tmp_a, tmp_b, uint64_t(vals.size()), eps,
                            msg + " Decryption Failed");
+
+  SERIALIZE_PRECOMPUTE = true;
 }
 
 template <typename T>

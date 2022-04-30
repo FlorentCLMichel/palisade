@@ -1797,6 +1797,10 @@ class CryptoContextImpl : public Serializable {
     // input parameter check
     if (!ct.size()) PALISADE_THROW(type_error, "Empty input ciphertext vector");
 
+    if (ct.size() == 1){
+        return ct[0];
+    }
+
     const auto ek = GetEvalMultKeyVector(ct[0]->GetKeyTag());
     if (ek.size() < (ct[0]->GetElements().size() - 2)) {
       PALISADE_THROW(type_error,
@@ -1822,6 +1826,9 @@ class CryptoContextImpl : public Serializable {
     if (!ctList.size())
       PALISADE_THROW(type_error, "Empty input ciphertext vector");
 
+    if (ctList.size() == 1){
+        return ctList[0];
+    }
     auto rv = GetEncryptionAlgorithm()->EvalAddMany(ctList);
     return rv;
   }

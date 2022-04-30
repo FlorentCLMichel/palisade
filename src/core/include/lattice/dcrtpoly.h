@@ -1436,6 +1436,14 @@ class DCRTPolyImpl : public ILElement<DCRTPolyImpl<VecType>, VecType> {
    */
   double Norm() const;
 
+/**
+   * @brief Returns the euclidean norm, basically the sqrt of the sum of the squares of the values in the ring
+   * element.
+   *
+   * @return is the euclidean norm, basically the sqrt of the sum of the squares of the values in the ring element.
+   */
+  double EuclideanNorm() const;
+  
   /**
    * @brief ostream operator
    * @param os the input preceding output stream

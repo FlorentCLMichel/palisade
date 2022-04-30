@@ -428,8 +428,9 @@ class LPCryptoParametersBFVrns : public LPCryptoParametersRLWE<Element> {
                          " is from a later version of the library");
     }
     ar(::cereal::base_class<LPCryptoParametersRLWE<Element>>(this));
-
-    PrecomputeCRTTables();
+    if (SERIALIZE_PRECOMPUTE) {
+      PrecomputeCRTTables();
+    }
   }
 
   std::string SerializedObjectName() const { return "BFVrnsSchemeParameters"; }

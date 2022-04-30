@@ -21,6 +21,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <ctime>
+#include <cmath>
 #include <iostream>
 #include <list>
 #include <vector>
@@ -1123,3 +1124,71 @@ GENERATE_TEST_CASES_FUNC_GHS(UTBGVrns, UnitTest_Metadata, ORDER, PTM,
                              SIZEMODULI, NUMPRIME, RELIN, BATCH)
 GENERATE_TEST_CASES_FUNC_HYBRID(UTBGVrns, UnitTest_Metadata, ORDER, PTM,
                                 SIZEMODULI, NUMPRIME, RELIN, BATCH)
+
+//=============================================================================
+// Unit test for BGVrns Automated Modulus Switching
+//=============================================================================
+static const std::vector<int64_t> BGV_AMS_vector1{ 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 1 };
+static const std::vector<int64_t> BGV_AMS_vector2{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2 };
+static std::vector<int64_t> Test_Automated_Modulus_Switching() {
+    // Instantiate the crypto context
+    int plaintextModulus = 65537;
+    double sigma = 3.2;
+    SecurityLevel securityLevel = HEStd_128_classic;
+    uint32_t depth = 4;
+
+    CryptoContext<DCRTPoly> cc =
+        CryptoContextFactory<DCRTPoly>::genCryptoContextBGVrns(
+            depth, plaintextModulus, securityLevel, sigma, depth, OPTIMIZED, HYBRID, 0, 0, 0, 0, 0, 0, AUTO);
+    cc->Enable(ENCRYPTION);
+    cc->Enable(SHE);
+    cc->Enable(LEVELEDSHE);
+
+    // Generate a public/private key pair
+    LPKeyPair<DCRTPoly> keyPair = cc->KeyGen();
+
+    // Generate the relinearization key
+    cc->EvalMultKeyGen(keyPair.secretKey);
+
+    // Generate the rotation evaluation keys
+    cc->EvalAtIndexKeyGen(keyPair.secretKey, { 1, 2, -1, -2 });
+
+    Plaintext plaintext1 = cc->MakePackedPlaintext(BGV_AMS_vector1);
+    Plaintext plaintext2 = cc->MakePackedPlaintext(BGV_AMS_vector2);
+
+    // Encrypt the encoded vectors
+    auto ciphertext1 = cc->Encrypt(keyPair.publicKey, plaintext1);
+    auto ciphertext2 = cc->Encrypt(keyPair.publicKey, plaintext2);
+
+    auto ctxt = cc->EvalMult(ciphertext1, plaintext2);
+    ctxt = cc->EvalMult(ctxt, plaintext2);
+    ctxt = cc->EvalMult(ctxt, ctxt);
+    ctxt = cc->EvalMult(ctxt, ctxt);
+    ctxt = cc->EvalAdd(ctxt, ciphertext2);
+
+    // Decrypt the result of calculations
+    Plaintext plaintextCtxt;
+    cc->Decrypt(keyPair.secretKey, ctxt, &plaintextCtxt);
+    plaintextCtxt->SetLength(BGV_AMS_vector1.size());
+
+    return plaintextCtxt->GetPackedValue();
+}
+
+static std::vector<int64_t> Expected_Result_Automated_Modulus_Switching() {
+    // resulting vector: (#1 * #2^2)^4 + #2
+    std::vector<int64_t> result(BGV_AMS_vector2.size());
+    for (size_t i = 0; i < result.size(); ++i) {
+        result[i] =
+            static_cast<int64_t>(std::round(std::pow(BGV_AMS_vector1[i] * BGV_AMS_vector2[i] * BGV_AMS_vector2[i], 4))) +
+            BGV_AMS_vector2[i];
+    }
+
+    return result;
+}
+
+TEST_F(UTBGVrns, UnitTest_Automated_Modulus_Switching) {
+    auto result = Test_Automated_Modulus_Switching();
+    auto expectedResult = Expected_Result_Automated_Modulus_Switching();
+
+    checkEquality(result, expectedResult, "BGVrns Automated Modulus Switching fails");
+}

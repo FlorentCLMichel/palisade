@@ -41,7 +41,7 @@ typedef int64_t LWEPlaintext;
  */
 class LWECryptoParams : public Serializable {
  public:
-  LWECryptoParams() : m_n(0), m_N(0), m_q(0), m_Q(0), m_baseKS(0) {}
+  LWECryptoParams() : m_n(0), m_N(0), m_q(0), m_Q(0), m_qKS(0), m_baseKS(0) {}
 
   /**
    * Main constructor for LWECryptoParams
@@ -50,12 +50,13 @@ class LWECryptoParams : public Serializable {
    * @param N ring dimension for RingGSW/RLWE used in bootstrapping
    * @param &q modulus for additive LWE
    * @param &Q modulus for RingGSW/RLWE used in bootstrapping
+   * @param &qKS modulus for key switching
    * @param std standard deviation
    * @param baseKS the base used for key switching
    */
   explicit LWECryptoParams(uint32_t n, uint32_t N, const NativeInteger &q,
-                           const NativeInteger &Q, double std, uint32_t baseKS)
-      : m_n(n), m_N(N), m_q(q), m_Q(Q), m_baseKS(baseKS) {
+                           const NativeInteger &Q, const NativeInteger &qKS, double std, uint32_t baseKS)
+      : m_n(n), m_N(N), m_q(q), m_Q(Q), m_qKS(qKS), m_baseKS(baseKS) {
     m_dgg.SetStd(std);
 
     if (Q.GetMSB() > MAX_MODULUS_SIZE) {
@@ -73,7 +74,7 @@ class LWECryptoParams : public Serializable {
   void PreCompute() {
     // Number of digits in representing numbers mod Q
     uint32_t digitCount = (uint32_t)std::ceil(
-        log(m_Q.ConvertToDouble()) / log(static_cast<double>(m_baseKS)));
+        log(m_qKS.ConvertToDouble()) / log(static_cast<double>(m_baseKS)));
     // Populate digits
     NativeInteger value = 1;
     for (uint32_t i = 0; i < digitCount; i++) {
@@ -87,6 +88,7 @@ class LWECryptoParams : public Serializable {
     this->m_N = rhs.m_N;
     this->m_q = rhs.m_q;
     this->m_Q = rhs.m_Q;
+    this->m_qKS = rhs.m_qKS;
     this->m_baseKS = rhs.m_baseKS;
     this->m_digitsKS = rhs.m_digitsKS;
     this->m_dgg.SetStd(rhs.m_dgg.GetStd());
@@ -97,6 +99,7 @@ class LWECryptoParams : public Serializable {
     this->m_N = std::move(rhs.m_N);
     this->m_q = std::move(rhs.m_q);
     this->m_Q = std::move(rhs.m_Q);
+    this->m_qKS = std::move(rhs.m_qKS);
     this->m_baseKS = std::move(rhs.m_baseKS);
     this->m_digitsKS = std::move(rhs.m_digitsKS);
     this->m_dgg.SetStd(rhs.m_dgg.GetStd());
@@ -107,6 +110,7 @@ class LWECryptoParams : public Serializable {
     this->m_N = rhs.m_N;
     this->m_q = rhs.m_q;
     this->m_Q = rhs.m_Q;
+    this->m_qKS = rhs.m_qKS;
     this->m_baseKS = rhs.m_baseKS;
     this->m_digitsKS = rhs.m_digitsKS;
     this->m_dgg.SetStd(rhs.m_dgg.GetStd());
@@ -118,6 +122,7 @@ class LWECryptoParams : public Serializable {
     this->m_N = std::move(rhs.m_N);
     this->m_q = std::move(rhs.m_q);
     this->m_Q = std::move(rhs.m_Q);
+    this->m_qKS = std::move(rhs.m_qKS);
     this->m_baseKS = std::move(rhs.m_baseKS);
     this->m_digitsKS = std::move(rhs.m_digitsKS);
     this->m_dgg.SetStd(rhs.m_dgg.GetStd());
@@ -131,6 +136,8 @@ class LWECryptoParams : public Serializable {
   const NativeInteger &Getq() const { return m_q; }
 
   const NativeInteger &GetQ() const { return m_Q; }
+
+  const NativeInteger &GetqKS() const { return m_qKS; }
 
   uint32_t GetBaseKS() const { return m_baseKS; }
 
@@ -156,6 +163,7 @@ class LWECryptoParams : public Serializable {
     ar(::cereal::make_nvp("N", m_N));
     ar(::cereal::make_nvp("q", m_q));
     ar(::cereal::make_nvp("Q", m_Q));
+    ar(::cereal::make_nvp("qSK", m_qKS));
     ar(::cereal::make_nvp("sigma", m_dgg.GetStd()));
     ar(::cereal::make_nvp("bKS", m_baseKS));
   }
@@ -172,6 +180,7 @@ class LWECryptoParams : public Serializable {
     ar(::cereal::make_nvp("N", m_N));
     ar(::cereal::make_nvp("q", m_q));
     ar(::cereal::make_nvp("Q", m_Q));
+    ar(::cereal::make_nvp("qSK", m_qKS));
     double sigma;
     ar(::cereal::make_nvp("sigma", sigma));
     this->m_dgg.SetStd(sigma);
@@ -192,6 +201,8 @@ class LWECryptoParams : public Serializable {
   NativeInteger m_q;
   // modulus for the RingGSW/RingLWE scheme
   NativeInteger m_Q;
+  // modulus for key-switching
+  NativeInteger m_qKS;
   // Error distribution generator
   DiscreteGaussianGeneratorImpl<NativeVector> m_dgg;
   // Base used in key switching
