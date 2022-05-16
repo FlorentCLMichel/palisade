@@ -1,4 +1,4 @@
-**Important note**: This is an *experimental* fork of the PALISADE library, which I will use to run experiments. See the GitLab reposiory https://gitlab.com/palisade/palisade-release for the official version.
+**Important note**: This is an *experimental* fork of the PALISADE library, which I will use to run experiments. See the GitLab repository https://gitlab.com/palisade/palisade-release for the official version.
 
 PALISADE Lattice Cryptography Library
 =====================================
