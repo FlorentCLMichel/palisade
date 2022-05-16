@@ -45,7 +45,7 @@ int main() {
     vector<bool> m1, m2;
     string m1_s, m2_s;
     cout << "Message 1: ";
-    cin >> m1_s;
+    getline(cin, m1_s);
     for (unsigned int i=0; i<m1_s.size(); i++) {
         m1.push_back(m1_s[i] & 1);
         m1.push_back(m1_s[i] & 2);
@@ -57,7 +57,7 @@ int main() {
         m1.push_back(m1_s[i] & 128);
     }
     cout << "Message 2: ";
-    cin >> m2_s;
+    getline(cin, m2_s);
     for (unsigned int i=0; i<m2_s.size(); i++) {
         m2.push_back(m2_s[i] & 1);
         m2.push_back(m2_s[i] & 2);
